@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
+import { initDatabase } from "@/lib/database";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,7 +49,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      SplashScreen.hideAsync();
+      initDatabase().then(() => {
+        SplashScreen.hideAsync();
+      });
     }
   }, [fontsLoaded]);
 
