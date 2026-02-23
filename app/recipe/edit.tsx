@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
@@ -27,7 +28,7 @@ import { COMMON_UNITS, UNITS } from "@/constants/units";
 const CATEGORIES = ["Entrée", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage", "Other"];
 
 const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+  ? `https://${process.env.EXPO_PUBLIC_DOMAIN.replace(/:5000$/, '')}`
   : "http://localhost:5000";
 
 interface EditableIngredient {
@@ -223,17 +224,24 @@ export default function EditRecipeScreen() {
 
     setScanning(true);
     try {
-      const response = await fetch(result.assets[0].uri);
-      const blob = await response.blob();
-      const reader = new FileReader();
-      const base64 = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => {
-          const dataUrl = reader.result as string;
-          resolve(dataUrl.split(",")[1]);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
+      let base64: string;
+      if (Platform.OS === "web") {
+        const response = await fetch(result.assets[0].uri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => {
+            const dataUrl = reader.result as string;
+            resolve(dataUrl.split(",")[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } else {
+        base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+          encoding: 'base64' as any,
+        });
+      }
 
       const ocrResponse = await fetch(`${API_BASE}/api/ocr-recipe`, {
         method: "POST",
@@ -277,8 +285,9 @@ export default function EditRecipeScreen() {
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Recipe Scanned", "Review the extracted data and make any corrections.");
-    } catch (e) {
-      Alert.alert("Scan Failed", "Could not extract recipe from image. Please try again with a clearer photo.");
+    } catch (e: any) {
+      console.error("Scan error:", e?.message || e);
+      Alert.alert("Scan Failed", e?.message || "Could not extract recipe from image. Please try again with a clearer photo.");
     } finally {
       setScanning(false);
     }
@@ -657,6 +666,7 @@ export default function EditRecipeScreen() {
           uri: photo.uri,
           caption: photo.caption,
           sortOrder: idx,
+          createdAt: new Date().toISOString(),
         })),
       });
 
