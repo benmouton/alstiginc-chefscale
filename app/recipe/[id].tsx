@@ -14,7 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
-import { useRecipeStore, type Recipe } from "@/store/useRecipeStore";
+import { useRecipeStore } from "@/store/useRecipeStore";
+import type { RecipeWithDetails } from "@/lib/database";
 import { scaleQuantity } from "@/lib/scaling";
 import { calculateRecipeCost } from "@/lib/costs";
 import { detectAllergens } from "@/lib/allergens";
@@ -28,7 +29,7 @@ export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { loadRecipeDetail, prices, loadPrices, removeRecipe } = useRecipeStore();
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [recipe, setRecipe] = useState<RecipeWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentServings, setCurrentServings] = useState(1);
 
@@ -39,19 +40,19 @@ export default function RecipeDetailScreen() {
         const r = await loadRecipeDetail(id);
         if (r) {
           setRecipe(r);
-          setCurrentServings(r.servings);
+          setCurrentServings(r.baseServings);
         }
         setLoading(false);
       }
     })();
   }, [id]);
 
-  const isScaled = recipe ? currentServings !== recipe.servings : false;
+  const isScaled = recipe ? currentServings !== recipe.baseServings : false;
 
   const scaledQuantities = useMemo(() => {
     if (!recipe) return [];
     return recipe.ingredients.map((ing) =>
-      scaleQuantity(ing.quantity, recipe.servings, currentServings)
+      scaleQuantity(ing.amount, recipe.baseServings, currentServings)
     );
   }, [recipe, currentServings]);
 
@@ -161,7 +162,7 @@ export default function RecipeDetailScreen() {
 
         <View style={styles.sectionSpacing}>
           <ScalingControls
-            originalServings={recipe.servings}
+            originalServings={recipe.baseServings}
             currentServings={currentServings}
             onServingsChange={setCurrentServings}
           />
@@ -180,7 +181,7 @@ export default function RecipeDetailScreen() {
                 <IngredientRow
                   key={ing.id}
                   name={ing.name}
-                  quantity={ing.quantity}
+                  quantity={ing.amount}
                   unit={ing.unit}
                   scaledQuantity={scaledQuantities[idx]}
                   cost={costSummary?.ingredientCosts[idx]?.cost}

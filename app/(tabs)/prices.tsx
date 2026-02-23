@@ -29,10 +29,10 @@ export default function PricesScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [quantity, setQuantity] = useState("1");
-  const [unit, setUnit] = useState("lb");
-  const [store, setStore] = useState("");
+  const [costPerUnit, setCostPerUnit] = useState("");
+  const [costUnit, setCostUnit] = useState("lb");
+  const [purchaseUnit, setPurchaseUnit] = useState("");
+  const [purchaseCost, setPurchaseCost] = useState("");
 
   useEffect(() => {
     loadPrices();
@@ -46,10 +46,10 @@ export default function PricesScreen() {
 
   const resetForm = () => {
     setName("");
-    setPrice("");
-    setQuantity("1");
-    setUnit("lb");
-    setStore("");
+    setCostPerUnit("");
+    setCostUnit("lb");
+    setPurchaseUnit("");
+    setPurchaseCost("");
     setEditingPrice(null);
   };
 
@@ -61,16 +61,16 @@ export default function PricesScreen() {
   const openEditModal = (item: IngredientPriceRow) => {
     setEditingPrice(item);
     setName(item.ingredientName);
-    setPrice(item.price.toString());
-    setQuantity(item.quantity.toString());
-    setUnit(item.unit);
-    setStore(item.store);
+    setCostPerUnit(item.costPerUnit != null ? item.costPerUnit.toString() : "");
+    setCostUnit(item.costUnit || "lb");
+    setPurchaseUnit(item.purchaseUnit || "");
+    setPurchaseCost(item.purchaseCost != null ? item.purchaseCost.toString() : "");
     setShowAddModal(true);
   };
 
   const handleSave = async () => {
-    if (!name.trim() || !price.trim()) {
-      Alert.alert("Missing Info", "Please enter ingredient name and price.");
+    if (!name.trim() || !costPerUnit.trim()) {
+      Alert.alert("Missing Info", "Please enter ingredient name and cost per unit.");
       return;
     }
 
@@ -78,10 +78,10 @@ export default function PricesScreen() {
     await savePrice({
       id: editingPrice?.id || Crypto.randomUUID(),
       ingredientName: name.trim(),
-      price: parseFloat(price) || 0,
-      quantity: parseFloat(quantity) || 1,
-      unit,
-      store: store.trim(),
+      costPerUnit: parseFloat(costPerUnit) || 0,
+      costUnit: costUnit,
+      purchaseUnit: purchaseUnit.trim(),
+      purchaseCost: purchaseCost ? parseFloat(purchaseCost) : null,
     });
     setShowAddModal(false);
     resetForm();
@@ -136,18 +136,20 @@ export default function PricesScreen() {
             <View style={styles.priceInfo}>
               <Text style={styles.priceName}>{item.ingredientName}</Text>
               <Text style={styles.priceDetail}>
-                ${item.price.toFixed(2)} / {item.quantity} {UNITS[item.unit]?.abbreviation || item.unit}
+                per {UNITS[item.costUnit]?.abbreviation || item.costUnit || 'unit'}
               </Text>
-              {item.store ? (
-                <Text style={styles.priceStore}>{item.store}</Text>
+              {item.purchaseCost != null && item.purchaseUnit ? (
+                <Text style={styles.priceStore}>
+                  ${item.purchaseCost.toFixed(2)} / {item.purchaseUnit}
+                </Text>
               ) : null}
             </View>
             <View style={styles.unitPriceContainer}>
               <Text style={styles.unitPrice}>
-                ${(item.price / item.quantity).toFixed(2)}
+                ${(item.costPerUnit ?? 0).toFixed(2)}
               </Text>
               <Text style={styles.unitPriceLabel}>
-                per {UNITS[item.unit]?.abbreviation || item.unit}
+                per {UNITS[item.costUnit]?.abbreviation || item.costUnit || 'unit'}
               </Text>
             </View>
           </Pressable>
@@ -187,26 +189,23 @@ export default function PricesScreen() {
 
               <View style={styles.row}>
                 <View style={styles.halfInput}>
-                  <Text style={styles.inputLabel}>Price ($)</Text>
+                  <Text style={styles.inputLabel}>Cost per Unit ($)</Text>
                   <TextInput
                     style={styles.input}
-                    value={price}
-                    onChangeText={setPrice}
+                    value={costPerUnit}
+                    onChangeText={setCostPerUnit}
                     placeholder="0.00"
                     placeholderTextColor={Colors.textMuted}
                     keyboardType="decimal-pad"
                   />
                 </View>
                 <View style={styles.halfInput}>
-                  <Text style={styles.inputLabel}>Quantity</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={quantity}
-                    onChangeText={setQuantity}
-                    placeholder="1"
-                    placeholderTextColor={Colors.textMuted}
-                    keyboardType="decimal-pad"
-                  />
+                  <Text style={styles.inputLabel}>Cost Unit</Text>
+                  <View style={styles.unitDisplay}>
+                    <Text style={styles.unitDisplayText}>
+                      {UNITS[costUnit]?.abbreviation || costUnit}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
@@ -215,24 +214,39 @@ export default function PricesScreen() {
                 {COMMON_UNITS.map((u) => (
                   <Pressable
                     key={u}
-                    onPress={() => setUnit(u)}
-                    style={[styles.unitChip, unit === u && styles.unitChipActive]}
+                    onPress={() => setCostUnit(u)}
+                    style={[styles.unitChip, costUnit === u && styles.unitChipActive]}
                   >
-                    <Text style={[styles.unitChipText, unit === u && styles.unitChipTextActive]}>
+                    <Text style={[styles.unitChipText, costUnit === u && styles.unitChipTextActive]}>
                       {UNITS[u]?.abbreviation || u}
                     </Text>
                   </Pressable>
                 ))}
               </View>
 
-              <Text style={styles.inputLabel}>Store (optional)</Text>
-              <TextInput
-                style={styles.input}
-                value={store}
-                onChangeText={setStore}
-                placeholder="e.g. Costco"
-                placeholderTextColor={Colors.textMuted}
-              />
+              <View style={styles.row}>
+                <View style={styles.halfInput}>
+                  <Text style={styles.inputLabel}>Purchase Cost ($)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={purchaseCost}
+                    onChangeText={setPurchaseCost}
+                    placeholder="Optional"
+                    placeholderTextColor={Colors.textMuted}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <View style={styles.halfInput}>
+                  <Text style={styles.inputLabel}>Purchase Unit</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={purchaseUnit}
+                    onChangeText={setPurchaseUnit}
+                    placeholder="e.g. 5lb bag"
+                    placeholderTextColor={Colors.textMuted}
+                  />
+                </View>
+              </View>
 
               <Pressable
                 onPress={handleSave}
@@ -403,6 +417,20 @@ const styles = StyleSheet.create({
   },
   halfInput: {
     flex: 1,
+  },
+  unitDisplay: {
+    backgroundColor: Colors.backgroundDark,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minHeight: TouchTarget.min,
+    justifyContent: "center",
+  },
+  unitDisplayText: {
+    fontSize: FontSize.md,
+    color: Colors.textPrimary,
+    fontFamily: "Inter_400Regular",
   },
   unitGrid: {
     flexDirection: "row",

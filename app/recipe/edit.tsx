@@ -64,7 +64,7 @@ export default function EditRecipeScreen() {
           setName(recipe.name);
           setDescription(recipe.description);
           setCategory(recipe.category);
-          setServings(recipe.servings.toString());
+          setServings(recipe.baseServings.toString());
           setPrepTime(recipe.prepTime > 0 ? recipe.prepTime.toString() : "");
           setCookTime(recipe.cookTime > 0 ? recipe.cookTime.toString() : "");
           setNotes(recipe.notes);
@@ -73,7 +73,7 @@ export default function EditRecipeScreen() {
               recipe.ingredients.map((i) => ({
                 id: i.id,
                 name: i.name,
-                quantity: i.quantity.toString(),
+                quantity: i.amount.toString(),
                 unit: i.unit,
               }))
             );
@@ -140,17 +140,28 @@ export default function EditRecipeScreen() {
       name: name.trim(),
       description: description.trim(),
       category,
-      servings: parseInt(servings) || 4,
+      tags: '[]',
+      baseServings: parseInt(servings) || 4,
+      baseYieldUnit: 'servings',
       prepTime: parseInt(prepTime) || 0,
       cookTime: parseInt(cookTime) || 0,
       imageUri: "",
       notes: notes.trim(),
+      source: '',
+      isFavorite: 0,
       ingredients: validIngredients.map((ing, idx) => ({
         id: ing.id,
         recipeId,
         name: ing.name.trim(),
-        quantity: parseFloat(ing.quantity) || 0,
+        amount: parseFloat(ing.quantity) || 0,
         unit: ing.unit,
+        category: '',
+        costPerUnit: null,
+        costUnit: null,
+        fdcId: null,
+        isOptional: 0,
+        isScalable: 1,
+        prepNote: '',
         sortOrder: idx,
       })),
       instructions: validInstructions.map((inst, idx) => ({
@@ -158,6 +169,9 @@ export default function EditRecipeScreen() {
         recipeId,
         stepNumber: idx + 1,
         text: inst.text.trim(),
+        timerMinutes: null,
+        temperature: '',
+        sortOrder: idx,
       })),
     });
 

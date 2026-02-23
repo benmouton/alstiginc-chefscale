@@ -2,16 +2,16 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, BorderRadius, Spacing, FontSize } from '@/constants/theme';
-import type { Recipe } from '@/store/useRecipeStore';
+import type { RecipeRow } from '@/lib/database';
 
 interface RecipeCardProps {
-  recipe: Recipe;
+  recipe: RecipeRow;
   onPress: () => void;
   onLongPress?: () => void;
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  'Entr\u00e9e': 'restaurant-outline',
+  'Entrée': 'restaurant-outline',
   'Appetizer': 'fast-food-outline',
   'Sauce': 'flask-outline',
   'Dessert': 'ice-cream-outline',
@@ -45,7 +45,7 @@ export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardP
         <View style={styles.meta}>
           <View style={styles.metaItem}>
             <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
-            <Text style={styles.metaText}>{recipe.servings}</Text>
+            <Text style={styles.metaText}>{recipe.baseServings}</Text>
           </View>
           {totalTime > 0 ? (
             <View style={styles.metaItem}>

@@ -14,7 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
-import { useRecipeStore, type Recipe } from "@/store/useRecipeStore";
+import { useRecipeStore } from "@/store/useRecipeStore";
+import type { RecipeRow } from "@/lib/database";
 import RecipeCard from "@/components/RecipeCard";
 
 const CATEGORIES = ["All", "Entr\u00e9e", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage"];
@@ -39,7 +40,7 @@ export default function HomeScreen() {
     ? recipes
     : recipes.filter((r) => r.category === selectedCategory);
 
-  const handleDeleteRecipe = (recipe: Recipe) => {
+  const handleDeleteRecipe = (recipe: RecipeRow) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(
       "Delete Recipe",
