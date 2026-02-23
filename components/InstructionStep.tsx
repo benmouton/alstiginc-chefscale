@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 
@@ -8,6 +8,7 @@ interface InstructionStepProps {
   text: string;
   timerMinutes?: number | null;
   temperature?: string;
+  photoUri?: string;
   onTimerPress?: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function InstructionStep({
   text,
   timerMinutes,
   temperature,
+  photoUri,
   onTimerPress,
 }: InstructionStepProps) {
   return (
@@ -25,6 +27,11 @@ export default function InstructionStep({
       </View>
       <View style={styles.content}>
         <Text style={styles.text}>{text}</Text>
+
+        {photoUri ? (
+          <Image source={{ uri: photoUri }} style={styles.stepPhoto} />
+        ) : null}
+
         {(timerMinutes || temperature) ? (
           <View style={styles.badges}>
             {timerMinutes ? (
@@ -80,6 +87,12 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     lineHeight: 22,
     fontFamily: 'Inter_400Regular',
+  },
+  stepPhoto: {
+    width: '100%',
+    height: 180,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
   },
   badges: {
     flexDirection: 'row',

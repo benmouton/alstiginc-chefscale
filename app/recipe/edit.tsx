@@ -44,6 +44,13 @@ interface EditableInstruction {
   text: string;
   timerMinutes: string;
   temperature: string;
+  photoUri: string;
+}
+
+interface GalleryPhoto {
+  id: string;
+  uri: string;
+  caption: string;
 }
 
 interface ValidationErrors {
@@ -99,8 +106,10 @@ export default function EditRecipeScreen() {
   ]);
 
   const [instructions, setInstructions] = useState<EditableInstruction[]>([
-    { id: Crypto.randomUUID(), text: "", timerMinutes: "", temperature: "" },
+    { id: Crypto.randomUUID(), text: "", timerMinutes: "", temperature: "", photoUri: "" },
   ]);
+
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
 
   const isEditing = !!id;
 
@@ -139,6 +148,16 @@ export default function EditRecipeScreen() {
                 text: i.text,
                 timerMinutes: i.timerMinutes ? i.timerMinutes.toString() : "",
                 temperature: i.temperature || "",
+                photoUri: i.photoUri || "",
+              }))
+            );
+          }
+          if (recipe.photos && recipe.photos.length > 0) {
+            setGalleryPhotos(
+              recipe.photos.map((p) => ({
+                id: p.id,
+                uri: p.uri,
+                caption: p.caption || "",
               }))
             );
           }
@@ -228,6 +247,7 @@ export default function EditRecipeScreen() {
             text: inst.text || "",
             timerMinutes: inst.timerMinutes ? inst.timerMinutes.toString() : "",
             temperature: inst.temperature || "",
+            photoUri: "",
           }))
         );
       }
@@ -282,11 +302,97 @@ export default function EditRecipeScreen() {
     });
   };
 
+  const pickStepPhoto = async (instId: string) => {
+    Alert.alert("Step Photo", "Add a reference photo for this step", [
+      {
+        text: "Camera",
+        onPress: async () => {
+          const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets[0]) {
+            updateInstruction(instId, "photoUri", result.assets[0].uri);
+          }
+        },
+      },
+      {
+        text: "Photo Library",
+        onPress: async () => {
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets[0]) {
+            updateInstruction(instId, "photoUri", result.assets[0].uri);
+          }
+        },
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const removeStepPhoto = (instId: string) => {
+    setInstructions((prev) =>
+      prev.map((i) => (i.id === instId ? { ...i, photoUri: "" } : i))
+    );
+  };
+
+  const addGalleryPhoto = async () => {
+    Alert.alert("Add Photo", "Choose a source for your gallery photo", [
+      {
+        text: "Camera",
+        onPress: async () => {
+          const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets[0]) {
+            setGalleryPhotos((prev) => [
+              ...prev,
+              { id: Crypto.randomUUID(), uri: result.assets[0].uri, caption: "" },
+            ]);
+          }
+        },
+      },
+      {
+        text: "Photo Library",
+        onPress: async () => {
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            quality: 0.7,
+          });
+          if (!result.canceled && result.assets[0]) {
+            setGalleryPhotos((prev) => [
+              ...prev,
+              { id: Crypto.randomUUID(), uri: result.assets[0].uri, caption: "" },
+            ]);
+          }
+        },
+      },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const removeGalleryPhoto = (photoId: string) => {
+    setGalleryPhotos((prev) => prev.filter((p) => p.id !== photoId));
+  };
+
+  const updateGalleryCaption = (photoId: string, caption: string) => {
+    setGalleryPhotos((prev) =>
+      prev.map((p) => (p.id === photoId ? { ...p, caption } : p))
+    );
+  };
+
   const addInstruction = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setInstructions((prev) => [
       ...prev,
-      { id: Crypto.randomUUID(), text: "", timerMinutes: "", temperature: "" },
+      { id: Crypto.randomUUID(), text: "", timerMinutes: "", temperature: "", photoUri: "" },
     ]);
   };
 
@@ -295,7 +401,7 @@ export default function EditRecipeScreen() {
     setInstructions((prev) => prev.filter((i) => i.id !== instId));
   };
 
-  const updateInstruction = (instId: string, field: keyof EditableInstruction, value: string) => {
+  const updateInstruction = (instId: string, field: string, value: string) => {
     setInstructions((prev) =>
       prev.map((i) => (i.id === instId ? { ...i, [field]: value } : i))
     );
@@ -453,6 +559,7 @@ export default function EditRecipeScreen() {
               text: step.text,
               timerMinutes: "",
               temperature: "",
+              photoUri: "",
             });
           }
           return arr;
@@ -513,6 +620,14 @@ export default function EditRecipeScreen() {
           text: inst.text.trim(),
           timerMinutes: inst.timerMinutes ? parseInt(inst.timerMinutes) : null,
           temperature: inst.temperature.trim(),
+          photoUri: inst.photoUri || '',
+          sortOrder: idx,
+        })),
+        photos: galleryPhotos.filter((p) => p.uri).map((photo, idx) => ({
+          id: photo.id,
+          recipeId,
+          uri: photo.uri,
+          caption: photo.caption,
           sortOrder: idx,
         })),
       });
@@ -876,7 +991,26 @@ export default function EditRecipeScreen() {
                   placeholderTextColor={Colors.textMuted}
                 />
               </View>
+              <Pressable
+                onPress={() => pickStepPhoto(inst.id)}
+                style={styles.stepPhotoBtn}
+                testID={`step-photo-btn-${idx}`}
+              >
+                <Ionicons name="camera-outline" size={18} color={Colors.primary} />
+              </Pressable>
             </View>
+
+            {inst.photoUri ? (
+              <View style={styles.stepPhotoPreview}>
+                <Image source={{ uri: inst.photoUri }} style={styles.stepPhotoImage} />
+                <Pressable
+                  onPress={() => removeStepPhoto(inst.id)}
+                  style={styles.stepPhotoRemove}
+                >
+                  <Ionicons name="close-circle" size={22} color={Colors.error} />
+                </Pressable>
+              </View>
+            ) : null}
           </View>
         ))}
 
@@ -884,6 +1018,51 @@ export default function EditRecipeScreen() {
           <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
           <Text style={styles.addRowText}>Add Step</Text>
         </Pressable>
+
+        <View style={[styles.sectionHeaderRow, { marginTop: Spacing.xxl }]}>
+          <Text style={styles.sectionLabel}>Photo Gallery</Text>
+          <Pressable onPress={addGalleryPhoto} style={styles.addButton} testID="add-gallery-photo-btn">
+            <Ionicons name="camera" size={16} color={Colors.textPrimary} />
+            <Text style={styles.addButtonText}>Add</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.galleryHint}>
+          Add plating references, prep stages, or visual guides
+        </Text>
+
+        {galleryPhotos.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.galleryScroll}
+            contentContainerStyle={styles.galleryScrollContent}
+          >
+            {galleryPhotos.map((photo) => (
+              <View key={photo.id} style={styles.galleryItem}>
+                <Image source={{ uri: photo.uri }} style={styles.galleryItemImage} />
+                <Pressable
+                  onPress={() => removeGalleryPhoto(photo.id)}
+                  style={styles.galleryItemRemove}
+                >
+                  <Ionicons name="close-circle" size={22} color={Colors.error} />
+                </Pressable>
+                <TextInput
+                  style={styles.galleryCaption}
+                  value={photo.caption}
+                  onChangeText={(v) => updateGalleryCaption(photo.id, v)}
+                  placeholder="Caption..."
+                  placeholderTextColor={Colors.textMuted}
+                  maxLength={60}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <Pressable onPress={addGalleryPhoto} style={styles.galleryEmpty}>
+            <Ionicons name="images-outline" size={32} color={Colors.textMuted} />
+            <Text style={styles.galleryEmptyText}>No gallery photos yet</Text>
+          </Pressable>
+        )}
 
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl, marginBottom: Spacing.md }]}>
           Chef's Notes
@@ -1815,5 +1994,93 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
     fontFamily: "Inter_600SemiBold",
+  },
+
+  stepPhotoBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.backgroundDark,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepPhotoPreview: {
+    marginTop: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
+    position: "relative",
+  },
+  stepPhotoImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: BorderRadius.md,
+  },
+  stepPhotoRemove: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 11,
+  },
+
+  galleryHint: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    fontFamily: "Inter_400Regular",
+    marginBottom: Spacing.md,
+  },
+  galleryScroll: {
+    marginBottom: Spacing.md,
+  },
+  galleryScrollContent: {
+    gap: Spacing.sm,
+  },
+  galleryItem: {
+    width: 140,
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
+    backgroundColor: Colors.backgroundCard,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    position: "relative",
+  },
+  galleryItemImage: {
+    width: 140,
+    height: 140,
+    borderTopLeftRadius: BorderRadius.md,
+    borderTopRightRadius: BorderRadius.md,
+  },
+  galleryItemRemove: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 11,
+  },
+  galleryCaption: {
+    fontSize: FontSize.xs,
+    color: Colors.textPrimary,
+    fontFamily: "Inter_400Regular",
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  galleryEmpty: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.xxl,
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderStyle: "dashed",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  galleryEmptyText: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    fontFamily: "Inter_400Regular",
   },
 });

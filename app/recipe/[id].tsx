@@ -299,6 +299,7 @@ export default function RecipeDetailScreen() {
                     text={inst.text}
                     timerMinutes={inst.timerMinutes}
                     temperature={inst.temperature}
+                    photoUri={inst.photoUri || undefined}
                   />
                 ))}
               </View>
@@ -316,6 +317,32 @@ export default function RecipeDetailScreen() {
           {allergens.length > 0 ? (
             <View style={styles.section}>
               <AllergenList allergens={allergens} />
+            </View>
+          ) : null}
+
+          {/* PHOTO GALLERY */}
+          {recipe.photos && recipe.photos.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="images-outline" size={20} color={Colors.primary} />
+                  <Text style={styles.sectionTitle}>Photos</Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.galleryScrollContent}
+                >
+                  {recipe.photos.map((photo) => (
+                    <View key={photo.id} style={styles.galleryPhotoItem}>
+                      <Image source={{ uri: photo.uri }} style={styles.galleryPhotoImage} />
+                      {photo.caption ? (
+                        <Text style={styles.galleryPhotoCaption}>{photo.caption}</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
             </View>
           ) : null}
 
@@ -547,6 +574,29 @@ const styles = StyleSheet.create({
     borderColor: Colors.error + "30",
     backgroundColor: Colors.error + "10",
   },
+  galleryScrollContent: {
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+  },
+  galleryPhotoItem: {
+    width: 160,
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
+    backgroundColor: Colors.backgroundDark,
+  },
+  galleryPhotoImage: {
+    width: 160,
+    height: 160,
+    borderRadius: BorderRadius.md,
+  },
+  galleryPhotoCaption: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+  },
+
   actionBtnDangerText: {
     fontSize: FontSize.md,
     color: Colors.error,

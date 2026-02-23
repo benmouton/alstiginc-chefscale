@@ -90,3 +90,8 @@ constants/
 - Store expanded with currentRecipe, currentScale, toggleFavorite
 - initDatabase() called on app launch in _layout.tsx
 - Categories: Entrée, Appetizer, Sauce, Dessert, Prep, Side, Beverage
+- Phase 3: Multi-photo support
+  - Database v3: recipe_photos table (id, recipeId, uri, caption, sortOrder), photoUri on instructions
+  - Edit screen: gallery photo management (add/remove/caption), instruction step photos (camera icon)
+  - Detail screen: horizontal photo gallery section, inline step photos in InstructionStep component
+  - Photo picker via expo-image-picker (camera + library), JPEG 0.7 quality

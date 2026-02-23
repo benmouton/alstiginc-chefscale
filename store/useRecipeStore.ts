@@ -10,6 +10,8 @@ import {
   deleteIngredientsByRecipeId,
   insertInstruction,
   deleteInstructionsByRecipeId,
+  insertRecipePhoto,
+  deleteRecipePhotosByRecipeId,
   getAllPrices,
   upsertPrice,
   deletePrice as dbDeletePrice,
@@ -21,6 +23,7 @@ import {
   type RecipeRow,
   type IngredientRow,
   type InstructionRow,
+  type RecipePhotoRow,
   type IngredientPriceRow,
   type RecipeWithDetails,
 } from '@/lib/database';
@@ -104,6 +107,13 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
       await deleteInstructionsByRecipeId(recipe.id);
       for (const inst of recipe.instructions) {
         await insertInstruction(inst);
+      }
+
+      await deleteRecipePhotosByRecipeId(recipe.id);
+      if (recipe.photos) {
+        for (const photo of recipe.photos) {
+          await insertRecipePhoto(photo);
+        }
       }
 
       await get().loadRecipes();

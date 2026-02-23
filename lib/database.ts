@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 const DB_NAME = 'chefscale.db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let db: SQLite.SQLiteDatabase | null = null;
 
@@ -30,6 +30,7 @@ export async function initDatabase(): Promise<void> {
       PRAGMA journal_mode = WAL;
       PRAGMA foreign_keys = ON;
 
+      DROP TABLE IF EXISTS recipe_photos;
       DROP TABLE IF EXISTS ingredient_prices;
       DROP TABLE IF EXISTS instructions;
       DROP TABLE IF EXISTS ingredients;
@@ -77,7 +78,18 @@ export async function initDatabase(): Promise<void> {
         text TEXT NOT NULL,
         timerMinutes INTEGER,
         temperature TEXT DEFAULT '',
+        photoUri TEXT DEFAULT '',
         sortOrder INTEGER DEFAULT 0,
+        FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE recipe_photos (
+        id TEXT PRIMARY KEY,
+        recipeId TEXT NOT NULL,
+        uri TEXT NOT NULL,
+        caption TEXT DEFAULT '',
+        sortOrder INTEGER DEFAULT 0,
+        createdAt TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE
       );
 
@@ -142,7 +154,17 @@ export interface InstructionRow {
   text: string;
   timerMinutes: number | null;
   temperature: string;
+  photoUri: string;
   sortOrder: number;
+}
+
+export interface RecipePhotoRow {
+  id: string;
+  recipeId: string;
+  uri: string;
+  caption: string;
+  sortOrder: number;
+  createdAt: string;
 }
 
 export interface IngredientPriceRow {
@@ -158,6 +180,7 @@ export interface IngredientPriceRow {
 export interface RecipeWithDetails extends RecipeRow {
   ingredients: IngredientRow[];
   instructions: InstructionRow[];
+  photos: RecipePhotoRow[];
 }
 
 export async function getAllRecipes(): Promise<RecipeRow[]> {
@@ -183,8 +206,12 @@ export async function getRecipeWithDetails(id: string): Promise<RecipeWithDetail
     'SELECT * FROM instructions WHERE recipeId = ? ORDER BY sortOrder, stepNumber',
     [id]
   );
+  const photos = await database.getAllAsync<RecipePhotoRow>(
+    'SELECT * FROM recipe_photos WHERE recipeId = ? ORDER BY sortOrder',
+    [id]
+  );
 
-  return { ...recipe, ingredients, instructions };
+  return { ...recipe, ingredients, instructions, photos };
 }
 
 export async function getRecipesByCategory(category: string): Promise<RecipeRow[]> {
@@ -316,12 +343,12 @@ export async function deleteIngredientsByRecipeId(recipeId: string): Promise<voi
 export async function insertInstruction(instruction: InstructionRow): Promise<void> {
   const database = await getDatabase();
   await database.runAsync(
-    `INSERT INTO instructions (id, recipeId, stepNumber, text, timerMinutes, temperature, sortOrder)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO instructions (id, recipeId, stepNumber, text, timerMinutes, temperature, photoUri, sortOrder)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       instruction.id, instruction.recipeId, instruction.stepNumber,
       instruction.text, instruction.timerMinutes, instruction.temperature,
-      instruction.sortOrder,
+      instruction.photoUri || '', instruction.sortOrder,
     ]
   );
 }
@@ -329,6 +356,33 @@ export async function insertInstruction(instruction: InstructionRow): Promise<vo
 export async function deleteInstructionsByRecipeId(recipeId: string): Promise<void> {
   const database = await getDatabase();
   await database.runAsync('DELETE FROM instructions WHERE recipeId = ?', [recipeId]);
+}
+
+export async function insertRecipePhoto(photo: Omit<RecipePhotoRow, 'createdAt'>): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync(
+    `INSERT INTO recipe_photos (id, recipeId, uri, caption, sortOrder)
+     VALUES (?, ?, ?, ?, ?)`,
+    [photo.id, photo.recipeId, photo.uri, photo.caption, photo.sortOrder]
+  );
+}
+
+export async function deleteRecipePhotosByRecipeId(recipeId: string): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync('DELETE FROM recipe_photos WHERE recipeId = ?', [recipeId]);
+}
+
+export async function deleteRecipePhoto(id: string): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync('DELETE FROM recipe_photos WHERE id = ?', [id]);
+}
+
+export async function getRecipePhotos(recipeId: string): Promise<RecipePhotoRow[]> {
+  const database = await getDatabase();
+  return database.getAllAsync<RecipePhotoRow>(
+    'SELECT * FROM recipe_photos WHERE recipeId = ? ORDER BY sortOrder',
+    [recipeId]
+  );
 }
 
 export async function getAllPrices(): Promise<IngredientPriceRow[]> {
