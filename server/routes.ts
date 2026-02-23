@@ -9,12 +9,15 @@ const openai = new OpenAI({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  app.post("/api/ocr-recipe", express.json({ limit: "20mb" }), async (req, res) => {
+  app.post("/api/ocr-recipe", async (req, res) => {
+    console.log("[OCR] Received OCR request, body size:", JSON.stringify(req.body || {}).length);
     try {
       const { imageBase64 } = req.body;
       if (!imageBase64) {
+        console.log("[OCR] Missing imageBase64 in request body");
         return res.status(400).json({ error: "imageBase64 is required" });
       }
+      console.log("[OCR] Image base64 length:", imageBase64.length, "- sending to OpenAI...");
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o",

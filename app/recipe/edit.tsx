@@ -243,13 +243,22 @@ export default function EditRecipeScreen() {
         });
       }
 
-      const ocrResponse = await fetch(`${API_BASE}/api/ocr-recipe`, {
+      const ocrUrl = `${API_BASE}/api/ocr-recipe`;
+      console.log("[OCR] Sending request to:", ocrUrl);
+      console.log("[OCR] Base64 length:", base64.length);
+
+      const ocrResponse = await fetch(ocrUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: base64 }),
       });
 
-      if (!ocrResponse.ok) throw new Error("Failed to scan recipe");
+      console.log("[OCR] Response status:", ocrResponse.status);
+      if (!ocrResponse.ok) {
+        const errBody = await ocrResponse.text();
+        console.error("[OCR] Error response body:", errBody);
+        throw new Error(`Server returned ${ocrResponse.status}: ${errBody}`);
+      }
 
       const data = await ocrResponse.json();
       if (data.name) setName(data.name);
