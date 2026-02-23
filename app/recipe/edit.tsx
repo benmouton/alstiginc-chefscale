@@ -28,9 +28,12 @@ import { COMMON_UNITS, UNITS } from "@/constants/units";
 
 const CATEGORIES = ["Entrée", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage", "Other"];
 
-const API_BASE = process.env.EXPO_PUBLIC_DOMAIN
-  ? `https://${process.env.EXPO_PUBLIC_DOMAIN.replace(/:5000$/, '')}`
-  : "http://localhost:5000";
+const API_BASE = (() => {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  if (!domain) return "http://localhost:5000";
+  if (Platform.OS === "web") return "";
+  return `https://${domain}`;
+})();
 
 interface EditableIngredient {
   id: string;
@@ -277,13 +280,19 @@ export default function EditRecipeScreen() {
       });
 
       console.log("[OCR] Response status:", ocrResponse.status);
+      const responseText = await ocrResponse.text();
+      console.log("[OCR] Response body (first 500 chars):", responseText.substring(0, 500));
+
       if (!ocrResponse.ok) {
-        const errBody = await ocrResponse.text();
-        console.error("[OCR] Error response body:", errBody);
-        throw new Error(`Server returned ${ocrResponse.status}: ${errBody}`);
+        console.error("[OCR] Error response body:", responseText);
+        throw new Error(`Server returned ${ocrResponse.status}: ${responseText.substring(0, 200)}`);
       }
 
-      const data = await ocrResponse.json();
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("Server returned non-JSON response. Please try again.");
+      }
+      const data = JSON.parse(jsonMatch[0]);
       if (data.name) setName(data.name);
       if (data.description) setDescription(data.description);
       if (data.category && CATEGORIES.includes(data.category)) setCategory(data.category);
