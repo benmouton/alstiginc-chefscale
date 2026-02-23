@@ -2,9 +2,7 @@ import { create } from 'zustand';
 import * as Crypto from 'expo-crypto';
 import {
   getAllRecipes,
-  getRecipeById,
-  getIngredientsByRecipeId,
-  getInstructionsByRecipeId,
+  getRecipeWithDetails,
   insertRecipe,
   updateRecipe,
   deleteRecipe as dbDeleteRecipe,
@@ -15,19 +13,24 @@ import {
   getAllPrices,
   upsertPrice,
   deletePrice as dbDeletePrice,
+  searchRecipes as dbSearchRecipes,
+  getRecipesByCategory as dbGetRecipesByCategory,
+  getRecipesByAllergenFree as dbGetRecipesByAllergenFree,
+  getFavoriteRecipes as dbGetFavoriteRecipes,
+  toggleFavorite as dbToggleFavorite,
   type RecipeRow,
   type IngredientRow,
   type InstructionRow,
   type IngredientPriceRow,
+  type RecipeWithDetails,
 } from '@/lib/database';
 
-export interface Recipe extends RecipeRow {
-  ingredients: IngredientRow[];
-  instructions: InstructionRow[];
-}
+export type Recipe = RecipeWithDetails;
 
 interface RecipeStore {
-  recipes: Recipe[];
+  recipes: RecipeRow[];
+  currentRecipe: Recipe | null;
+  currentScale: number;
   prices: IngredientPriceRow[];
   isLoading: boolean;
   error: string | null;
@@ -36,6 +39,15 @@ interface RecipeStore {
   loadRecipeDetail: (id: string) => Promise<Recipe | null>;
   saveRecipe: (recipe: Omit<Recipe, 'createdAt' | 'updatedAt'>) => Promise<void>;
   removeRecipe: (id: string) => Promise<void>;
+
+  setCurrentScale: (scale: number) => void;
+  resetScale: () => void;
+
+  searchRecipes: (query: string) => Promise<RecipeRow[]>;
+  getRecipesByCategory: (category: string) => Promise<RecipeRow[]>;
+  getRecipesByAllergenFree: (allergenKeywords: string[]) => Promise<RecipeRow[]>;
+  getFavoriteRecipes: () => Promise<RecipeRow[]>;
+  toggleFavorite: (id: string, isFavorite: boolean) => Promise<void>;
 
   loadPrices: () => Promise<void>;
   savePrice: (price: Omit<IngredientPriceRow, 'updatedAt'>) => Promise<void>;
@@ -46,6 +58,8 @@ interface RecipeStore {
 
 export const useRecipeStore = create<RecipeStore>((set, get) => ({
   recipes: [],
+  currentRecipe: null,
+  currentScale: 1,
   prices: [],
   isLoading: false,
   error: null,
@@ -53,12 +67,7 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
   loadRecipes: async () => {
     set({ isLoading: true, error: null });
     try {
-      const rows = await getAllRecipes();
-      const recipes: Recipe[] = rows.map((r) => ({
-        ...r,
-        ingredients: [],
-        instructions: [],
-      }));
+      const recipes = await getAllRecipes();
       set({ recipes, isLoading: false });
     } catch (e) {
       set({ error: (e as Error).message, isLoading: false });
@@ -67,19 +76,10 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
 
   loadRecipeDetail: async (id: string) => {
     try {
-      const recipe = await getRecipeById(id);
+      const recipe = await getRecipeWithDetails(id);
       if (!recipe) return null;
-
-      const ingredients = await getIngredientsByRecipeId(id);
-      const instructions = await getInstructionsByRecipeId(id);
-
-      const full: Recipe = { ...recipe, ingredients, instructions };
-
-      set((state) => ({
-        recipes: state.recipes.map((r) => (r.id === id ? full : r)),
-      }));
-
-      return full;
+      set({ currentRecipe: recipe });
+      return recipe;
     } catch (e) {
       set({ error: (e as Error).message });
       return null;
@@ -88,7 +88,7 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
 
   saveRecipe: async (recipe) => {
     try {
-      const existing = await getRecipeById(recipe.id);
+      const existing = get().recipes.find((r) => r.id === recipe.id);
 
       if (existing) {
         await updateRecipe(recipe);
@@ -117,6 +117,63 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
       await dbDeleteRecipe(id);
       set((state) => ({
         recipes: state.recipes.filter((r) => r.id !== id),
+        currentRecipe: state.currentRecipe?.id === id ? null : state.currentRecipe,
+      }));
+    } catch (e) {
+      set({ error: (e as Error).message });
+    }
+  },
+
+  setCurrentScale: (scale: number) => set({ currentScale: scale }),
+  resetScale: () => set({ currentScale: 1 }),
+
+  searchRecipes: async (query: string) => {
+    try {
+      return await dbSearchRecipes(query);
+    } catch (e) {
+      set({ error: (e as Error).message });
+      return [];
+    }
+  },
+
+  getRecipesByCategory: async (category: string) => {
+    try {
+      return await dbGetRecipesByCategory(category);
+    } catch (e) {
+      set({ error: (e as Error).message });
+      return [];
+    }
+  },
+
+  getRecipesByAllergenFree: async (allergenKeywords: string[]) => {
+    try {
+      return await dbGetRecipesByAllergenFree(allergenKeywords);
+    } catch (e) {
+      set({ error: (e as Error).message });
+      return [];
+    }
+  },
+
+  getFavoriteRecipes: async () => {
+    try {
+      return await dbGetFavoriteRecipes();
+    } catch (e) {
+      set({ error: (e as Error).message });
+      return [];
+    }
+  },
+
+  toggleFavorite: async (id: string, isFavorite: boolean) => {
+    try {
+      await dbToggleFavorite(id, isFavorite);
+      set((state) => ({
+        recipes: state.recipes.map((r) =>
+          r.id === id ? { ...r, isFavorite: isFavorite ? 1 : 0 } : r
+        ),
+        currentRecipe:
+          state.currentRecipe?.id === id
+            ? { ...state.currentRecipe, isFavorite: isFavorite ? 1 : 0 }
+            : state.currentRecipe,
       }));
     } catch (e) {
       set({ error: (e as Error).message });
