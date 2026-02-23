@@ -69,7 +69,18 @@ constants/
 - ingredients.quantity → ingredients.amount
 - ingredient_prices: price/quantity/unit/store → costPerUnit/costUnit/purchaseUnit/purchaseCost
 
+## API Endpoints (server/routes.ts)
+- **POST /api/ocr-recipe**: Accepts `{ imageBase64 }`, uses GPT-4o vision to extract recipe data from photo, returns structured JSON
+- **POST /api/validate-recipe**: Accepts `{ name, ingredients, instructions }`, uses GPT-4o to analyze recipe completeness, returns `{ isComplete, suggestedSteps, warnings, tips }`
+
 ## Recent Changes
+- Added AI recipe validation system:
+  - POST /api/validate-recipe endpoint for AI-powered completeness analysis
+  - Local validation: checks if all ingredients are referenced in instructions
+  - Review modal: shows warnings, AI suggestions with accept/dismiss, pro tips
+  - Dual save flow: "Review & Save" (runs validation) or "Save without review" (quick save)
+  - Accepted AI suggestions auto-inserted into instructions at specified positions
+- OCR recipe scanning via camera → GPT-4o vision → pre-fills all recipe fields
 - Phase 2: Database schema upgrade to v2 with expanded fields
   - Added tags, baseYieldUnit, source, isFavorite to recipes
   - Added category, costPerUnit, costUnit, fdcId, isOptional, isScalable, prepNote to ingredients
