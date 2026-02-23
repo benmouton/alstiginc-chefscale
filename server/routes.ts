@@ -38,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 {
   "name": "recipe name",
   "description": "brief description",
-  "category": "one of: Entrée, Appetizer, Sauce, Dessert, Prep, Side, Beverage, Other",
+  "category": "best fit from: Entrée (main dishes/proteins), Appetizer (starters/snacks), Sauce (sauces/dressings/condiments), Dessert (sweets/baking/breads/pastries), Prep (stocks/bases/doughs), Side (side dishes/salads/vegetables), Beverage (drinks), Other",
   "baseServings": 4,
   "prepTime": 0,
   "cookTime": 0,
