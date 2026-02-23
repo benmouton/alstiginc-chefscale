@@ -95,3 +95,14 @@ constants/
   - Edit screen: gallery photo management (add/remove/caption), instruction step photos (camera icon)
   - Detail screen: horizontal photo gallery section, inline step photos in InstructionStep component
   - Photo picker via expo-image-picker (camera + library), JPEG 0.7 quality
+- Phase 5: Recipe Detail & Scaling (the killer feature)
+  - Scaling thresholds: 48+ tsp→cups (direct), 16+ tbsp→cups (direct), 3+ tsp→tbsp (fallback), 4+ cups→quarts, 4+ quarts→gallons, 16+ oz→lbs
+  - Down-conversions: <0.25 cup→tbsp, <1 tbsp→tsp
+  - Fraction display: ¼, ⅓, ½, ¾, ⅛, ⅝, etc.
+  - Smart rounding: whole numbers for "each" items, nearest ¼ for cups, nearest ½ for tbsp/tsp
+  - CostSummary: food cost % with color coding (green <25%, yellow 25-30%, red >30%), "Edit Prices" link → prices tab
+  - TimerOverlay component: countdown timer modal with start/pause/reset, visual progress fill, haptic feedback on completion
+  - Ingredient category dividers: groups ingredients by category with labeled divider lines
+  - Allergen section: "Contains:" label with colored badges for Big 9 allergens
+  - Cook Mode button placeholder (coming in future phase)
+  - Bottom actions: Cook Mode, Duplicate Recipe, Delete Recipe (with confirmation)
