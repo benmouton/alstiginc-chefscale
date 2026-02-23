@@ -1,0 +1,100 @@
+PHASE 5: Recipe Detail & Scaling (THE KILLER FEATURE)
+Build the Recipe Detail screen (app/recipe/[id].tsx) for ChefScale. This is the most important screen — scaling is the core feature.
+
+LAYOUT:
+
+HERO SECTION:
+- Full-width photo (or gradient placeholder)
+- Back button (top left)
+- Edit button (top right, pencil icon)
+- Favorite heart (top right, next to edit)
+- Recipe name overlaid on bottom of photo (large, bold, white with dark gradient behind)
+
+INFO BAR:
+- Row of pills: Category | Prep time | Cook time | Total time
+- Base yield: "Makes 4 servings"
+
+═══════════════════════════════════════════════════
+SCALING CONTROLS — This should be PROMINENT and visually distinct
+═══════════════════════════════════════════════════
+
+- Section header: "SCALE THIS RECIPE" in teal
+- Current scale displayed large: "×1" (or "×5", etc.)
+- Quick-scale buttons in a row: ×1 (original), ×2, ×5, ×10, ×25
+  - Selected button is teal filled, others are outlined
+- Custom input: "Custom servings" number input with "Scale" button
+  - Shows "Making __ servings" dynamically
+- "Reset" text button to go back to ×1
+- ALL scaling controls should be in a sticky card or visually highlighted section with a subtle teal border/background
+
+INGREDIENTS LIST (updates live when scale changes):
+- Each ingredient row shows:
+  - Scaled amount (LARGE font, bold, teal) + unit
+  - Original amount in parentheses if scaled: "(was 2 tbsp)"
+  - Ingredient name
+  - Prep note in gray italic
+  - Cost for this ingredient at current scale (right-aligned, amber) if cost data exists
+- Smart unit conversion applied:
+  - 48+ tsp → cups
+  - 16+ tbsp → cups
+  - 4+ cups → quarts
+  - 4+ quarts → gallons
+  - 16+ oz → pounds
+  - Small amounts convert down (< 0.25 cup → tbsp, < 1 tbsp → tsp)
+  - Display fractions: 0.25→¼, 0.33→⅓, 0.5→½, 0.75→¾
+  - "Each" items (eggs, bay leaves): always round UP to whole numbers
+  - Non-scalable items show original amount with "fixed" badge
+- Divider line between ingredient categories if categories exist
+
+INSTRUCTIONS LIST:
+- Numbered steps with circle badges
+- Step text
+- Timer button if timer exists (tappable → starts countdown timer overlay)
+- Temperature badge if exists
+
+COST SUMMARY CARD (if any costs entered):
+- Total batch cost at current scale
+- Cost per serving
+- If user has set a menu price: food cost percentage with color coding
+  - Green: <25%
+  - Yellow: 25-30%
+  - Red: >30%
+- "Edit prices" link → navigates to My Prices tab
+
+NUTRITION CARD (if nutrition data linked):
+- Per serving at current scale: Calories, Protein, Carbs, Fat, Fiber, Sodium, Sugar
+- Simple bar chart or just numbers with labels
+
+ALLERGEN SECTION:
+- "Contains:" followed by colored allergen badges
+- Big 9 allergens auto-detected from ingredients:
+  Milk/Dairy, Eggs, Fish, Shellfish, Tree Nuts, Peanuts, Wheat/Gluten, Soy, Sesame
+- Detection based on keyword matching in ingredient names:
+  dairy: milk, cream, butter, cheese, yogurt, whey, casein, ghee
+  eggs: egg, eggs, yolk, whites, meringue, mayo, mayonnaise
+  fish: salmon, tuna, cod, bass, trout, anchovy, sardine, fish sauce
+  shellfish: shrimp, crab, lobster, crawfish, crayfish, clam, mussel, oyster, scallop
+  tree nuts: almond, walnut, pecan, cashew, pistachio, macadamia, hazelnut, pine nut
+  peanuts: peanut, peanuts, peanut butter
+  wheat: flour, bread, breadcrumb, panko, pasta, wheat, semolina, couscous
+  soy: soy sauce, soy, tofu, edamame, tempeh, miso
+  sesame: sesame, tahini
+
+CHEF'S NOTES (if exists):
+- Expandable section with notes text
+
+BOTTOM ACTIONS:
+- "Cook Mode" button (see next phase)
+- "Duplicate Recipe" button
+- "Delete Recipe" button (with confirmation)
+
+SCALING MATH LOGIC (in lib/scaling.ts):
+
+function scaleAmount(originalAmount: number, originalServings: number, targetServings: number, unit: string, isScalable: boolean): { amount: number, unit: string, display: string }
+
+The function should:
+1. Calculate: scaledAmount = originalAmount × (targetServings / originalServings)
+2. Apply unit conversions if amount crosses thresholds
+3. Round appropriately (whole numbers for "each" items, nearest ¼ for cups, nearest 0.5 for tbsp/tsp)
+4. Format display string with fractions where appropriate
+5. Return non-scalable items unchanged

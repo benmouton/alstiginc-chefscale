@@ -55,8 +55,9 @@ export function scaleAmount(
 
 function applySmartConversion(amount: number, unit: string): { amount: number; unit: string } {
   const conversions: { from: string; to: string; threshold: number }[] = [
+    { from: 'tsp', to: 'cup', threshold: 48 },
     { from: 'tsp', to: 'tbsp', threshold: 3 },
-    { from: 'tbsp', to: 'cup', threshold: 4 },
+    { from: 'tbsp', to: 'cup', threshold: 16 },
     { from: 'cup', to: 'quart', threshold: 4 },
     { from: 'quart', to: 'gallon', threshold: 4 },
     { from: 'oz', to: 'lb', threshold: 16 },
