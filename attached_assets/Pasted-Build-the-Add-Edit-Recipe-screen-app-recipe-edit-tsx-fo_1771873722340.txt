@@ -1,0 +1,61 @@
+Build the Add/Edit Recipe screen (app/recipe/edit.tsx) for ChefScale.
+
+This screen is used for both creating new recipes and editing existing ones. If a recipe ID is passed as a query param, load that recipe for editing. Otherwise, it's a new recipe.
+
+LAYOUT (scrollable form):
+
+SECTION 1 — PHOTO:
+- Large tappable area at top (16:9 ratio)
+- Tap to take photo or choose from gallery (use expo-image-picker)
+- Shows placeholder with camera icon if no photo
+
+SECTION 2 — BASIC INFO:
+- Recipe name (text input, required, large font)
+- Description (multiline text input, optional)
+- Category (dropdown/picker: Entrée, Appetizer, Sauce, Dessert, Prep, Side, Beverage, Other)
+- Tags (text input with chips — type a tag, press comma or enter to add it as a chip, tappable X to remove)
+- Base servings (number input, default 4)
+- Yield unit (text input, default "servings" — could be "quarts", "portions", "each")
+- Prep time in minutes (number input)
+- Cook time in minutes (number input)
+
+SECTION 3 — INGREDIENTS:
+- Header: "Ingredients" with "Add Ingredient" button
+- Each ingredient is a row with:
+  - Amount (number input, supports decimals)
+  - Unit (dropdown: tsp, tbsp, cup, fl oz, oz, lb, g, kg, ml, l, each, pinch, bunch, can, bottle, clove, sprig, head, stalk)
+  - Ingredient name (text input)
+  - Prep note (small text input, placeholder "diced, minced, etc.")
+  - Drag handle for reordering (or up/down arrows)
+  - Delete button (red X)
+- "Add Ingredient" button at bottom of list adds a new empty row
+- Toggle per ingredient: "Non-scalable" (for items like "1 bay leaf" that shouldn't multiply linearly)
+
+SECTION 4 — INSTRUCTIONS:
+- Header: "Instructions" with "Add Step" button
+- Each step is a row with:
+  - Step number (auto-incrementing, shown as circle badge)
+  - Text (multiline input)
+  - Timer (optional number input in minutes — if set, shows timer icon)
+  - Temperature (optional text input — "350°F", "medium-high")
+  - Drag handle for reordering
+  - Delete button
+- "Add Step" button at bottom
+
+SECTION 5 — NOTES:
+- "Chef's Notes" multiline text area (tips, variations, origin story)
+- "Source" text input (where the recipe came from)
+
+BOTTOM:
+- "Save Recipe" button (teal, full width, large)
+- "Cancel" text button
+
+VALIDATION:
+- Recipe name is required
+- At least one ingredient is required
+- At least one instruction step is required
+- Show inline error messages in red
+
+When saved, write to SQLite database, update Zustand store, and navigate back to the recipe detail view.
+
+Also, when adding recipes, give user the ability to take a pic of a handwritten or typed out recipe on paper and auto fill as much as possible, then make available for editing?

@@ -34,14 +34,19 @@ export const UNITS: Record<string, UnitDefinition> = {
   can: { name: 'can', abbreviation: 'can', category: 'count', toBase: 1, baseName: 'can' },
   package: { name: 'package', abbreviation: 'pkg', category: 'count', toBase: 1, baseName: 'package' },
   stick: { name: 'stick', abbreviation: 'stick', category: 'count', toBase: 1, baseName: 'stick' },
+  each: { name: 'each', abbreviation: 'ea', category: 'count', toBase: 1, baseName: 'each' },
+  bottle: { name: 'bottle', abbreviation: 'btl', category: 'count', toBase: 1, baseName: 'bottle' },
+  sprig: { name: 'sprig', abbreviation: 'sprig', category: 'count', toBase: 1, baseName: 'sprig' },
+  head: { name: 'head', abbreviation: 'head', category: 'count', toBase: 1, baseName: 'head' },
+  stalk: { name: 'stalk', abbreviation: 'stalk', category: 'count', toBase: 1, baseName: 'stalk' },
 };
 
 export const UNIT_CATEGORIES: Record<UnitCategory, string[]> = {
   volume: ['tsp', 'tbsp', 'fl_oz', 'cup', 'pint', 'quart', 'gallon', 'ml', 'l'],
   weight: ['oz', 'lb', 'g', 'kg'],
-  count: ['piece', 'dozen', 'pinch', 'dash', 'clove', 'slice', 'bunch', 'can', 'package', 'stick'],
+  count: ['piece', 'each', 'dozen', 'pinch', 'dash', 'clove', 'slice', 'bunch', 'can', 'bottle', 'package', 'stick', 'sprig', 'head', 'stalk'],
   length: [],
   temperature: [],
 };
 
-export const COMMON_UNITS = ['cup', 'tbsp', 'tsp', 'oz', 'lb', 'g', 'ml', 'l', 'piece', 'kg'];
+export const COMMON_UNITS = ['tsp', 'tbsp', 'cup', 'fl_oz', 'oz', 'lb', 'g', 'kg', 'ml', 'l', 'each', 'pinch', 'bunch', 'can', 'bottle', 'clove', 'sprig', 'head', 'stalk'];
