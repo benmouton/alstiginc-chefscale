@@ -119,6 +119,7 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
       await get().loadRecipes();
     } catch (e) {
       set({ error: (e as Error).message });
+      throw e;
     }
   },
 

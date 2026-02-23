@@ -1,13 +1,25 @@
 import * as SQLite from 'expo-sqlite';
+import { Platform } from 'react-native';
 
 const DB_NAME = 'chefscale.db';
 const DB_VERSION = 3;
 
 let db: SQLite.SQLiteDatabase | null = null;
+let dbInitRetries = 0;
+const MAX_RETRIES = 3;
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   if (!db) {
-    db = await SQLite.openDatabaseAsync(DB_NAME);
+    try {
+      db = await SQLite.openDatabaseAsync(DB_NAME);
+    } catch (e) {
+      if (dbInitRetries < MAX_RETRIES) {
+        dbInitRetries++;
+        await new Promise((r) => setTimeout(r, 500 * dbInitRetries));
+        return getDatabase();
+      }
+      throw e;
+    }
   }
   return db;
 }
