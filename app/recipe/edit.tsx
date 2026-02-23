@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Modal,
   Switch,
+  FlatList,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -51,6 +52,21 @@ interface ValidationErrors {
   instructions?: string;
 }
 
+interface SuggestedStep {
+  text: string;
+  reason: string;
+  insertAfter: number;
+}
+
+interface ReviewResult {
+  localWarnings: string[];
+  aiWarnings: string[];
+  suggestedSteps: SuggestedStep[];
+  tips: string[];
+  isComplete: boolean;
+  aiError?: boolean;
+}
+
 export default function EditRecipeScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const insets = useSafeAreaInsets();
@@ -72,6 +88,11 @@ export default function EditRecipeScreen() {
   const [saving, setSaving] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [unitPickerVisible, setUnitPickerVisible] = useState<string | null>(null);
+  const [validating, setValidating] = useState(false);
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
+  const [acceptedSteps, setAcceptedSteps] = useState<Set<number>>(new Set());
+  const [dismissedSteps, setDismissedSteps] = useState<Set<number>>(new Set());
 
   const [ingredients, setIngredients] = useState<EditableIngredient[]>([
     { id: Crypto.randomUUID(), name: "", amount: "", unit: "cup", prepNote: "", isScalable: true },
@@ -291,7 +312,7 @@ export default function EditRecipeScreen() {
     });
   };
 
-  const validate = (): boolean => {
+  const validateBasic = (): boolean => {
     const newErrors: ValidationErrors = {};
     if (!name.trim()) newErrors.name = "Recipe name is required";
     const validIngs = ingredients.filter((i) => i.name.trim());
@@ -302,12 +323,154 @@ export default function EditRecipeScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = async () => {
-    if (!validate()) {
+  const checkIngredientsInInstructions = (): string[] => {
+    const warnings: string[] = [];
+    const validIngs = ingredients.filter((i) => i.name.trim());
+    const allInstructionText = instructions
+      .map((i) => i.text)
+      .join(" ")
+      .toLowerCase();
+
+    for (const ing of validIngs) {
+      const ingName = ing.name.trim().toLowerCase();
+      const words = ingName.split(/\s+/);
+      const mainWord = words.length > 1 ? words[words.length - 1] : words[0];
+      const hasMatch =
+        allInstructionText.includes(ingName) ||
+        allInstructionText.includes(mainWord);
+
+      if (!hasMatch) {
+        const capitalName = ing.name.trim().charAt(0).toUpperCase() + ing.name.trim().slice(1);
+        warnings.push(`${capitalName} is listed as an ingredient but not referenced in any step.`);
+      }
+    }
+    return warnings;
+  };
+
+  const runValidation = async () => {
+    if (!validateBasic()) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
 
+    setValidating(true);
+    setAcceptedSteps(new Set());
+    setDismissedSteps(new Set());
+
+    const localWarnings = checkIngredientsInInstructions();
+
+    const validIngredients = ingredients.filter((i) => i.name.trim());
+    const validInstructions = instructions.filter((i) => i.text.trim());
+
+    let aiResult: any = null;
+    let aiError = false;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/validate-recipe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          ingredients: validIngredients.map((i) => ({
+            amount: i.amount,
+            unit: i.unit,
+            name: i.name.trim(),
+            prepNote: i.prepNote.trim(),
+          })),
+          instructions: validInstructions.map((i) => ({
+            text: i.text.trim(),
+            timerMinutes: i.timerMinutes || null,
+            temperature: i.temperature.trim() || null,
+          })),
+        }),
+      });
+
+      if (res.ok) {
+        aiResult = await res.json();
+      } else {
+        aiError = true;
+      }
+    } catch {
+      aiError = true;
+    }
+
+    const result: ReviewResult = {
+      localWarnings,
+      aiWarnings: aiResult?.warnings || [],
+      suggestedSteps: aiResult?.suggestedSteps || [],
+      tips: aiResult?.tips || [],
+      isComplete:
+        localWarnings.length === 0 &&
+        (aiResult?.isComplete ?? true) &&
+        (aiResult?.suggestedSteps?.length ?? 0) === 0 &&
+        (aiResult?.warnings?.length ?? 0) === 0,
+      aiError,
+    };
+
+    setReviewResult(result);
+    setReviewModalVisible(true);
+    setValidating(false);
+  };
+
+  const handleAcceptStep = (idx: number) => {
+    setAcceptedSteps((prev) => {
+      const next = new Set(prev);
+      next.add(idx);
+      return next;
+    });
+    setDismissedSteps((prev) => {
+      const next = new Set(prev);
+      next.delete(idx);
+      return next;
+    });
+  };
+
+  const handleDismissStep = (idx: number) => {
+    setDismissedSteps((prev) => {
+      const next = new Set(prev);
+      next.add(idx);
+      return next;
+    });
+    setAcceptedSteps((prev) => {
+      const next = new Set(prev);
+      next.delete(idx);
+      return next;
+    });
+  };
+
+  const applyAcceptedAndSave = async () => {
+    if (reviewResult && reviewResult.suggestedSteps.length > 0) {
+      const stepsToAdd = reviewResult.suggestedSteps.filter((_, i) => acceptedSteps.has(i));
+
+      if (stepsToAdd.length > 0) {
+        const sortedSteps = [...stepsToAdd].sort((a, b) => b.insertAfter - a.insertAfter);
+        setInstructions((prev) => {
+          const arr = [...prev];
+          for (const step of sortedSteps) {
+            const insertIdx = Math.min(step.insertAfter, arr.length);
+            arr.splice(insertIdx, 0, {
+              id: Crypto.randomUUID(),
+              text: step.text,
+              timerMinutes: "",
+              temperature: "",
+            });
+          }
+          return arr;
+        });
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+
+    setReviewModalVisible(false);
+    await performSave();
+  };
+
+  const skipAndSave = async () => {
+    setReviewModalVisible(false);
+    await performSave();
+  };
+
+  const performSave = async () => {
     setSaving(true);
     try {
       const validIngredients = ingredients.filter((i) => i.name.trim());
@@ -368,6 +531,18 @@ export default function EditRecipeScreen() {
     }
   };
 
+  const handleSaveQuick = async () => {
+    if (!validateBasic()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+    await performSave();
+  };
+
+  const totalWarnings = (reviewResult?.localWarnings.length || 0) + (reviewResult?.aiWarnings.length || 0);
+  const totalSuggestions = reviewResult?.suggestedSteps.length || 0;
+  const allComplete = reviewResult?.isComplete && !reviewResult?.aiError;
+
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
   return (
@@ -380,7 +555,7 @@ export default function EditRecipeScreen() {
           {isEditing ? "Edit Recipe" : "New Recipe"}
         </Text>
         <Pressable
-          onPress={handleSave}
+          onPress={handleSaveQuick}
           disabled={saving}
           style={({ pressed }) => [styles.saveButton, pressed && { opacity: 0.7 }]}
           testID="save-top-btn"
@@ -398,7 +573,6 @@ export default function EditRecipeScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* PHOTO SECTION */}
         <Pressable onPress={showImageOptions} style={styles.photoArea} testID="photo-area">
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.photoImage} />
@@ -410,7 +584,6 @@ export default function EditRecipeScreen() {
           )}
         </Pressable>
 
-        {/* SCAN RECIPE BUTTON */}
         <Pressable
           onPress={scanRecipe}
           disabled={scanning}
@@ -427,7 +600,6 @@ export default function EditRecipeScreen() {
           </Text>
         </Pressable>
 
-        {/* BASIC INFO */}
         <Text style={styles.inputLabel}>Recipe Name *</Text>
         <TextInput
           style={[styles.input, styles.nameInput, errors.name ? styles.inputError : null]}
@@ -468,7 +640,6 @@ export default function EditRecipeScreen() {
           </View>
         </ScrollView>
 
-        {/* TAGS */}
         <Text style={styles.inputLabel}>Tags</Text>
         <View style={styles.tagContainer}>
           {tags.map((tag) => (
@@ -548,7 +719,6 @@ export default function EditRecipeScreen() {
           </View>
         </View>
 
-        {/* INGREDIENTS */}
         <View style={[styles.sectionHeaderRow, { marginTop: Spacing.xxl }]}>
           <Text style={styles.sectionLabel}>Ingredients *</Text>
           <Pressable onPress={addIngredient} style={styles.addButton} testID="add-ingredient-btn">
@@ -637,7 +807,6 @@ export default function EditRecipeScreen() {
           <Text style={styles.addRowText}>Add Ingredient</Text>
         </Pressable>
 
-        {/* INSTRUCTIONS */}
         <View style={[styles.sectionHeaderRow, { marginTop: Spacing.xxl }]}>
           <Text style={styles.sectionLabel}>Instructions *</Text>
           <Pressable onPress={addInstruction} style={styles.addButton} testID="add-step-btn">
@@ -716,7 +885,6 @@ export default function EditRecipeScreen() {
           <Text style={styles.addRowText}>Add Step</Text>
         </Pressable>
 
-        {/* NOTES SECTION */}
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl, marginBottom: Spacing.md }]}>
           Chef's Notes
         </Text>
@@ -741,19 +909,35 @@ export default function EditRecipeScreen() {
           testID="source-input"
         />
 
-        {/* SAVE BUTTON */}
         <Pressable
-          onPress={handleSave}
+          onPress={runValidation}
+          disabled={validating || saving}
+          style={({ pressed }) => [styles.validateButton, pressed && { opacity: 0.8 }]}
+          testID="validate-recipe-btn"
+        >
+          {validating ? (
+            <>
+              <ActivityIndicator size="small" color={Colors.primary} />
+              <Text style={styles.validateButtonText}>Checking recipe...</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="shield-checkmark-outline" size={20} color={Colors.primary} />
+              <Text style={styles.validateButtonText}>Review & Save</Text>
+            </>
+          )}
+        </Pressable>
+
+        <Pressable
+          onPress={handleSaveQuick}
           disabled={saving}
-          style={({ pressed }) => [styles.mainSaveButton, pressed && { opacity: 0.8 }]}
+          style={({ pressed }) => [styles.skipSaveButton, pressed && { opacity: 0.8 }]}
           testID="save-recipe-btn"
         >
           {saving ? (
-            <ActivityIndicator size="small" color={Colors.textPrimary} />
+            <ActivityIndicator size="small" color={Colors.textMuted} />
           ) : (
-            <Text style={styles.mainSaveButtonText}>
-              {isEditing ? "Update Recipe" : "Save Recipe"}
-            </Text>
+            <Text style={styles.skipSaveText}>Save without review</Text>
           )}
         </Pressable>
 
@@ -796,6 +980,200 @@ export default function EditRecipeScreen() {
             </ScrollView>
           </View>
         </Pressable>
+      </Modal>
+
+      {/* REVIEW MODAL */}
+      <Modal
+        visible={reviewModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReviewModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.reviewModalContent, { paddingBottom: insets.bottom + 20 }]}>
+            <View style={styles.modalHandle} />
+
+            <View style={styles.reviewHeader}>
+              {allComplete ? (
+                <View style={styles.reviewCompleteIcon}>
+                  <Ionicons name="checkmark-circle" size={48} color={Colors.success} />
+                </View>
+              ) : (
+                <View style={styles.reviewCompleteIcon}>
+                  <Ionicons name="alert-circle" size={48} color={Colors.accent} />
+                </View>
+              )}
+              <Text style={styles.reviewTitle}>
+                {allComplete ? "Recipe Looks Complete!" : "Recipe Review"}
+              </Text>
+              {allComplete ? (
+                <Text style={styles.reviewSubtitle}>All ingredients are used and instructions look solid.</Text>
+              ) : (
+                <Text style={styles.reviewSubtitle}>
+                  {totalWarnings > 0 ? `${totalWarnings} warning${totalWarnings > 1 ? "s" : ""}` : ""}
+                  {totalWarnings > 0 && totalSuggestions > 0 ? " · " : ""}
+                  {totalSuggestions > 0 ? `${totalSuggestions} suggestion${totalSuggestions > 1 ? "s" : ""}` : ""}
+                </Text>
+              )}
+            </View>
+
+            <ScrollView style={styles.reviewScroll} showsVerticalScrollIndicator={false}>
+              {reviewResult?.aiError ? (
+                <View style={styles.reviewSection}>
+                  <View style={styles.reviewSectionHeader}>
+                    <Ionicons name="cloud-offline-outline" size={18} color={Colors.textMuted} />
+                    <Text style={styles.reviewSectionTitle}>AI Review Unavailable</Text>
+                  </View>
+                  <Text style={styles.reviewSectionDescription}>
+                    Could not reach the AI reviewer. Local checks are shown below.
+                  </Text>
+                </View>
+              ) : null}
+
+              {(reviewResult?.localWarnings.length || 0) > 0 ? (
+                <View style={styles.reviewSection}>
+                  <View style={styles.reviewSectionHeader}>
+                    <Ionicons name="warning-outline" size={18} color={Colors.accent} />
+                    <Text style={styles.reviewSectionTitle}>Unused Ingredients</Text>
+                  </View>
+                  {reviewResult?.localWarnings.map((w, i) => (
+                    <View key={`lw-${i}`} style={styles.warningRow}>
+                      <Ionicons name="remove-circle-outline" size={16} color={Colors.accent} />
+                      <Text style={styles.warningText}>{w}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+              {(reviewResult?.aiWarnings.length || 0) > 0 ? (
+                <View style={styles.reviewSection}>
+                  <View style={styles.reviewSectionHeader}>
+                    <Ionicons name="alert-circle-outline" size={18} color={Colors.error} />
+                    <Text style={styles.reviewSectionTitle}>Warnings</Text>
+                  </View>
+                  {reviewResult?.aiWarnings.map((w, i) => (
+                    <View key={`aw-${i}`} style={styles.warningRow}>
+                      <Ionicons name="alert-outline" size={16} color={Colors.error} />
+                      <Text style={styles.warningText}>{w}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+              {(reviewResult?.suggestedSteps.length || 0) > 0 ? (
+                <View style={styles.reviewSection}>
+                  <View style={styles.reviewSectionHeader}>
+                    <Ionicons name="bulb-outline" size={18} color={Colors.primary} />
+                    <Text style={styles.reviewSectionTitle}>Suggested Steps</Text>
+                  </View>
+                  <Text style={styles.reviewSectionDescription}>
+                    Accept to auto-add these steps, or dismiss to skip.
+                  </Text>
+                  {reviewResult?.suggestedSteps.map((step, i) => {
+                    const isAccepted = acceptedSteps.has(i);
+                    const isDismissed = dismissedSteps.has(i);
+                    return (
+                      <View
+                        key={`ss-${i}`}
+                        style={[
+                          styles.suggestedStepCard,
+                          isAccepted && styles.suggestedStepAccepted,
+                          isDismissed && styles.suggestedStepDismissed,
+                        ]}
+                      >
+                        <Text style={styles.suggestedStepText}>{step.text}</Text>
+                        <Text style={styles.suggestedStepReason}>{step.reason}</Text>
+                        <Text style={styles.suggestedStepInsert}>
+                          Insert after step {step.insertAfter}
+                        </Text>
+                        <View style={styles.suggestedStepActions}>
+                          <Pressable
+                            onPress={() => handleAcceptStep(i)}
+                            style={[styles.suggestAction, isAccepted && styles.suggestActionActive]}
+                          >
+                            <Ionicons
+                              name="checkmark-circle"
+                              size={18}
+                              color={isAccepted ? Colors.success : Colors.textMuted}
+                            />
+                            <Text
+                              style={[
+                                styles.suggestActionText,
+                                isAccepted && { color: Colors.success },
+                              ]}
+                            >
+                              Accept
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => handleDismissStep(i)}
+                            style={[styles.suggestAction, isDismissed && styles.suggestActionActive]}
+                          >
+                            <Ionicons
+                              name="close-circle"
+                              size={18}
+                              color={isDismissed ? Colors.error : Colors.textMuted}
+                            />
+                            <Text
+                              style={[
+                                styles.suggestActionText,
+                                isDismissed && { color: Colors.error },
+                              ]}
+                            >
+                              Dismiss
+                            </Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : null}
+
+              {(reviewResult?.tips.length || 0) > 0 ? (
+                <View style={styles.reviewSection}>
+                  <View style={styles.reviewSectionHeader}>
+                    <Ionicons name="sparkles-outline" size={18} color={Colors.primary} />
+                    <Text style={styles.reviewSectionTitle}>Pro Tips</Text>
+                  </View>
+                  {reviewResult?.tips.map((tip, i) => (
+                    <View key={`tip-${i}`} style={styles.tipRow}>
+                      <Ionicons name="sparkles" size={14} color={Colors.primary} />
+                      <Text style={styles.tipText}>{tip}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </ScrollView>
+
+            <View style={styles.reviewActions}>
+              <Pressable
+                onPress={applyAcceptedAndSave}
+                style={({ pressed }) => [styles.reviewSaveBtn, pressed && { opacity: 0.8 }]}
+                testID="review-save-btn"
+              >
+                <Ionicons name="checkmark" size={20} color={Colors.textPrimary} />
+                <Text style={styles.reviewSaveBtnText}>
+                  {acceptedSteps.size > 0 ? `Add ${acceptedSteps.size} step${acceptedSteps.size > 1 ? "s" : ""} & Save` : "Save Recipe"}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={skipAndSave}
+                style={styles.reviewSkipBtn}
+                testID="review-skip-btn"
+              >
+                <Text style={styles.reviewSkipBtnText}>Save without changes</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setReviewModalVisible(false)}
+                style={styles.reviewEditBtn}
+                testID="review-edit-btn"
+              >
+                <Text style={styles.reviewEditBtnText}>Back to editing</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -1160,25 +1538,40 @@ const styles = StyleSheet.create({
     minHeight: 38,
   },
 
-  mainSaveButton: {
-    backgroundColor: Colors.primary,
+  validateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    backgroundColor: Colors.backgroundCard,
     borderRadius: BorderRadius.md,
     padding: Spacing.lg,
-    alignItems: "center",
     marginTop: Spacing.xxl,
+    borderWidth: 2,
+    borderColor: Colors.primary,
     minHeight: TouchTarget.min,
-    justifyContent: "center",
   },
-  mainSaveButtonText: {
+  validateButtonText: {
     fontSize: FontSize.lg,
     fontWeight: "700",
-    color: Colors.textPrimary,
+    color: Colors.primary,
     fontFamily: "Inter_700Bold",
+  },
+  skipSaveButton: {
+    alignItems: "center",
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  skipSaveText: {
+    fontSize: FontSize.md,
+    color: Colors.textMuted,
+    fontFamily: "Inter_600SemiBold",
+    textDecorationLine: "underline",
   },
   cancelButton: {
     alignItems: "center",
     paddingVertical: Spacing.lg,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.xs,
   },
   cancelButtonText: {
     fontSize: FontSize.md,
@@ -1240,5 +1633,187 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.textSecondary,
     fontFamily: "Inter_400Regular",
+  },
+
+  reviewModalContent: {
+    backgroundColor: Colors.backgroundDark,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    maxHeight: "85%",
+  },
+  reviewHeader: {
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+  },
+  reviewCompleteIcon: {
+    marginBottom: Spacing.sm,
+  },
+  reviewTitle: {
+    fontSize: FontSize.xl,
+    fontWeight: "700",
+    color: Colors.textPrimary,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  reviewSubtitle: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    marginTop: Spacing.xs,
+  },
+  reviewScroll: {
+    paddingHorizontal: Spacing.lg,
+    flex: 1,
+  },
+  reviewSection: {
+    marginBottom: Spacing.lg,
+  },
+  reviewSectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  reviewSectionTitle: {
+    fontSize: FontSize.md,
+    fontWeight: "700",
+    color: Colors.textPrimary,
+    fontFamily: "Inter_700Bold",
+  },
+  reviewSectionDescription: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    marginBottom: Spacing.sm,
+  },
+  warningRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.xs,
+  },
+  warningText: {
+    fontSize: FontSize.sm,
+    color: Colors.textPrimary,
+    fontFamily: "Inter_400Regular",
+    flex: 1,
+  },
+  suggestedStepCard: {
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.sm,
+  },
+  suggestedStepAccepted: {
+    borderColor: Colors.success,
+    backgroundColor: "rgba(16, 185, 129, 0.1)",
+  },
+  suggestedStepDismissed: {
+    borderColor: Colors.textMuted,
+    opacity: 0.5,
+  },
+  suggestedStepText: {
+    fontSize: FontSize.md,
+    color: Colors.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+    marginBottom: Spacing.xs,
+  },
+  suggestedStepReason: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    fontStyle: "italic",
+    marginBottom: Spacing.xs,
+  },
+  suggestedStepInsert: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+    fontFamily: "Inter_400Regular",
+    marginBottom: Spacing.sm,
+  },
+  suggestedStepActions: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  suggestAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.backgroundDark,
+  },
+  suggestActionActive: {
+    backgroundColor: Colors.backgroundElevated,
+  },
+  suggestActionText: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    fontFamily: "Inter_600SemiBold",
+  },
+  tipRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.xs,
+  },
+  tipText: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    flex: 1,
+  },
+  reviewActions: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  reviewSaveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    minHeight: TouchTarget.min,
+  },
+  reviewSaveBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: "700",
+    color: Colors.textPrimary,
+    fontFamily: "Inter_700Bold",
+  },
+  reviewSkipBtn: {
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+  },
+  reviewSkipBtnText: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    fontFamily: "Inter_600SemiBold",
+    textDecorationLine: "underline",
+  },
+  reviewEditBtn: {
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+  },
+  reviewEditBtnText: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_600SemiBold",
   },
 });

@@ -17,7 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5.2",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -55,7 +55,7 @@ If you cannot determine a value, use reasonable defaults. Extract as much as pos
             ],
           },
         ],
-        max_completion_tokens: 4096,
+        max_tokens: 4096,
       });
 
       const content = response.choices[0]?.message?.content || "";
@@ -69,6 +69,71 @@ If you cannot determine a value, use reasonable defaults. Extract as much as pos
     } catch (error) {
       console.error("OCR recipe error:", error);
       res.status(500).json({ error: "Failed to process recipe image" });
+    }
+  });
+
+  app.post("/api/validate-recipe", async (req, res) => {
+    try {
+      const { name, ingredients, instructions } = req.body;
+      if (!name || !ingredients?.length || !instructions?.length) {
+        return res.status(400).json({ error: "name, ingredients, and instructions are required" });
+      }
+
+      const ingredientList = ingredients.map((i: any) =>
+        `- ${i.amount} ${i.unit} ${i.name}${i.prepNote ? ` (${i.prepNote})` : ""}`
+      ).join("\n");
+
+      const stepList = instructions.map((s: any, idx: number) =>
+        `${idx + 1}. ${s.text}${s.timerMinutes ? ` [${s.timerMinutes} min]` : ""}${s.temperature ? ` [${s.temperature}]` : ""}`
+      ).join("\n");
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a professional chef and recipe editor. Analyze this recipe for completeness and accuracy. Return ONLY valid JSON with this exact structure:
+{
+  "isComplete": true/false,
+  "suggestedSteps": [
+    { "text": "instruction text", "reason": "why this step is needed", "insertAfter": 2 }
+  ],
+  "warnings": [
+    "warning text"
+  ],
+  "tips": [
+    "professional tip text"
+  ]
+}
+
+Rules:
+- Check if all ingredients are used in at least one instruction step. If not, add a warning.
+- Check for logical gaps: missing preheating, missing combining steps, missing resting/cooling, missing plating/serving, missing seasoning to taste.
+- suggestedSteps should contain any missing steps. insertAfter is the step number after which to insert (0 = add at beginning).
+- warnings are issues that should be addressed.
+- tips are optional professional suggestions to improve the recipe.
+- Be concise. Only flag genuine issues, not nitpicks.
+- If everything looks complete, set isComplete to true and leave suggestedSteps and warnings empty.`,
+          },
+          {
+            role: "user",
+            content: `Recipe: ${name}\n\nIngredients:\n${ingredientList}\n\nInstructions:\n${stepList}\n\nAre there any missing steps in this recipe? Are all ingredients accounted for? Suggest any additions needed for a complete, professional recipe.`,
+          },
+        ],
+        max_tokens: 2048,
+      });
+
+      const content = response.choices[0]?.message?.content || "";
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        return res.status(422).json({ error: "Could not analyze recipe" });
+      }
+
+      const result = JSON.parse(jsonMatch[0]);
+      res.json(result);
+    } catch (error) {
+      console.error("Validate recipe error:", error);
+      res.status(500).json({ error: "Failed to validate recipe" });
     }
   });
 
