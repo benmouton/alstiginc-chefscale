@@ -166,7 +166,30 @@ export default function EditRecipeScreen() {
     }
   }, [id]);
 
+  const ensureCameraPermission = async (): Promise<boolean> => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Required", "Camera access is needed to take photos. Please enable it in your device settings.");
+      return false;
+    }
+    return true;
+  };
+
+  const ensureMediaLibraryPermission = async (): Promise<boolean> => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Required", "Photo library access is needed to select photos. Please enable it in your device settings.");
+      return false;
+    }
+    return true;
+  };
+
   const pickImage = async (useCamera: boolean) => {
+    if (useCamera) {
+      if (!(await ensureCameraPermission())) return;
+    } else {
+      if (!(await ensureMediaLibraryPermission())) return;
+    }
     const launcher = useCamera
       ? ImagePicker.launchCameraAsync
       : ImagePicker.launchImageLibraryAsync;
@@ -191,6 +214,7 @@ export default function EditRecipeScreen() {
   };
 
   const scanRecipe = async () => {
+    if (!(await ensureCameraPermission())) return;
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ["images"],
       quality: 0.8,
@@ -307,6 +331,7 @@ export default function EditRecipeScreen() {
       {
         text: "Camera",
         onPress: async () => {
+          if (!(await ensureCameraPermission())) return;
           const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
@@ -320,6 +345,7 @@ export default function EditRecipeScreen() {
       {
         text: "Photo Library",
         onPress: async () => {
+          if (!(await ensureMediaLibraryPermission())) return;
           const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
@@ -345,6 +371,7 @@ export default function EditRecipeScreen() {
       {
         text: "Camera",
         onPress: async () => {
+          if (!(await ensureCameraPermission())) return;
           const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
@@ -361,6 +388,7 @@ export default function EditRecipeScreen() {
       {
         text: "Photo Library",
         onPress: async () => {
+          if (!(await ensureMediaLibraryPermission())) return;
           const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             allowsEditing: true,
