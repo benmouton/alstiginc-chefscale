@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
@@ -239,7 +239,7 @@ export default function EditRecipeScreen() {
         });
       } else {
         base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-          encoding: 'base64' as any,
+          encoding: FileSystem.EncodingType.Base64,
         });
       }
 
