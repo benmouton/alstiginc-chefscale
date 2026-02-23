@@ -3,21 +3,31 @@ import { createServer, type Server } from "node:http";
 import express from "express";
 import OpenAI from "openai";
 
+const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+const baseURL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
+
+console.log("[OpenAI] API key present:", !!apiKey, apiKey ? `(starts with: ${apiKey.substring(0, 8)}...)` : "");
+console.log("[OpenAI] Base URL:", baseURL || "NOT SET");
+
 const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey,
+  baseURL,
+  timeout: 30000,
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ocr-recipe", async (req, res) => {
-    console.log("[OCR] Received OCR request, body size:", JSON.stringify(req.body || {}).length);
+    const startTime = Date.now();
+    console.log("[OCR] === OCR REQUEST RECEIVED ===");
+    console.log("[OCR] Body size:", JSON.stringify(req.body || {}).length, "bytes");
     try {
       const { imageBase64 } = req.body;
       if (!imageBase64) {
-        console.log("[OCR] Missing imageBase64 in request body");
+        console.log("[OCR] ERROR: Missing imageBase64 in request body");
         return res.status(400).json({ error: "imageBase64 is required" });
       }
-      console.log("[OCR] Image base64 length:", imageBase64.length, "- sending to OpenAI...");
+      console.log("[OCR] Image base64 length:", imageBase64.length, "chars (~" + Math.round(imageBase64.length * 0.75 / 1024) + "KB)");
+      console.log("[OCR] Sending to OpenAI (model: gpt-4o, timeout: 30s)...");
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -58,20 +68,31 @@ If you cannot determine a value, use reasonable defaults. Extract as much as pos
             ],
           },
         ],
-        max_tokens: 4096,
+        max_completion_tokens: 4096,
       });
 
+      const elapsed = Date.now() - startTime;
+      console.log("[OCR] OpenAI responded in", elapsed + "ms");
       const content = response.choices[0]?.message?.content || "";
+      console.log("[OCR] Response content length:", content.length, "chars");
+
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        console.log("[OCR] ERROR: No JSON found in response. Content:", content.substring(0, 200));
         return res.status(422).json({ error: "Could not extract recipe from image" });
       }
 
       const recipe = JSON.parse(jsonMatch[0]);
+      console.log("[OCR] SUCCESS: Extracted recipe:", recipe.name || "unnamed");
       res.json(recipe);
-    } catch (error) {
-      console.error("OCR recipe error:", error);
-      res.status(500).json({ error: "Failed to process recipe image" });
+    } catch (error: any) {
+      const elapsed = Date.now() - startTime;
+      console.error("[OCR] FAILED after", elapsed + "ms");
+      console.error("[OCR] Error name:", error?.name);
+      console.error("[OCR] Error message:", error?.message);
+      console.error("[OCR] Error status:", error?.status);
+      console.error("[OCR] Full error:", JSON.stringify(error, null, 2));
+      res.status(500).json({ error: error?.message || "Failed to process recipe image" });
     }
   });
 

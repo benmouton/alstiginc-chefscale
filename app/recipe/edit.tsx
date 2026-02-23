@@ -21,6 +21,7 @@ import * as Haptics from "expo-haptics";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
@@ -214,19 +215,40 @@ export default function EditRecipeScreen() {
     ]);
   };
 
+  const scanAbortRef = React.useRef<AbortController | null>(null);
+
+  const cancelScan = () => {
+    if (scanAbortRef.current) {
+      scanAbortRef.current.abort();
+      scanAbortRef.current = null;
+    }
+    setScanning(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  };
+
   const scanRecipe = async () => {
     if (!(await ensureCameraPermission())) return;
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ["images"],
-      quality: 0.5,
+      quality: 0.3,
     });
     if (result.canceled || !result.assets[0]) return;
 
     setScanning(true);
+    const abortController = new AbortController();
+    scanAbortRef.current = abortController;
+
     try {
+      const resized = await manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.3, format: SaveFormat.JPEG }
+      );
+      console.log("[OCR] Resized image URI:", resized.uri);
+
       let base64: string;
       if (Platform.OS === "web") {
-        const response = await fetch(result.assets[0].uri);
+        const response = await fetch(resized.uri);
         const blob = await response.blob();
         const reader = new FileReader();
         base64 = await new Promise<string>((resolve, reject) => {
@@ -238,7 +260,7 @@ export default function EditRecipeScreen() {
           reader.readAsDataURL(blob);
         });
       } else {
-        base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+        base64 = await FileSystem.readAsStringAsync(resized.uri, {
           encoding: FileSystem.EncodingType.Base64,
         });
       }
@@ -247,16 +269,12 @@ export default function EditRecipeScreen() {
       console.log("[OCR] Sending request to:", ocrUrl);
       console.log("[OCR] Base64 length:", base64.length);
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60000);
-
       const ocrResponse = await fetch(ocrUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: base64 }),
-        signal: controller.signal,
+        signal: abortController.signal,
       });
-      clearTimeout(timeout);
 
       console.log("[OCR] Response status:", ocrResponse.status);
       if (!ocrResponse.ok) {
@@ -300,9 +318,11 @@ export default function EditRecipeScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Recipe Scanned", "Review the extracted data and make any corrections.");
     } catch (e: any) {
+      if (e?.name === "AbortError") return;
       console.error("Scan error:", e?.message || e);
       Alert.alert("Scan Failed", e?.message || "Could not extract recipe from image. Please try again with a clearer photo.");
     } finally {
+      scanAbortRef.current = null;
       setScanning(false);
     }
   };
@@ -751,21 +771,24 @@ export default function EditRecipeScreen() {
           )}
         </Pressable>
 
-        <Pressable
-          onPress={scanRecipe}
-          disabled={scanning}
-          style={({ pressed }) => [styles.scanButton, pressed && { opacity: 0.7 }]}
-          testID="scan-recipe-btn"
-        >
-          {scanning ? (
+        {scanning ? (
+          <View style={styles.scanningOverlay}>
             <ActivityIndicator size="small" color={Colors.accent} />
-          ) : (
+            <Text style={styles.scanButtonText}>Scanning recipe...</Text>
+            <Pressable onPress={cancelScan} style={styles.scanCancelBtn} testID="cancel-scan-btn">
+              <Text style={styles.scanCancelText}>Cancel</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            onPress={scanRecipe}
+            style={({ pressed }) => [styles.scanButton, pressed && { opacity: 0.7 }]}
+            testID="scan-recipe-btn"
+          >
             <Ionicons name="scan-outline" size={20} color={Colors.accent} />
-          )}
-          <Text style={styles.scanButtonText}>
-            {scanning ? "Scanning recipe..." : "Scan written recipe"}
-          </Text>
-        </Pressable>
+            <Text style={styles.scanButtonText}>Scan written recipe</Text>
+          </Pressable>
+        )}
 
         <Text style={styles.inputLabel}>Recipe Name *</Text>
         <TextInput
@@ -2045,6 +2068,33 @@ const styles = StyleSheet.create({
   reviewEditBtnText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
+    fontFamily: "Inter_600SemiBold",
+  },
+
+  scanningOverlay: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.accent + "40",
+    backgroundColor: Colors.accent + "10",
+  },
+  scanCancelBtn: {
+    marginLeft: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.error + "20",
+    borderWidth: 1,
+    borderColor: Colors.error + "40",
+  },
+  scanCancelText: {
+    fontSize: FontSize.sm,
+    color: Colors.error,
     fontFamily: "Inter_600SemiBold",
   },
 
