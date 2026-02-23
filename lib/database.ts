@@ -15,10 +15,15 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
 export async function initDatabase(): Promise<void> {
   const database = await getDatabase();
 
-  const versionRow = await database.getFirstAsync<{ user_version: number }>(
-    'PRAGMA user_version'
-  );
-  const currentVersion = versionRow?.user_version ?? 0;
+  let currentVersion = 0;
+  try {
+    const versionRow = await database.getFirstAsync<{ user_version: number }>(
+      'PRAGMA user_version'
+    );
+    currentVersion = versionRow?.user_version ?? 0;
+  } catch {
+    currentVersion = 0;
+  }
 
   if (currentVersion < DB_VERSION) {
     await database.execAsync(`
