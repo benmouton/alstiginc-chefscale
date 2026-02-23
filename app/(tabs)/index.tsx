@@ -17,7 +17,7 @@ import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore, type Recipe } from "@/store/useRecipeStore";
 import RecipeCard from "@/components/RecipeCard";
 
-const CATEGORIES = ["All", "Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Beverage", "Appetizer", "Other"];
+const CATEGORIES = ["All", "Entr\u00e9e", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage"];
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();

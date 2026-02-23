@@ -1,0 +1,71 @@
+PHASE 2: Database & Data Models
+Set up the local SQLite database for ChefScale using Expo SQLite.
+
+Create these tables:
+
+recipes:
+  - id TEXT PRIMARY KEY (UUID)
+  - name TEXT NOT NULL
+  - description TEXT
+  - category TEXT DEFAULT 'Uncategorized'
+  - tags TEXT (JSON array stored as string)
+  - base_servings INTEGER DEFAULT 4
+  - base_yield_unit TEXT DEFAULT 'servings'
+  - prep_time INTEGER (minutes)
+  - cook_time INTEGER (minutes)
+  - image_uri TEXT
+  - notes TEXT
+  - source TEXT
+  - is_favorite INTEGER DEFAULT 0
+  - created_at TEXT (ISO timestamp)
+  - updated_at TEXT (ISO timestamp)
+
+ingredients:
+  - id TEXT PRIMARY KEY (UUID)
+  - recipe_id TEXT NOT NULL (foreign key → recipes.id)
+  - name TEXT NOT NULL
+  - amount REAL NOT NULL
+  - unit TEXT NOT NULL
+  - category TEXT
+  - cost_per_unit REAL
+  - cost_unit TEXT
+  - fdc_id INTEGER (USDA food ID for nutrition)
+  - is_optional INTEGER DEFAULT 0
+  - is_scalable INTEGER DEFAULT 1
+  - prep_note TEXT
+  - sort_order INTEGER
+
+instructions:
+  - id TEXT PRIMARY KEY (UUID)
+  - recipe_id TEXT NOT NULL (foreign key → recipes.id)
+  - step_number INTEGER NOT NULL
+  - text TEXT NOT NULL
+  - timer_minutes INTEGER
+  - temperature TEXT
+  - sort_order INTEGER
+
+ingredient_prices:
+  - id TEXT PRIMARY KEY
+  - ingredient_name TEXT NOT NULL (normalized lowercase)
+  - cost_per_unit REAL
+  - cost_unit TEXT
+  - purchase_unit TEXT
+  - purchase_cost REAL
+  - updated_at TEXT
+
+Create a database.ts file in lib/ with:
+- initDatabase() — creates tables if not exist
+- All CRUD operations for recipes, ingredients, instructions
+- getRecipeWithDetails(id) — returns recipe with all ingredients and instructions joined
+- searchRecipes(query) — full text search on name, description, tags, ingredient names
+- getRecipesByCategory(category)
+- getRecipesByAllergenFree(allergen) — exclude recipes containing specific allergens
+
+Create the Zustand store (useRecipeStore.ts) that wraps the database calls and holds the current state:
+- recipes list
+- currentRecipe (for detail view)
+- currentScale (multiplier, default 1)
+- loading states
+- CRUD actions that write to SQLite and update state
+
+Call initDatabase() on app launch in _layout.tsx.

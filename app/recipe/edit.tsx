@@ -19,7 +19,7 @@ import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
 import type { IngredientRow, InstructionRow } from "@/lib/database";
 
-const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snack", "Beverage", "Appetizer", "Salad", "Soup", "Bread", "Other"];
+const CATEGORIES = ["Entr\u00e9e", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage"];
 
 interface EditableIngredient {
   id: string;
@@ -40,7 +40,7 @@ export default function EditRecipeScreen() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Other");
+  const [category, setCategory] = useState("Entr\u00e9e");
   const [servings, setServings] = useState("4");
   const [prepTime, setPrepTime] = useState("");
   const [cookTime, setCookTime] = useState("");

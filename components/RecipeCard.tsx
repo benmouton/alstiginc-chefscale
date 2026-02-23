@@ -11,17 +11,13 @@ interface RecipeCardProps {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  'Breakfast': 'sunny-outline',
-  'Lunch': 'restaurant-outline',
-  'Dinner': 'moon-outline',
-  'Dessert': 'ice-cream-outline',
-  'Snack': 'cafe-outline',
-  'Beverage': 'wine-outline',
+  'Entr\u00e9e': 'restaurant-outline',
   'Appetizer': 'fast-food-outline',
-  'Salad': 'leaf-outline',
-  'Soup': 'flame-outline',
-  'Bread': 'nutrition-outline',
-  'Other': 'grid-outline',
+  'Sauce': 'flask-outline',
+  'Dessert': 'ice-cream-outline',
+  'Prep': 'cut-outline',
+  'Side': 'layers-outline',
+  'Beverage': 'wine-outline',
 };
 
 export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardProps) {
