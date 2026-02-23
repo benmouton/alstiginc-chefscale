@@ -218,7 +218,7 @@ export default function EditRecipeScreen() {
     if (!(await ensureCameraPermission())) return;
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ["images"],
-      quality: 0.8,
+      quality: 0.5,
     });
     if (result.canceled || !result.assets[0]) return;
 
@@ -247,11 +247,16 @@ export default function EditRecipeScreen() {
       console.log("[OCR] Sending request to:", ocrUrl);
       console.log("[OCR] Base64 length:", base64.length);
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60000);
+
       const ocrResponse = await fetch(ocrUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: base64 }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       console.log("[OCR] Response status:", ocrResponse.status);
       if (!ocrResponse.ok) {
