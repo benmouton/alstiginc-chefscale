@@ -1,38 +1,46 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, FontSize } from '@/constants/theme';
-import { formatQuantity, getUnitAbbreviation } from '@/lib/scaling';
+import { Colors, Spacing, FontSize, BorderRadius } from '@/constants/theme';
+import type { ScaleResult } from '@/lib/scaling';
 
 interface IngredientRowProps {
   name: string;
-  quantity: number;
-  unit: string;
-  scaledQuantity?: number;
+  scaleResult: ScaleResult;
+  prepNote?: string;
+  isScalable?: boolean;
   cost?: number | null;
   isScaled?: boolean;
 }
 
 export default function IngredientRow({
   name,
-  quantity,
-  unit,
-  scaledQuantity,
+  scaleResult,
+  prepNote,
+  isScalable = true,
   cost,
   isScaled,
 }: IngredientRowProps) {
-  const displayQuantity = scaledQuantity ?? quantity;
-  const unitAbbr = getUnitAbbreviation(unit);
-
   return (
     <View style={styles.row}>
-      <View style={styles.dot} />
-      <View style={styles.quantityContainer}>
-        <Text style={[styles.quantity, isScaled && styles.quantityScaled]}>
-          {formatQuantity(displayQuantity)}
-        </Text>
-        <Text style={styles.unit}>{unitAbbr}</Text>
+      <View style={styles.left}>
+        <View style={styles.amountContainer}>
+          <Text style={[styles.amount, isScaled && isScalable && styles.amountScaled]}>
+            {scaleResult.display}
+          </Text>
+          {isScaled && isScalable && scaleResult.originalDisplay ? (
+            <Text style={styles.originalAmount}>({scaleResult.originalDisplay})</Text>
+          ) : null}
+          {!isScalable ? (
+            <View style={styles.fixedBadge}>
+              <Text style={styles.fixedBadgeText}>fixed</Text>
+            </View>
+          ) : null}
+        </View>
+        <View style={styles.nameRow}>
+          <Text style={styles.name}>{name}</Text>
+          {prepNote ? <Text style={styles.prepNote}>{prepNote}</Text> : null}
+        </View>
       </View>
-      <Text style={styles.name} numberOfLines={1}>{name}</Text>
       {cost !== undefined && cost !== null ? (
         <Text style={styles.cost}>${cost.toFixed(2)}</Text>
       ) : null}
@@ -43,50 +51,72 @@ export default function IngredientRow({
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.border,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.primary,
-    marginRight: Spacing.md,
-  },
-  quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    minWidth: 72,
+  left: {
+    flex: 1,
     marginRight: Spacing.sm,
   },
-  quantity: {
-    fontSize: FontSize.md,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
-    marginRight: 4,
+  amountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    flexWrap: 'wrap',
   },
-  quantityScaled: {
+  amount: {
+    fontSize: FontSize.lg,
+    fontWeight: '700',
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+  },
+  amountScaled: {
     color: Colors.accent,
   },
-  unit: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+  originalAmount: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
     fontFamily: 'Inter_400Regular',
+    fontStyle: 'italic',
+  },
+  fixedBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.backgroundElevated,
+  },
+  fixedBadgeText: {
+    fontSize: 10,
+    color: Colors.textMuted,
+    fontFamily: 'Inter_600SemiBold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: 2,
   },
   name: {
-    flex: 1,
     fontSize: FontSize.md,
     color: Colors.textPrimary,
     fontFamily: 'Inter_400Regular',
+  },
+  prepNote: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    fontFamily: 'Inter_400Regular',
+    fontStyle: 'italic',
   },
   cost: {
     fontSize: FontSize.sm,
     color: Colors.accent,
     fontWeight: '600',
     fontFamily: 'Inter_600SemiBold',
-    marginLeft: Spacing.sm,
+    marginTop: 2,
   },
 });

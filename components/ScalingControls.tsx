@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Colors, BorderRadius, Spacing, FontSize, TouchTarget } from '@/constants/theme';
@@ -8,89 +8,106 @@ interface ScalingControlsProps {
   originalServings: number;
   currentServings: number;
   onServingsChange: (servings: number) => void;
+  yieldUnit?: string;
 }
 
-const PRESET_MULTIPLIERS = [0.5, 1, 1.5, 2, 3, 4];
+const QUICK_MULTIPLIERS = [1, 2, 5, 10, 25];
 
 export default function ScalingControls({
   originalServings,
   currentServings,
   onServingsChange,
+  yieldUnit = 'servings',
 }: ScalingControlsProps) {
+  const [customInput, setCustomInput] = useState('');
   const scaleFactor = originalServings > 0 ? currentServings / originalServings : 1;
+  const isScaled = currentServings !== originalServings;
 
-  const handleDecrement = () => {
-    if (currentServings > 1) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      onServingsChange(currentServings - 1);
-    }
-  };
-
-  const handleIncrement = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onServingsChange(currentServings + 1);
-  };
-
-  const handlePreset = (multiplier: number) => {
+  const handleQuickScale = (multiplier: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onServingsChange(Math.max(1, Math.round(originalServings * multiplier)));
   };
 
+  const handleCustomScale = () => {
+    const val = parseInt(customInput);
+    if (val > 0) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      onServingsChange(val);
+      setCustomInput('');
+    }
+  };
+
+  const handleReset = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onServingsChange(originalServings);
+    setCustomInput('');
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.label}>Servings</Text>
-        <Text style={styles.factor}>{scaleFactor.toFixed(1)}x</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.label}>SCALE THIS RECIPE</Text>
+        {isScaled ? (
+          <Pressable onPress={handleReset} hitSlop={8}>
+            <Text style={styles.resetText}>Reset</Text>
+          </Pressable>
+        ) : null}
       </View>
 
-      <View style={styles.controls}>
-        <Pressable
-          onPress={handleDecrement}
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-            currentServings <= 1 && styles.buttonDisabled,
-          ]}
-          disabled={currentServings <= 1}
-        >
-          <Ionicons
-            name="remove"
-            size={24}
-            color={currentServings <= 1 ? Colors.textMuted : Colors.textPrimary}
-          />
-        </Pressable>
-
-        <View style={styles.valueContainer}>
-          <Text style={styles.value}>{currentServings}</Text>
-        </View>
-
-        <Pressable
-          onPress={handleIncrement}
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-          ]}
-        >
-          <Ionicons name="add" size={24} color={Colors.textPrimary} />
-        </Pressable>
+      <View style={styles.scaleDisplay}>
+        <Text style={styles.scaleMultiplier}>×{scaleFactor % 1 === 0 ? scaleFactor : scaleFactor.toFixed(1)}</Text>
+        <Text style={styles.servingsText}>
+          Making {currentServings} {yieldUnit}
+        </Text>
       </View>
 
-      <View style={styles.presets}>
-        {PRESET_MULTIPLIERS.map((mult) => {
+      <View style={styles.quickButtons}>
+        {QUICK_MULTIPLIERS.map((mult) => {
           const target = Math.max(1, Math.round(originalServings * mult));
           const isActive = currentServings === target;
           return (
             <Pressable
               key={mult}
-              onPress={() => handlePreset(mult)}
-              style={[styles.preset, isActive && styles.presetActive]}
+              onPress={() => handleQuickScale(mult)}
+              style={({ pressed }) => [
+                styles.quickBtn,
+                isActive && styles.quickBtnActive,
+                pressed && { opacity: 0.7 },
+              ]}
+              testID={`scale-${mult}x`}
             >
-              <Text style={[styles.presetText, isActive && styles.presetTextActive]}>
-                {mult}x
+              <Text style={[styles.quickBtnText, isActive && styles.quickBtnTextActive]}>
+                ×{mult}
               </Text>
             </Pressable>
           );
         })}
+      </View>
+
+      <View style={styles.customRow}>
+        <TextInput
+          style={styles.customInput}
+          value={customInput}
+          onChangeText={setCustomInput}
+          placeholder={`Custom ${yieldUnit}`}
+          placeholderTextColor={Colors.textMuted}
+          keyboardType="number-pad"
+          returnKeyType="go"
+          onSubmitEditing={handleCustomScale}
+          testID="custom-servings-input"
+        />
+        <Pressable
+          onPress={handleCustomScale}
+          style={({ pressed }) => [
+            styles.scaleBtn,
+            pressed && { opacity: 0.7 },
+            !customInput && styles.scaleBtnDisabled,
+          ]}
+          disabled={!customInput}
+          testID="custom-scale-btn"
+        >
+          <Text style={styles.scaleBtnText}>Scale</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -101,81 +118,105 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.backgroundCard,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 2,
+    borderColor: Colors.primary + '40',
   },
-  header: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: Spacing.md,
   },
   label: {
-    fontSize: FontSize.md,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  factor: {
-    fontSize: FontSize.md,
-    color: Colors.accent,
+    fontSize: FontSize.sm,
     fontWeight: '700',
+    color: Colors.primary,
     fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.5,
   },
-  controls: {
-    flexDirection: 'row',
+  resetText: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    fontFamily: 'Inter_600SemiBold',
+    textDecorationLine: 'underline',
+  },
+  scaleDisplay: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xl,
     marginBottom: Spacing.lg,
   },
-  button: {
-    width: TouchTarget.min,
-    height: TouchTarget.min,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.backgroundElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.95 }],
-  },
-  buttonDisabled: {
-    opacity: 0.4,
-  },
-  valueContainer: {
-    minWidth: 60,
-    alignItems: 'center',
-  },
-  value: {
-    fontSize: FontSize.display,
+  scaleMultiplier: {
+    fontSize: 48,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: Colors.primary,
     fontFamily: 'Inter_700Bold',
   },
-  presets: {
+  servingsText: {
+    fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_400Regular',
+    marginTop: Spacing.xs,
+  },
+  quickButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
-  preset: {
+  quickBtn: {
     flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.backgroundDark,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: TouchTarget.min,
   },
-  presetActive: {
+  quickBtnActive: {
     backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
-  presetText: {
-    fontSize: FontSize.sm,
+  quickBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
     color: Colors.textSecondary,
-    fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Inter_700Bold',
   },
-  presetTextActive: {
+  quickBtnTextActive: {
     color: Colors.textPrimary,
+  },
+  customRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  customInput: {
+    flex: 1,
+    backgroundColor: Colors.backgroundDark,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    fontSize: FontSize.md,
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_400Regular',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minHeight: TouchTarget.min,
+  },
+  scaleBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.xl,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: TouchTarget.min,
+  },
+  scaleBtnDisabled: {
+    opacity: 0.4,
+  },
+  scaleBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_700Bold',
   },
 });

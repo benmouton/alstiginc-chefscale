@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,16 +8,18 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
+import { LinearGradient } from "expo-linear-gradient";
+import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import type { RecipeWithDetails } from "@/lib/database";
-import { scaleQuantity } from "@/lib/scaling";
-import { calculateRecipeCost } from "@/lib/costs";
+import { scaleAmount, formatQuantity, getUnitAbbreviation } from "@/lib/scaling";
+import { calculateRecipeCost, formatCurrency } from "@/lib/costs";
 import { detectAllergens } from "@/lib/allergens";
 import ScalingControls from "@/components/ScalingControls";
 import IngredientRow from "@/components/IngredientRow";
@@ -28,10 +30,11 @@ import { AllergenList } from "@/components/AllergenBadge";
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { loadRecipeDetail, prices, loadPrices, removeRecipe } = useRecipeStore();
+  const { loadRecipeDetail, prices, loadPrices, removeRecipe, toggleFavorite, saveRecipe } = useRecipeStore();
   const [recipe, setRecipe] = useState<RecipeWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentServings, setCurrentServings] = useState(1);
+  const [notesExpanded, setNotesExpanded] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -49,17 +52,27 @@ export default function RecipeDetailScreen() {
 
   const isScaled = recipe ? currentServings !== recipe.baseServings : false;
 
-  const scaledQuantities = useMemo(() => {
+  const scaledIngredients = useMemo(() => {
     if (!recipe) return [];
     return recipe.ingredients.map((ing) =>
-      scaleQuantity(ing.amount, recipe.baseServings, currentServings)
+      scaleAmount(
+        ing.amount,
+        recipe.baseServings,
+        currentServings,
+        ing.unit,
+        ing.isScalable !== 0
+      )
     );
   }, [recipe, currentServings]);
 
+  const scaledAmounts = useMemo(() => {
+    return scaledIngredients.map((s) => s.amount);
+  }, [scaledIngredients]);
+
   const costSummary = useMemo(() => {
     if (!recipe) return null;
-    return calculateRecipeCost(recipe.ingredients, scaledQuantities, prices, currentServings);
-  }, [recipe, scaledQuantities, prices, currentServings]);
+    return calculateRecipeCost(recipe.ingredients, scaledAmounts, prices, currentServings);
+  }, [recipe, scaledAmounts, prices, currentServings]);
 
   const allergens = useMemo(() => {
     if (!recipe) return [];
@@ -71,7 +84,7 @@ export default function RecipeDetailScreen() {
   const handleDelete = () => {
     if (!recipe) return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    Alert.alert("Delete Recipe", `Delete "${recipe.name}"?`, [
+    Alert.alert("Delete Recipe", `Are you sure you want to delete "${recipe.name}"? This cannot be undone.`, [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -83,6 +96,38 @@ export default function RecipeDetailScreen() {
       },
     ]);
   };
+
+  const handleToggleFavorite = useCallback(async () => {
+    if (!recipe) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const newVal = recipe.isFavorite === 1 ? 0 : 1;
+    await toggleFavorite(recipe.id, newVal === 1);
+    setRecipe({ ...recipe, isFavorite: newVal });
+  }, [recipe, toggleFavorite]);
+
+  const handleDuplicate = useCallback(async () => {
+    if (!recipe) return;
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    const crypto = await import("expo-crypto");
+    const newId = crypto.randomUUID();
+    await saveRecipe({
+      ...recipe,
+      id: newId,
+      name: `${recipe.name} (Copy)`,
+      isFavorite: 0,
+      ingredients: recipe.ingredients.map((ing) => ({
+        ...ing,
+        id: crypto.randomUUID(),
+        recipeId: newId,
+      })),
+      instructions: recipe.instructions.map((inst) => ({
+        ...inst,
+        id: crypto.randomUUID(),
+        recipeId: newId,
+      })),
+    });
+    router.replace({ pathname: "/recipe/[id]", params: { id: newId } });
+  }, [recipe, saveRecipe]);
 
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
@@ -97,7 +142,7 @@ export default function RecipeDetailScreen() {
   if (!recipe) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top + webTopInset }]}>
-        <Text style={styles.errorText}>Recipe not found</Text>
+        <Text style={styles.notFoundText}>Recipe not found</Text>
         <Pressable onPress={() => router.back()} style={styles.backLink}>
           <Text style={styles.backLinkText}>Go back</Text>
         </Pressable>
@@ -105,136 +150,222 @@ export default function RecipeDetailScreen() {
     );
   }
 
-  return (
-    <View style={[styles.container, { paddingTop: insets.top + webTopInset }]}>
-      <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} style={styles.topBarButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
-        </Pressable>
-        <View style={styles.topBarActions}>
-          <Pressable
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push({ pathname: "/recipe/edit", params: { id: recipe.id } });
-            }}
-            style={styles.topBarButton}
-          >
-            <Ionicons name="create-outline" size={22} color={Colors.textPrimary} />
-          </Pressable>
-          <Pressable onPress={handleDelete} style={styles.topBarButton}>
-            <Ionicons name="trash-outline" size={22} color={Colors.error} />
-          </Pressable>
-        </View>
-      </View>
+  const hasPhoto = !!recipe.imageUri;
+  const isFavorite = recipe.isFavorite === 1;
 
+  return (
+    <View style={styles.container}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.titleSection}>
-          <Text style={styles.category}>{recipe.category}</Text>
-          <Text style={styles.recipeName}>{recipe.name}</Text>
-          {recipe.description ? (
-            <Text style={styles.recipeDescription}>{recipe.description}</Text>
-          ) : null}
+        {/* HERO SECTION */}
+        <View style={[styles.hero, { paddingTop: insets.top + webTopInset }]}>
+          {hasPhoto ? (
+            <Image source={{ uri: recipe.imageUri }} style={styles.heroImage} />
+          ) : (
+            <LinearGradient
+              colors={['#0D9488', '#0F766E', '#0F172A']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.heroGradient}
+            />
+          )}
+          <LinearGradient
+            colors={['rgba(15,23,42,0.6)', 'transparent', 'rgba(15,23,42,0.9)']}
+            locations={[0, 0.3, 1]}
+            style={styles.heroOverlay}
+          />
 
-          <View style={styles.metaRow}>
+          <View style={styles.heroTopBar}>
+            <Pressable
+              onPress={() => router.back()}
+              style={styles.heroBtn}
+              testID="back-btn"
+            >
+              <Ionicons name="arrow-back" size={22} color={Colors.textPrimary} />
+            </Pressable>
+            <View style={styles.heroTopBarRight}>
+              <Pressable
+                onPress={handleToggleFavorite}
+                style={styles.heroBtn}
+                testID="favorite-btn"
+              >
+                <Ionicons
+                  name={isFavorite ? "heart" : "heart-outline"}
+                  size={22}
+                  color={isFavorite ? "#EF4444" : Colors.textPrimary}
+                />
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push({ pathname: "/recipe/edit", params: { id: recipe.id } });
+                }}
+                style={styles.heroBtn}
+                testID="edit-btn"
+              >
+                <Ionicons name="create-outline" size={22} color={Colors.textPrimary} />
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={styles.heroBottom}>
+            <Text style={styles.heroName}>{recipe.name}</Text>
+          </View>
+        </View>
+
+        <View style={styles.body}>
+          {/* INFO BAR */}
+          <View style={styles.infoBar}>
+            <View style={styles.infoPill}>
+              <Text style={styles.infoPillText}>{recipe.category}</Text>
+            </View>
             {recipe.prepTime > 0 ? (
-              <View style={styles.metaChip}>
-                <Ionicons name="timer-outline" size={16} color={Colors.primary} />
-                <Text style={styles.metaChipText}>Prep {recipe.prepTime}m</Text>
+              <View style={styles.infoPill}>
+                <Ionicons name="timer-outline" size={14} color={Colors.primary} />
+                <Text style={styles.infoPillText}>Prep {recipe.prepTime}m</Text>
               </View>
             ) : null}
             {recipe.cookTime > 0 ? (
-              <View style={styles.metaChip}>
-                <Ionicons name="flame-outline" size={16} color={Colors.accent} />
-                <Text style={styles.metaChipText}>Cook {recipe.cookTime}m</Text>
+              <View style={styles.infoPill}>
+                <Ionicons name="flame-outline" size={14} color={Colors.accent} />
+                <Text style={styles.infoPillText}>Cook {recipe.cookTime}m</Text>
               </View>
             ) : null}
             {totalTime > 0 ? (
-              <View style={styles.metaChip}>
-                <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
-                <Text style={styles.metaChipText}>Total {totalTime}m</Text>
+              <View style={styles.infoPill}>
+                <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
+                <Text style={styles.infoPillText}>Total {totalTime}m</Text>
               </View>
             ) : null}
           </View>
+
+          {recipe.description ? (
+            <Text style={styles.description}>{recipe.description}</Text>
+          ) : null}
+
+          <Text style={styles.baseYield}>
+            Makes {recipe.baseServings} {recipe.baseYieldUnit || "servings"}
+          </Text>
+
+          {/* SCALING CONTROLS */}
+          <View style={styles.section}>
+            <ScalingControls
+              originalServings={recipe.baseServings}
+              currentServings={currentServings}
+              onServingsChange={setCurrentServings}
+              yieldUnit={recipe.baseYieldUnit || "servings"}
+            />
+          </View>
+
+          {/* INGREDIENTS */}
+          {recipe.ingredients.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="list-outline" size={20} color={Colors.primary} />
+                  <Text style={styles.sectionTitle}>
+                    Ingredients ({recipe.ingredients.length})
+                  </Text>
+                </View>
+                {recipe.ingredients.map((ing, idx) => (
+                  <IngredientRow
+                    key={ing.id}
+                    name={ing.name}
+                    scaleResult={scaledIngredients[idx]}
+                    prepNote={ing.prepNote || undefined}
+                    isScalable={ing.isScalable !== 0}
+                    cost={costSummary?.ingredientCosts[idx]?.cost}
+                    isScaled={isScaled}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {/* INSTRUCTIONS */}
+          {recipe.instructions.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="reader-outline" size={20} color={Colors.accent} />
+                  <Text style={styles.sectionTitle}>Instructions</Text>
+                </View>
+                {recipe.instructions.map((inst) => (
+                  <InstructionStep
+                    key={inst.id}
+                    stepNumber={inst.stepNumber}
+                    text={inst.text}
+                    timerMinutes={inst.timerMinutes}
+                    temperature={inst.temperature}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {/* COST SUMMARY */}
+          {costSummary && costSummary.ingredientCosts.some((c) => c.hasPriceData) ? (
+            <View style={styles.section}>
+              <CostSummary summary={costSummary} />
+            </View>
+          ) : null}
+
+          {/* ALLERGENS */}
+          {allergens.length > 0 ? (
+            <View style={styles.section}>
+              <AllergenList allergens={allergens} />
+            </View>
+          ) : null}
+
+          {/* CHEF'S NOTES */}
+          {recipe.notes ? (
+            <View style={styles.section}>
+              <Pressable
+                onPress={() => setNotesExpanded(!notesExpanded)}
+                style={styles.sectionCard}
+              >
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="document-text-outline" size={20} color={Colors.textSecondary} />
+                  <Text style={styles.sectionTitle}>Chef's Notes</Text>
+                  <View style={{ flex: 1 }} />
+                  <Ionicons
+                    name={notesExpanded ? "chevron-up" : "chevron-down"}
+                    size={18}
+                    color={Colors.textMuted}
+                  />
+                </View>
+                {notesExpanded ? (
+                  <Text style={styles.notesText}>{recipe.notes}</Text>
+                ) : (
+                  <Text style={styles.notesPreview} numberOfLines={2}>{recipe.notes}</Text>
+                )}
+              </Pressable>
+            </View>
+          ) : null}
+
+          {/* BOTTOM ACTIONS */}
+          <View style={styles.actionsSection}>
+            <Pressable
+              onPress={handleDuplicate}
+              style={({ pressed }) => [styles.actionBtn, styles.actionBtnOutline, pressed && { opacity: 0.7 }]}
+              testID="duplicate-btn"
+            >
+              <Ionicons name="copy-outline" size={20} color={Colors.primary} />
+              <Text style={styles.actionBtnOutlineText}>Duplicate Recipe</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleDelete}
+              style={({ pressed }) => [styles.actionBtn, styles.actionBtnDanger, pressed && { opacity: 0.7 }]}
+              testID="delete-btn"
+            >
+              <Ionicons name="trash-outline" size={20} color={Colors.error} />
+              <Text style={styles.actionBtnDangerText}>Delete Recipe</Text>
+            </Pressable>
+          </View>
         </View>
-
-        <View style={styles.sectionSpacing}>
-          <ScalingControls
-            originalServings={recipe.baseServings}
-            currentServings={currentServings}
-            onServingsChange={setCurrentServings}
-          />
-        </View>
-
-        {recipe.ingredients.length > 0 ? (
-          <View style={styles.sectionSpacing}>
-            <View style={styles.sectionCard}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="list-outline" size={20} color={Colors.primary} />
-                <Text style={styles.sectionTitle}>
-                  Ingredients ({recipe.ingredients.length})
-                </Text>
-              </View>
-              {recipe.ingredients.map((ing, idx) => (
-                <IngredientRow
-                  key={ing.id}
-                  name={ing.name}
-                  quantity={ing.amount}
-                  unit={ing.unit}
-                  scaledQuantity={scaledQuantities[idx]}
-                  cost={costSummary?.ingredientCosts[idx]?.cost}
-                  isScaled={isScaled}
-                />
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {recipe.instructions.length > 0 ? (
-          <View style={styles.sectionSpacing}>
-            <View style={styles.sectionCard}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="reader-outline" size={20} color={Colors.accent} />
-                <Text style={styles.sectionTitle}>Instructions</Text>
-              </View>
-              {recipe.instructions.map((inst) => (
-                <InstructionStep
-                  key={inst.id}
-                  stepNumber={inst.stepNumber}
-                  text={inst.text}
-                />
-              ))}
-            </View>
-          </View>
-        ) : null}
-
-        {costSummary && costSummary.ingredientCosts.some((c) => c.hasPriceData) ? (
-          <View style={styles.sectionSpacing}>
-            <CostSummary summary={costSummary} />
-          </View>
-        ) : null}
-
-        {allergens.length > 0 ? (
-          <View style={styles.sectionSpacing}>
-            <AllergenList allergens={allergens} />
-          </View>
-        ) : null}
-
-        {recipe.notes ? (
-          <View style={styles.sectionSpacing}>
-            <View style={styles.sectionCard}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="document-text-outline" size={20} color={Colors.textSecondary} />
-                <Text style={styles.sectionTitle}>Notes</Text>
-              </View>
-              <Text style={styles.notesText}>{recipe.notes}</Text>
-            </View>
-          </View>
-        ) : null}
-
-        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
@@ -251,7 +382,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  errorText: {
+  notFoundText: {
     fontSize: FontSize.lg,
     color: Colors.textPrimary,
     fontFamily: "Inter_600SemiBold",
@@ -264,62 +395,69 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontFamily: "Inter_600SemiBold",
   },
-  topBar: {
+
+  hero: {
+    height: 280,
+    position: "relative",
+    justifyContent: "space-between",
+  },
+  heroImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: "100%",
+    height: "100%",
+  },
+  heroGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  heroTopBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingTop: Spacing.sm,
+    zIndex: 1,
   },
-  topBarButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  topBarActions: {
+  heroTopBarRight: {
     flexDirection: "row",
     gap: Spacing.xs,
   },
-  scrollContent: {
+  heroBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(15,23,42,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroBottom: {
     paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    zIndex: 1,
   },
-  titleSection: {
-    marginBottom: Spacing.md,
-  },
-  category: {
-    fontSize: FontSize.sm,
-    fontWeight: "600",
-    color: Colors.primary,
-    fontFamily: "Inter_600SemiBold",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: Spacing.xs,
-  },
-  recipeName: {
-    fontSize: FontSize.display,
+  heroName: {
+    fontSize: FontSize.xxxl,
     fontWeight: "700",
     color: Colors.textPrimary,
     fontFamily: "Inter_700Bold",
   },
-  recipeDescription: {
-    fontSize: FontSize.md,
-    color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
-    marginTop: Spacing.xs,
-    lineHeight: 22,
+
+  body: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
   },
-  metaRow: {
+  infoBar: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.sm,
-    marginTop: Spacing.md,
+    marginBottom: Spacing.md,
   },
-  metaChip: {
+  infoPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
     borderRadius: BorderRadius.full,
@@ -327,12 +465,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  metaChipText: {
+  infoPillText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
     fontFamily: "Inter_600SemiBold",
   },
-  sectionSpacing: {
+  description: {
+    fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 22,
+    marginBottom: Spacing.md,
+  },
+  baseYield: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    fontFamily: "Inter_600SemiBold",
+    marginBottom: Spacing.lg,
+  },
+
+  section: {
     marginBottom: Spacing.lg,
   },
   sectionCard: {
@@ -359,5 +511,45 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontFamily: "Inter_400Regular",
     lineHeight: 22,
+  },
+  notesPreview: {
+    fontSize: FontSize.md,
+    color: Colors.textMuted,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 22,
+  },
+
+  actionsSection: {
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    minHeight: TouchTarget.min,
+  },
+  actionBtnOutline: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.backgroundCard,
+  },
+  actionBtnOutlineText: {
+    fontSize: FontSize.md,
+    color: Colors.primary,
+    fontFamily: "Inter_600SemiBold",
+  },
+  actionBtnDanger: {
+    borderWidth: 1,
+    borderColor: Colors.error + "30",
+    backgroundColor: Colors.error + "10",
+  },
+  actionBtnDangerText: {
+    fontSize: FontSize.md,
+    color: Colors.error,
+    fontFamily: "Inter_600SemiBold",
   },
 });
