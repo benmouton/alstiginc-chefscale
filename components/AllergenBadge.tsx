@@ -43,7 +43,7 @@ export function AllergenList({ allergens }: AllergenListProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Ionicons name="warning-outline" size={18} color={Colors.warning} />
-        <Text style={styles.title}>Allergens Detected</Text>
+        <Text style={styles.title}>Contains:</Text>
       </View>
       <View style={styles.list}>
         {allergens.map((allergen) => (

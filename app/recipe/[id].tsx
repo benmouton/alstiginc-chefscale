@@ -26,6 +26,7 @@ import IngredientRow from "@/components/IngredientRow";
 import InstructionStep from "@/components/InstructionStep";
 import CostSummary from "@/components/CostSummary";
 import { AllergenList } from "@/components/AllergenBadge";
+import TimerOverlay from "@/components/TimerOverlay";
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,6 +36,11 @@ export default function RecipeDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [currentServings, setCurrentServings] = useState(1);
   const [notesExpanded, setNotesExpanded] = useState(false);
+  const [timerState, setTimerState] = useState<{ visible: boolean; minutes: number; stepNumber: number }>({
+    visible: false,
+    minutes: 0,
+    stepNumber: 0,
+  });
 
   useEffect(() => {
     (async () => {
@@ -77,6 +83,23 @@ export default function RecipeDetailScreen() {
   const allergens = useMemo(() => {
     if (!recipe) return [];
     return detectAllergens(recipe.ingredients.map((i) => i.name));
+  }, [recipe]);
+
+  const ingredientsByCategory = useMemo(() => {
+    if (!recipe) return [];
+    const groups: { category: string; indices: number[] }[] = [];
+    let currentCat = '';
+    recipe.ingredients.forEach((ing, idx) => {
+      const cat = ing.category || '';
+      if (cat !== currentCat || groups.length === 0) {
+        groups.push({ category: cat, indices: [idx] });
+        currentCat = cat;
+      } else {
+        groups[groups.length - 1].indices.push(idx);
+      }
+    });
+    const hasCategories = groups.some((g) => g.category !== '');
+    return hasCategories ? groups : [{ category: '', indices: recipe.ingredients.map((_, i) => i) }];
   }, [recipe]);
 
   const totalTime = recipe ? recipe.prepTime + recipe.cookTime : 0;
@@ -128,6 +151,11 @@ export default function RecipeDetailScreen() {
     });
     router.replace({ pathname: "/recipe/[id]", params: { id: newId } });
   }, [recipe, saveRecipe]);
+
+  const handleTimerPress = useCallback((minutes: number, stepNumber: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setTimerState({ visible: true, minutes, stepNumber });
+  }, []);
 
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
@@ -269,16 +297,30 @@ export default function RecipeDetailScreen() {
                     Ingredients ({recipe.ingredients.length})
                   </Text>
                 </View>
-                {recipe.ingredients.map((ing, idx) => (
-                  <IngredientRow
-                    key={ing.id}
-                    name={ing.name}
-                    scaleResult={scaledIngredients[idx]}
-                    prepNote={ing.prepNote || undefined}
-                    isScalable={ing.isScalable !== 0}
-                    cost={costSummary?.ingredientCosts[idx]?.cost}
-                    isScaled={isScaled}
-                  />
+                {ingredientsByCategory.map((group, gIdx) => (
+                  <View key={`grp-${gIdx}`}>
+                    {group.category ? (
+                      <View style={[styles.categoryDivider, gIdx === 0 && { marginTop: 0 }]}>
+                        <View style={styles.categoryLine} />
+                        <Text style={styles.categoryLabel}>{group.category}</Text>
+                        <View style={styles.categoryLine} />
+                      </View>
+                    ) : null}
+                    {group.indices.map((idx) => {
+                      const ing = recipe.ingredients[idx];
+                      return (
+                        <IngredientRow
+                          key={ing.id}
+                          name={ing.name}
+                          scaleResult={scaledIngredients[idx]}
+                          prepNote={ing.prepNote || undefined}
+                          isScalable={ing.isScalable !== 0}
+                          cost={costSummary?.ingredientCosts[idx]?.cost}
+                          isScaled={isScaled}
+                        />
+                      );
+                    })}
+                  </View>
                 ))}
               </View>
             </View>
@@ -300,6 +342,11 @@ export default function RecipeDetailScreen() {
                     timerMinutes={inst.timerMinutes}
                     temperature={inst.temperature}
                     photoUri={inst.photoUri || undefined}
+                    onTimerPress={
+                      inst.timerMinutes
+                        ? () => handleTimerPress(inst.timerMinutes!, inst.stepNumber)
+                        : undefined
+                    }
                   />
                 ))}
               </View>
@@ -375,6 +422,18 @@ export default function RecipeDetailScreen() {
           {/* BOTTOM ACTIONS */}
           <View style={styles.actionsSection}>
             <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                Alert.alert("Cook Mode", "Cook Mode is coming soon! This will provide a step-by-step cooking view with large text and voice control.");
+              }}
+              style={({ pressed }) => [styles.actionBtn, styles.cookModeBtn, pressed && { opacity: 0.7 }]}
+              testID="cook-mode-btn"
+            >
+              <Ionicons name="flame" size={20} color={Colors.textPrimary} />
+              <Text style={styles.cookModeText}>Cook Mode</Text>
+            </Pressable>
+
+            <Pressable
               onPress={handleDuplicate}
               style={({ pressed }) => [styles.actionBtn, styles.actionBtnOutline, pressed && { opacity: 0.7 }]}
               testID="duplicate-btn"
@@ -394,6 +453,13 @@ export default function RecipeDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <TimerOverlay
+        visible={timerState.visible}
+        minutes={timerState.minutes}
+        stepNumber={timerState.stepNumber}
+        onClose={() => setTimerState({ visible: false, minutes: 0, stepNumber: 0 })}
+      />
     </View>
   );
 }
@@ -533,6 +599,27 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontFamily: "Inter_600SemiBold",
   },
+
+  categoryDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.xs,
+  },
+  categoryLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.border,
+  },
+  categoryLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+
   notesText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
@@ -559,6 +646,15 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     minHeight: TouchTarget.min,
   },
+  cookModeBtn: {
+    backgroundColor: Colors.primary,
+  },
+  cookModeText: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_700Bold',
+  },
   actionBtnOutline: {
     borderWidth: 1,
     borderColor: Colors.border,
@@ -574,6 +670,12 @@ const styles = StyleSheet.create({
     borderColor: Colors.error + "30",
     backgroundColor: Colors.error + "10",
   },
+  actionBtnDangerText: {
+    fontSize: FontSize.md,
+    color: Colors.error,
+    fontFamily: "Inter_600SemiBold",
+  },
+
   galleryScrollContent: {
     gap: Spacing.sm,
     paddingVertical: Spacing.sm,
@@ -595,11 +697,5 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
-  },
-
-  actionBtnDangerText: {
-    fontSize: FontSize.md,
-    color: Colors.error,
-    fontFamily: "Inter_600SemiBold",
   },
 });
