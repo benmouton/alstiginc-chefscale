@@ -123,3 +123,18 @@ constants/
   - Version 1.0.0 (Phase 7), "Made for professional kitchens"
   - Store: added clearAllData action
   - Database: added clearAllData(), getRecipeCount(), getPriceCount() functions
+- Phase 8: Freemium Model
+  - Subscription tiers: FREE (10 recipes, basic scaling x1/x2/x5/x10) and PREMIUM (unlimited, all features)
+  - useSubscriptionStore (Zustand + AsyncStorage): tier, checkAccess(feature), hydrate/persist, trial support
+  - PremiumFeatures: unlimited_recipes, custom_scaling, cost_calculator, nutrition, ocr_scan, recipe_validation, allergen_filter, cloud_sync, export, import, step_photos, cook_mode
+  - PremiumGate component: renders children if access granted, shows LockedCard fallback otherwise
+  - ProBadge component: small "PRO" badge next to locked features
+  - LockOverlayButton: button that gates action behind paywall
+  - Paywall screen (app/paywall.tsx): gradient header, FREE vs PREMIUM comparison table, annual ($39.99/yr) + monthly ($4.99/mo) pricing, 7-day trial, restore purchase, Restaurant Consultant cross-sell
+  - ScalingControls: x25 multiplier + custom input locked for free users (x1/x2/x5/x10 free)
+  - Recipe detail: CostSummary wrapped in PremiumGate, Cook Mode button locked for free
+  - Recipe edit: OCR scan gated with ProBadge, new recipe limit check (10 max free), save triggers incrementRecipeCount + incrementSaveCount
+  - Home screen: recipe count synced to subscription store, subtitle shows "X / 10 free", nudge banner at 7+ recipes
+  - Settings: subscription status section (upgrade card for free, status badge for premium), export/import gated, Restaurant Consultant banner
+  - Promo system: cross-sell alert every 5th save (max 3 dismissals), links to restaurantai.consulting
+  - 7-day trial: startTrial() grants full premium, auto-expires, trialEndsAt tracked
