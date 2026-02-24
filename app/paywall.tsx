@@ -77,7 +77,7 @@ export default function PaywallScreen() {
   };
 
   const handleConsultantVerify = () => {
-    Linking.openURL('https://restaurantai.consulting/premium-verify');
+    Linking.openURL('https://restaurantai.consulting');
   };
 
   const handleConsultantLearn = () => {
