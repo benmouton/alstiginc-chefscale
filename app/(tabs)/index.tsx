@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
+import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import type { RecipeRow } from "@/lib/database";
 import RecipeCard from "@/components/RecipeCard";
 
@@ -23,12 +24,17 @@ const CATEGORIES = ["All", "Entr\u00e9e", "Appetizer", "Sauce", "Dessert", "Prep
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { recipes, isLoading, loadRecipes, removeRecipe } = useRecipeStore();
+  const { tier, recipeCount, maxFreeRecipes, setRecipeCount } = useSubscriptionStore();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadRecipes();
   }, []);
+
+  useEffect(() => {
+    setRecipeCount(recipes.length);
+  }, [recipes.length]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -50,7 +56,10 @@ export default function HomeScreen() {
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => removeRecipe(recipe.id),
+          onPress: () => {
+            removeRecipe(recipe.id);
+            useSubscriptionStore.getState().decrementRecipeCount();
+          },
         },
       ]
     );
@@ -63,7 +72,10 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>ChefScale</Text>
-          <Text style={styles.subtitle}>{recipes.length} recipes</Text>
+          <Text style={styles.subtitle}>
+            {recipes.length} recipe{recipes.length !== 1 ? 's' : ''}
+            {tier === 'free' ? ` / ${maxFreeRecipes} free` : ''}
+          </Text>
         </View>
         <Pressable
           onPress={() => {
@@ -122,6 +134,23 @@ export default function HomeScreen() {
           filteredRecipes.length === 0 && styles.listEmpty,
         ]}
         scrollEnabled={!!filteredRecipes.length}
+        ListHeaderComponent={
+          tier === 'free' && recipes.length >= 7 ? (
+            <Pressable
+              onPress={() => router.push('/paywall')}
+              style={styles.nudgeBanner}
+            >
+              <Ionicons name="star" size={16} color={Colors.accent} />
+              <Text style={styles.nudgeText}>
+                {recipes.length >= maxFreeRecipes
+                  ? `Recipe limit reached (${maxFreeRecipes}/${maxFreeRecipes})`
+                  : `${maxFreeRecipes - recipes.length} free recipe${maxFreeRecipes - recipes.length === 1 ? '' : 's'} remaining`}
+                {' — '}
+                <Text style={styles.nudgeLink}>Upgrade</Text>
+              </Text>
+            </Pressable>
+          ) : null
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -228,5 +257,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Inter_400Regular",
     paddingHorizontal: Spacing.xxxl,
+  },
+  nudgeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.accent + '15',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.accent + '30',
+  },
+  nudgeText: {
+    fontSize: FontSize.sm,
+    color: Colors.accent,
+    fontFamily: 'Inter_400Regular',
+    flex: 1,
+  },
+  nudgeLink: {
+    fontFamily: 'Inter_600SemiBold',
+    textDecorationLine: 'underline' as const,
   },
 });
