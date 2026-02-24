@@ -20,6 +20,7 @@ import {
   getRecipesByAllergenFree as dbGetRecipesByAllergenFree,
   getFavoriteRecipes as dbGetFavoriteRecipes,
   toggleFavorite as dbToggleFavorite,
+  clearAllData as dbClearAllData,
   type RecipeRow,
   type IngredientRow,
   type InstructionRow,
@@ -55,6 +56,8 @@ interface RecipeStore {
   loadPrices: () => Promise<void>;
   savePrice: (price: Omit<IngredientPriceRow, 'updatedAt'>) => Promise<void>;
   removePrice: (id: string) => Promise<void>;
+
+  clearAllData: () => Promise<void>;
 
   generateId: () => string;
 }
@@ -215,6 +218,15 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
       set((state) => ({
         prices: state.prices.filter((p) => p.id !== id),
       }));
+    } catch (e) {
+      set({ error: (e as Error).message });
+    }
+  },
+
+  clearAllData: async () => {
+    try {
+      await dbClearAllData();
+      set({ recipes: [], prices: [], currentRecipe: null, currentScale: 1 });
     } catch (e) {
       set({ error: (e as Error).message });
     }

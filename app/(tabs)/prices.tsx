@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -21,22 +21,105 @@ import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
 import type { IngredientPriceRow } from "@/lib/database";
 
+type SortMode = "alpha" | "recent";
+
+function parsePurchaseUnit(raw: string): { quantity: number; unitKey: string } | null {
+  const trimmed = raw.trim().toLowerCase();
+  const match = trimmed.match(/^([\d.]+)\s*(.+)$/);
+  if (!match) return null;
+  const quantity = parseFloat(match[1]);
+  if (isNaN(quantity) || quantity <= 0) return null;
+  const unitStr = match[2].trim();
+  const directKey = Object.keys(UNITS).find(
+    (k) =>
+      k.toLowerCase() === unitStr ||
+      UNITS[k].abbreviation.toLowerCase() === unitStr ||
+      UNITS[k].name.toLowerCase() === unitStr ||
+      UNITS[k].name.toLowerCase() + "s" === unitStr
+  );
+  if (directKey) return { quantity, unitKey: directKey };
+  const bagMatch = unitStr.match(/^([\w]+)\s*(bag|box|container|pack|jar|can|bottle)$/);
+  if (bagMatch) {
+    const innerUnit = bagMatch[1];
+    const found = Object.keys(UNITS).find(
+      (k) =>
+        k.toLowerCase() === innerUnit ||
+        UNITS[k].abbreviation.toLowerCase() === innerUnit ||
+        UNITS[k].name.toLowerCase() === innerUnit ||
+        UNITS[k].name.toLowerCase() + "s" === innerUnit
+    );
+    if (found) return { quantity, unitKey: found };
+  }
+  return null;
+}
+
+function tryAutoCalculate(
+  purchaseCostStr: string,
+  purchaseUnitStr: string,
+  costUnitKey: string
+): { costPerUnit: number; wasCalculated: boolean } | null {
+  const cost = parseFloat(purchaseCostStr);
+  if (isNaN(cost) || cost <= 0) return null;
+  const parsed = parsePurchaseUnit(purchaseUnitStr);
+  if (!parsed) return null;
+  const purchaseDef = UNITS[parsed.unitKey];
+  const costDef = UNITS[costUnitKey];
+  if (!purchaseDef || !costDef) return null;
+  if (purchaseDef.baseName !== costDef.baseName) return null;
+  const totalBase = parsed.quantity * purchaseDef.toBase;
+  const costUnitBase = costDef.toBase;
+  const unitsCount = totalBase / costUnitBase;
+  if (unitsCount <= 0) return null;
+  const perUnit = cost / unitsCount;
+  return { costPerUnit: Math.round(perUnit * 100) / 100, wasCalculated: true };
+}
+
 export default function PricesScreen() {
   const insets = useSafeAreaInsets();
   const { prices, loadPrices, savePrice, removePrice } = useRecipeStore();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingPrice, setEditingPrice] = useState<IngredientPriceRow | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("alpha");
 
   const [name, setName] = useState("");
   const [costPerUnit, setCostPerUnit] = useState("");
   const [costUnit, setCostUnit] = useState("lb");
   const [purchaseUnit, setPurchaseUnit] = useState("");
   const [purchaseCost, setPurchaseCost] = useState("");
+  const [wasAutoCalculated, setWasAutoCalculated] = useState(false);
 
   useEffect(() => {
     loadPrices();
   }, []);
+
+  const filteredPrices = useMemo(() => {
+    let result = prices;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter((p) => p.ingredientName.toLowerCase().includes(q));
+    }
+    if (sortMode === "alpha") {
+      result = [...result].sort((a, b) => a.ingredientName.localeCompare(b.ingredientName));
+    } else {
+      result = [...result].sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+    }
+    return result;
+  }, [prices, searchQuery, sortMode]);
+
+  const stats = useMemo(() => {
+    const totalIngredients = prices.length;
+    let totalValue = 0;
+    for (const p of prices) {
+      if (p.purchaseCost != null) {
+        totalValue += p.purchaseCost;
+      } else if (p.costPerUnit != null) {
+        totalValue += p.costPerUnit;
+      }
+    }
+    return { totalIngredients, totalValue };
+  }, [prices]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -51,6 +134,7 @@ export default function PricesScreen() {
     setPurchaseUnit("");
     setPurchaseCost("");
     setEditingPrice(null);
+    setWasAutoCalculated(false);
   };
 
   const openAddModal = () => {
@@ -65,7 +149,41 @@ export default function PricesScreen() {
     setCostUnit(item.costUnit || "lb");
     setPurchaseUnit(item.purchaseUnit || "");
     setPurchaseCost(item.purchaseCost != null ? item.purchaseCost.toString() : "");
+    setWasAutoCalculated(false);
     setShowAddModal(true);
+  };
+
+  const attemptAutoCalc = useCallback(
+    (pCost: string, pUnit: string, cUnit: string) => {
+      const result = tryAutoCalculate(pCost, pUnit, cUnit);
+      if (result) {
+        setCostPerUnit(result.costPerUnit.toFixed(2));
+        setWasAutoCalculated(true);
+      } else {
+        setWasAutoCalculated(false);
+      }
+    },
+    []
+  );
+
+  const handlePurchaseCostChange = (val: string) => {
+    setPurchaseCost(val);
+    attemptAutoCalc(val, purchaseUnit, costUnit);
+  };
+
+  const handlePurchaseUnitChange = (val: string) => {
+    setPurchaseUnit(val);
+    attemptAutoCalc(purchaseCost, val, costUnit);
+  };
+
+  const handleCostUnitChange = (unit: string) => {
+    setCostUnit(unit);
+    attemptAutoCalc(purchaseCost, purchaseUnit, unit);
+  };
+
+  const handleCostPerUnitManualChange = (val: string) => {
+    setCostPerUnit(val);
+    setWasAutoCalculated(false);
   };
 
   const handleSave = async () => {
@@ -99,6 +217,11 @@ export default function PricesScreen() {
     );
   };
 
+  const toggleSort = () => {
+    Haptics.selectionAsync();
+    setSortMode((prev) => (prev === "alpha" ? "recent" : "alpha"));
+  };
+
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
   return (
@@ -106,7 +229,6 @@ export default function PricesScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>My Prices</Text>
-          <Text style={styles.subtitle}>{prices.length} ingredients tracked</Text>
         </View>
         <Pressable
           onPress={openAddModal}
@@ -116,16 +238,58 @@ export default function PricesScreen() {
         </Pressable>
       </View>
 
+      {prices.length > 0 && (
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{stats.totalIngredients}</Text>
+            <Text style={styles.statLabel}>Tracked</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>${stats.totalValue.toFixed(2)}</Text>
+            <Text style={styles.statLabel}>Est. Value</Text>
+          </View>
+        </View>
+      )}
+
+      <View style={styles.searchRow}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={18} color={Colors.textMuted} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search ingredients..."
+            placeholderTextColor={Colors.textMuted}
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery("")} hitSlop={8}>
+              <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+            </Pressable>
+          )}
+        </View>
+        <Pressable
+          onPress={toggleSort}
+          style={({ pressed }) => [styles.sortButton, pressed && { opacity: 0.7 }]}
+        >
+          <Ionicons
+            name={sortMode === "alpha" ? "text" : "time"}
+            size={18}
+            color={Colors.textPrimary}
+          />
+        </Pressable>
+      </View>
+
       <FlatList
-        data={prices}
+        data={filteredPrices}
         keyExtractor={(item) => item.id}
-        scrollEnabled={!!prices.length}
+        scrollEnabled={!!filteredPrices.length}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
         contentContainerStyle={[
           styles.list,
-          prices.length === 0 && styles.listEmpty,
+          filteredPrices.length === 0 && styles.listEmpty,
         ]}
         renderItem={({ item }) => (
           <Pressable
@@ -136,7 +300,7 @@ export default function PricesScreen() {
             <View style={styles.priceInfo}>
               <Text style={styles.priceName}>{item.ingredientName}</Text>
               <Text style={styles.priceDetail}>
-                per {UNITS[item.costUnit]?.abbreviation || item.costUnit || 'unit'}
+                per {UNITS[item.costUnit]?.abbreviation || item.costUnit || "unit"}
               </Text>
               {item.purchaseCost != null && item.purchaseUnit ? (
                 <Text style={styles.priceStore}>
@@ -149,7 +313,7 @@ export default function PricesScreen() {
                 ${(item.costPerUnit ?? 0).toFixed(2)}
               </Text>
               <Text style={styles.unitPriceLabel}>
-                per {UNITS[item.costUnit]?.abbreviation || item.costUnit || 'unit'}
+                per {UNITS[item.costUnit]?.abbreviation || item.costUnit || "unit"}
               </Text>
             </View>
           </Pressable>
@@ -157,10 +321,26 @@ export default function PricesScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="pricetag-outline" size={64} color={Colors.textMuted} />
-            <Text style={styles.emptyTitle}>No prices yet</Text>
-            <Text style={styles.emptyText}>
-              Add ingredient prices to see cost estimates on your recipes
+            <Text style={styles.emptyTitle}>
+              {searchQuery ? "No matches found" : "Start tracking prices"}
             </Text>
+            <Text style={styles.emptyText}>
+              {searchQuery
+                ? `No ingredients match "${searchQuery}". Try a different search.`
+                : "Tap the + button to add your first ingredient price. Track costs to see real-time estimates on your recipes."}
+            </Text>
+            {!searchQuery && (
+              <>
+                <Pressable
+                  onPress={openAddModal}
+                  style={({ pressed }) => [styles.emptyAddButton, pressed && { opacity: 0.8 }]}
+                >
+                  <Ionicons name="add" size={20} color={Colors.textPrimary} />
+                  <Text style={styles.emptyAddText}>Add First Price</Text>
+                </Pressable>
+                <Text style={styles.emptyHint}>Long press any item to delete it</Text>
+              </>
+            )}
           </View>
         }
       />
@@ -189,11 +369,19 @@ export default function PricesScreen() {
 
               <View style={styles.row}>
                 <View style={styles.halfInput}>
-                  <Text style={styles.inputLabel}>Cost per Unit ($)</Text>
+                  <View style={styles.labelRow}>
+                    <Text style={styles.inputLabel}>Cost per Unit ($)</Text>
+                    {wasAutoCalculated && (
+                      <View style={styles.calcBadge}>
+                        <Ionicons name="calculator-outline" size={10} color={Colors.primary} />
+                        <Text style={styles.calcBadgeText}>calculated</Text>
+                      </View>
+                    )}
+                  </View>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, wasAutoCalculated && styles.inputCalculated]}
                     value={costPerUnit}
-                    onChangeText={setCostPerUnit}
+                    onChangeText={handleCostPerUnitManualChange}
                     placeholder="0.00"
                     placeholderTextColor={Colors.textMuted}
                     keyboardType="decimal-pad"
@@ -214,7 +402,7 @@ export default function PricesScreen() {
                 {COMMON_UNITS.map((u) => (
                   <Pressable
                     key={u}
-                    onPress={() => setCostUnit(u)}
+                    onPress={() => handleCostUnitChange(u)}
                     style={[styles.unitChip, costUnit === u && styles.unitChipActive]}
                   >
                     <Text style={[styles.unitChipText, costUnit === u && styles.unitChipTextActive]}>
@@ -224,14 +412,24 @@ export default function PricesScreen() {
                 ))}
               </View>
 
+              <View style={styles.autoCalcSection}>
+                <View style={styles.autoCalcHeader}>
+                  <Ionicons name="flash-outline" size={16} color={Colors.accent} />
+                  <Text style={styles.autoCalcTitle}>Auto-Calculate from Purchase</Text>
+                </View>
+                <Text style={styles.autoCalcHint}>
+                  Enter cost and unit (e.g. "5lb bag") to auto-fill cost per unit
+                </Text>
+              </View>
+
               <View style={styles.row}>
                 <View style={styles.halfInput}>
                   <Text style={styles.inputLabel}>Purchase Cost ($)</Text>
                   <TextInput
                     style={styles.input}
                     value={purchaseCost}
-                    onChangeText={setPurchaseCost}
-                    placeholder="Optional"
+                    onChangeText={handlePurchaseCostChange}
+                    placeholder="e.g. 5.00"
                     placeholderTextColor={Colors.textMuted}
                     keyboardType="decimal-pad"
                   />
@@ -241,7 +439,7 @@ export default function PricesScreen() {
                   <TextInput
                     style={styles.input}
                     value={purchaseUnit}
-                    onChangeText={setPurchaseUnit}
+                    onChangeText={handlePurchaseUnitChange}
                     placeholder="e.g. 5lb bag"
                     placeholderTextColor={Colors.textMuted}
                   />
@@ -278,21 +476,85 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FontSize.xxxl,
-    fontWeight: "700",
+    fontWeight: "700" as const,
     color: Colors.textPrimary,
     fontFamily: "Inter_700Bold",
-  },
-  subtitle: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
   },
   addButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statsRow: {
+    flexDirection: "row",
+    marginHorizontal: Spacing.lg,
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+  },
+  statCard: {
+    flex: 1,
+    alignItems: "center",
+  },
+  statValue: {
+    fontSize: FontSize.xl,
+    fontWeight: "700" as const,
+    color: Colors.accent,
+    fontFamily: "Inter_700Bold",
+  },
+  statLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    marginTop: 2,
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: Colors.border,
+  },
+  searchRow: {
+    flexDirection: "row",
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.sm,
+    alignItems: "center",
+  },
+  searchContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.md,
+    minHeight: TouchTarget.min,
+  },
+  searchIcon: {
+    marginRight: Spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: FontSize.md,
+    color: Colors.textPrimary,
+    fontFamily: "Inter_400Regular",
+    paddingVertical: Spacing.sm,
+  },
+  sortButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.backgroundCard,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -319,7 +581,7 @@ const styles = StyleSheet.create({
   },
   priceName: {
     fontSize: FontSize.lg,
-    fontWeight: "600",
+    fontWeight: "600" as const,
     color: Colors.textPrimary,
     fontFamily: "Inter_600SemiBold",
   },
@@ -340,7 +602,7 @@ const styles = StyleSheet.create({
   },
   unitPrice: {
     fontSize: FontSize.xl,
-    fontWeight: "700",
+    fontWeight: "700" as const,
     color: Colors.accent,
     fontFamily: "Inter_700Bold",
   },
@@ -358,7 +620,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: FontSize.xl,
-    fontWeight: "600",
+    fontWeight: "600" as const,
     color: Colors.textPrimary,
     fontFamily: "Inter_600SemiBold",
   },
@@ -368,6 +630,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Inter_400Regular",
     paddingHorizontal: Spacing.xxxl,
+  },
+  emptyAddButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
+  },
+  emptyAddText: {
+    fontSize: FontSize.md,
+    fontWeight: "600" as const,
+    color: Colors.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+  },
+  emptyHint: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+    fontFamily: "Inter_400Regular",
+    marginTop: Spacing.sm,
   },
   modalOverlay: {
     flex: 1,
@@ -389,9 +673,14 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: FontSize.xl,
-    fontWeight: "700",
+    fontWeight: "700" as const,
     color: Colors.textPrimary,
     fontFamily: "Inter_700Bold",
+  },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
   },
   inputLabel: {
     fontSize: FontSize.sm,
@@ -410,6 +699,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     minHeight: TouchTarget.min,
+  },
+  inputCalculated: {
+    borderColor: Colors.primary,
+  },
+  calcBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: Colors.backgroundDark,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xs,
+  },
+  calcBadgeText: {
+    fontSize: 10,
+    color: Colors.primary,
+    fontFamily: "Inter_600SemiBold",
   },
   row: {
     flexDirection: "row",
@@ -457,6 +765,31 @@ const styles = StyleSheet.create({
   unitChipTextActive: {
     color: Colors.textPrimary,
   },
+  autoCalcSection: {
+    backgroundColor: Colors.backgroundDark,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  autoCalcHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  autoCalcTitle: {
+    fontSize: FontSize.sm,
+    fontWeight: "600" as const,
+    color: Colors.accent,
+    fontFamily: "Inter_600SemiBold",
+  },
+  autoCalcHint: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+    fontFamily: "Inter_400Regular",
+    marginTop: Spacing.xs,
+  },
   saveButton: {
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.md,
@@ -468,7 +801,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: FontSize.lg,
-    fontWeight: "700",
+    fontWeight: "700" as const,
     color: Colors.textPrimary,
     fontFamily: "Inter_700Bold",
   },

@@ -423,3 +423,26 @@ export async function deletePrice(id: string): Promise<void> {
   const database = await getDatabase();
   await database.runAsync('DELETE FROM ingredient_prices WHERE id = ?', [id]);
 }
+
+export async function clearAllData(): Promise<void> {
+  const database = await getDatabase();
+  await database.execAsync(`
+    DELETE FROM recipe_photos;
+    DELETE FROM instructions;
+    DELETE FROM ingredients;
+    DELETE FROM ingredient_prices;
+    DELETE FROM recipes;
+  `);
+}
+
+export async function getRecipeCount(): Promise<number> {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM recipes');
+  return row?.count ?? 0;
+}
+
+export async function getPriceCount(): Promise<number> {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM ingredient_prices');
+  return row?.count ?? 0;
+}
