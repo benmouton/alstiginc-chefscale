@@ -106,3 +106,20 @@ constants/
   - Allergen section: "Contains:" label with colored badges for Big 9 allergens
   - Cook Mode button placeholder (coming in future phase)
   - Bottom actions: Cook Mode, Duplicate Recipe, Delete Recipe (with confirmation)
+- SQLite web error suppression: global error/unhandledrejection handlers suppress xFileControl/OPFS errors on web, initDatabase uses .catch().finally() pattern
+- Phase 6: My Prices screen enhancements
+  - Search bar with real-time filtering by ingredient name
+  - Sort toggle: alphabetical (A-Z) or recently updated (newest first)
+  - Auto-calculate cost per unit from purchase info (e.g. "$5.00 for 5lb bag" → $1.00/lb)
+  - parsePurchaseUnit() extracts quantity+unit from strings like "5lb bag"
+  - Summary stats row: total ingredients tracked, estimated total value
+  - Enhanced empty state with actionable "Add First Price" button
+- Phase 7: Settings & Branding
+  - General section: display-only rows for Appearance, Default Units, Default Servings
+  - Export Recipes: JSON export via Share (mobile) or Blob download (web)
+  - Import Recipes: placeholder for future update
+  - Clear All Data: two-step confirmation, calls clearAllData() → deletes all recipes, ingredients, instructions, photos, prices
+  - About/branding section: teal logo circle with restaurant icon, "ChefScale" title, "Scale with confidence" tagline
+  - Version 1.0.0 (Phase 7), "Made for professional kitchens"
+  - Store: added clearAllData action
+  - Database: added clearAllData(), getRecipeCount(), getPriceCount() functions
