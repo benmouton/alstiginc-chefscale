@@ -1,0 +1,279 @@
+# ChefScale — Phase 8: Freemium Gates & Subscription Logic
+
+Paste this into Replit after Phases 6 and 7 are complete.
+
+---
+
+## PHASE 8: Freemium Model, Subscription Paywall, and Restaurant Consultant Funnel
+
+```
+Add a freemium subscription model to ChefScale. Free users get limited features. Premium unlocks everything. This needs to feel seamless — not annoying, not aggressive, but clear about the value of upgrading.
+
+=== SUBSCRIPTION TIERS ===
+
+FREE TIER (what every user gets forever):
+- Up to 10 saved recipes
+- Basic scaling (quick buttons: ×2, ×5, ×10 only — no custom scaling, no ×25)
+- Manual recipe entry (full form)
+- Recipe organization by category
+- Search and filter recipes
+- Basic allergen detection (shows badges but no filtering)
+- Dark mode / light mode
+- NO cost calculator
+- NO nutrition info
+- NO OCR recipe scanning
+- NO recipe validation (AI completeness check)
+- NO cloud sync (local only)
+- NO export/import
+- NO step-level photos
+- NO cook mode
+
+PREMIUM TIER ($4.99/month or $39.99/year):
+- Unlimited recipes
+- Full scaling (all quick buttons + custom servings input)
+- Cost calculator with food cost percentage
+- Full nutrition info per serving
+- OCR recipe scanning (photo-to-recipe)
+- AI recipe validation (missing steps, unused ingredients)
+- Allergen filtering (show me all nut-free recipes)
+- Cloud sync via Supabase (recipes backed up and accessible across devices)
+- Export recipes to PDF / JSON
+- Import recipes from JSON
+- Step-level photos on instructions
+- Cook mode (screen stays awake, one step at a time, large text)
+- Priority support
+- "Powered by The Restaurant Consultant" links to exclusive consulting content
+
+=== IMPLEMENTATION ===
+
+1. SUBSCRIPTION STATE
+
+Create a new Zustand store: useSubscriptionStore.ts
+
+interface SubscriptionState {
+  tier: 'free' | 'premium';
+  expiresAt: string | null;          // ISO timestamp for subscription end
+  trialEndsAt: string | null;        // 7-day trial end date
+  isTrialing: boolean;
+  recipeCount: number;               // Current number of saved recipes
+  maxFreeRecipes: number;            // Always 10
+  
+  // Actions
+  checkAccess: (feature: string) => boolean;
+  showPaywall: (feature: string) => void;
+  setPremium: (expiresAt: string) => void;
+  setFree: () => void;
+  startTrial: () => void;
+  incrementRecipeCount: () => void;
+  decrementRecipeCount: () => void;
+}
+
+Store subscription status in SQLite locally AND sync to Supabase when auth is set up.
+
+The checkAccess function accepts a feature name and returns true/false:
+  - 'unlimited_recipes' → true if premium OR recipeCount < 10
+  - 'custom_scaling' → premium only
+  - 'cost_calculator' → premium only
+  - 'nutrition' → premium only
+  - 'ocr_scan' → premium only
+  - 'recipe_validation' → premium only
+  - 'allergen_filter' → premium only
+  - 'cloud_sync' → premium only
+  - 'export' → premium only
+  - 'import' → premium only
+  - 'step_photos' → premium only
+  - 'cook_mode' → premium only
+
+2. PAYWALL SCREEN
+
+Create app/paywall.tsx — this is the upgrade screen shown when a free user tries a premium feature.
+
+LAYOUT:
+- Dark background with subtle teal gradient at top
+- ChefScale logo at top
+- Dynamic headline based on which feature triggered it:
+  - If triggered by recipe limit: "You've hit 10 recipes — unlock unlimited"
+  - If triggered by cost calculator: "Know your exact food cost per plate"
+  - If triggered by OCR scan: "Scan recipes in seconds — no typing"
+  - If triggered by custom scaling: "Scale to any number — not just presets"
+  - If triggered by nutrition: "Instant nutrition facts for every recipe"
+  - If triggered by cook mode: "Hands-free cooking mode for the line"
+  - Default: "Unlock the full kitchen toolkit"
+
+- Feature comparison list showing FREE vs PREMIUM:
+  FREE                          PREMIUM
+  10 recipes                    Unlimited recipes
+  Basic scaling (×2, ×5, ×10)   Custom scaling (any number)
+  Manual entry only             OCR recipe scanning
+  —                             Cost calculator + food cost %
+  —                             Nutrition per serving
+  —                             AI recipe validation
+  —                             Cloud sync & backup
+  —                             Export & import
+  —                             Cook mode
+  —                             Step-level photos
+
+  Show checkmarks (teal) for included, dashes (gray) for not included.
+
+- Pricing buttons:
+  - "$4.99 / month" button (outlined)
+  - "$39.99 / year — Save 33%" button (filled teal, larger — this is the recommended choice)
+  - "Start 7-day free trial" text link below buttons (starts premium trial, converts to annual after 7 days)
+
+- "Restore Purchase" text link at bottom
+
+- "Not now" dismiss button (subtle, top right corner or bottom)
+
+- CONSULTING FUNNEL SECTION at the bottom of the paywall:
+  - Divider line
+  - "Restaurant Consultant subscribers get Premium free"
+  - "Already a subscriber?" link → opens restaurantai.consulting/premium-verify (or similar URL you'll set up later)
+  - "Learn about The Restaurant Consultant" link → opens restaurantai.consulting
+  - Style this section in a slightly different background shade to set it apart
+  - Small chef hat icon next to "The Restaurant Consultant" text
+
+3. SOFT GATES (gentle nudges, not hard blocks)
+
+These appear BEFORE the user hits a hard block. They build awareness of premium features.
+
+a) Recipe count nudge:
+   - When user saves recipe #7: Show a subtle toast/banner: "3 recipes left on your free plan"
+   - When user saves recipe #9: Show a more prominent banner: "1 recipe left — upgrade for unlimited"
+   - When user tries to save recipe #11: Hard block → paywall screen with "recipe limit" headline
+
+b) Feature discovery prompts:
+   - On the recipe detail screen, show premium features as visible but locked:
+     - Cost Summary card shows a blurred/dimmed preview with a lock icon and "Upgrade to see costs"
+     - Nutrition card same treatment: blurred with lock icon
+     - Cook Mode button shows lock icon: "Premium feature — try free for 7 days"
+   - Tapping any locked feature → paywall screen with that feature's headline
+
+c) Scaling gate:
+   - Free users see ×2, ×5, ×10 buttons normally
+   - The ×25 button and "Custom servings" input show a small lock icon
+   - Tapping them → paywall with "custom scaling" headline
+
+d) OCR scan gate:
+   - The "Scan Recipe" button on the add recipe screen shows a small "PRO" badge
+   - Tapping it as free user → paywall with "OCR scan" headline
+   - Manual entry always works for everyone
+
+e) Allergen filter gate:
+   - Allergen badges show on all recipe cards (free)
+   - The "Filter by allergen-free" option in the recipe list filter shows a lock icon
+   - Tapping → paywall with "allergen filter" headline
+
+4. HARD GATES (actual blocks)
+
+These prevent access entirely:
+- Saving recipe #11+ without premium
+- Accessing cost calculator data
+- Accessing nutrition data
+- Using OCR scan
+- Using recipe validation
+- Using custom scaling or ×25
+- Enabling cloud sync
+- Exporting/importing recipes
+- Adding step-level photos
+- Entering cook mode
+
+When any hard gate is hit → navigate to paywall screen with the appropriate headline.
+
+5. IN-APP PURCHASE INTEGRATION
+
+Use expo-in-app-purchases (or react-native-purchases / RevenueCat SDK — RevenueCat is easier to manage):
+
+Setup:
+- Install RevenueCat SDK: npm install react-native-purchases
+- Create products in App Store Connect:
+  - com.alstiginc.chefscale.premium.monthly ($4.99)
+  - com.alstiginc.chefscale.premium.annual ($39.99)
+- Configure RevenueCat with your App Store Connect API key
+- Initialize RevenueCat in _layout.tsx on app launch
+
+Purchase flow:
+- User taps pricing button on paywall
+- RevenueCat handles the Apple payment sheet
+- On success: update subscription store to premium, set expiresAt
+- On failure/cancel: stay on paywall, show nothing (don't nag)
+- On restore: check RevenueCat for existing purchases, restore premium if found
+
+Trial flow:
+- "Start 7-day free trial" triggers RevenueCat's trial offering
+- Set isTrialing: true, trialEndsAt: 7 days from now
+- After 7 days, Apple auto-converts to annual subscription
+- Show trial status in Settings: "Trial ends in X days"
+
+Subscription check on app launch:
+- Query RevenueCat for current entitlements
+- If premium entitlement active → set premium
+- If expired → set free (but don't delete recipes over 10 — just prevent adding new ones)
+- If trial active → set premium + show trial banner
+
+6. RESTAURANT CONSULTANT CROSS-PROMOTION
+
+These touchpoints funnel ChefScale users to your consulting platform:
+
+a) Settings screen:
+   - "Powered by The Restaurant Consultant" footer (already in Phase 7)
+   - Add: "Get Premium free with a Restaurant Consultant subscription" banner above the footer
+   - Links to restaurantai.consulting
+
+b) Paywall screen:
+   - Consulting funnel section (described above in section 2)
+
+c) Post-recipe-save prompt (occasional, not every time):
+   - After saving a recipe, 1 in 5 times show: "Want a full kitchen operations system? The Restaurant Consultant covers staffing, training, crisis management, and more." with "Learn More" and "Dismiss" buttons
+   - Track dismissals — stop showing after 3 dismissals
+
+d) Premium welcome email (future, when auth is set up):
+   - When someone upgrades to premium, send a welcome email mentioning The Restaurant Consultant
+   - "You're serious about running a better kitchen. The Restaurant Consultant gives you the complete operations system — from staffing to training to crisis management."
+
+7. ANALYTICS EVENTS
+
+Track these events to understand conversion:
+- app_opened (with tier: free/premium)
+- recipe_saved (with count, tier)
+- paywall_shown (with trigger_feature)
+- paywall_dismissed
+- trial_started
+- purchase_completed (with plan: monthly/annual)
+- purchase_failed
+- feature_locked_tapped (with feature name)
+- consulting_link_tapped (with source: paywall/settings/post_save)
+- recipe_limit_warning_shown (with count: 7/9/11)
+
+Use Expo Analytics or a lightweight event tracker stored in Supabase.
+
+8. VISUAL TREATMENT FOR LOCKED FEATURES
+
+Create a reusable PremiumGate component:
+
+<PremiumGate feature="cost_calculator" fallback={<LockedCard title="Cost Calculator" description="See your exact food cost per plate" />}>
+  <CostSummary recipe={recipe} scale={scale} />
+</PremiumGate>
+
+The PremiumGate component:
+- Checks useSubscriptionStore.checkAccess(feature)
+- If premium: renders children normally
+- If free: renders the fallback (locked preview)
+- Fallback has: blurred/dimmed content, lock icon, "Upgrade" button, tapping anywhere → paywall
+
+LockedCard component:
+- Rounded card matching app style
+- Content area with 50% opacity
+- Lock icon centered
+- Feature name bold
+- Description below
+- "Unlock with Premium" button (teal outline)
+- Subtle shimmer/pulse animation on the lock icon (not annoying, just noticeable)
+
+=== IMPORTANT NOTES ===
+
+- NEVER delete user recipes if they downgrade from premium. If someone had 25 recipes and their sub expires, they keep all 25 but can't add new ones until they're back under 10 or re-subscribe.
+- The paywall should NEVER feel aggressive. No popups on app launch. No full-screen takeovers unless a hard gate is hit. Soft gates are always dismissable with one tap.
+- Free tier must be genuinely useful — 10 recipes with basic scaling is enough to prove the app works. The goal is to make them WANT premium, not to make free feel broken.
+- RevenueCat handles receipt validation, subscription status, and Apple's server notifications automatically. Don't build this yourself.
+- Test the full purchase flow in sandbox mode before submitting to App Store.
+```
