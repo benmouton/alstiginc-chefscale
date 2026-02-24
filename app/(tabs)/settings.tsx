@@ -151,6 +151,26 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleSendFeedback = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL("mailto:support@restaurantai.consulting?subject=ChefScale%20Feedback");
+  };
+
+  const handleConsultantLink = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL("https://restaurantai.consulting");
+  };
+
+  const handlePrivacyPolicy = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL("https://restaurantai.consulting/privacy");
+  };
+
+  const handleTermsOfService = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL("https://restaurantai.consulting/terms");
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top + webTopInset }]}>
       <View style={styles.header}>
@@ -244,8 +264,35 @@ export default function SettingsScreen() {
               color="#EC4899"
               onPress={handleRateApp}
             />
+            <SettingsRow
+              icon="mail-outline"
+              label="Send Feedback"
+              subtitle="support@restaurantai.consulting"
+              color="#3B82F6"
+              onPress={handleSendFeedback}
+            />
+            <SettingsRow
+              icon="shield-checkmark-outline"
+              label="Privacy Policy"
+              color={Colors.textSecondary}
+              onPress={handlePrivacyPolicy}
+            />
+            <SettingsRow
+              icon="document-text-outline"
+              label="Terms of Service"
+              color={Colors.textSecondary}
+              onPress={handleTermsOfService}
+            />
           </View>
         </View>
+
+        <Pressable
+          onPress={handleConsultantLink}
+          style={({ pressed }) => [styles.consultantFooter, pressed && { opacity: 0.7 }]}
+        >
+          <Ionicons name="restaurant" size={16} color={Colors.primary} />
+          <Text style={styles.consultantText}>Powered by The Restaurant Consultant</Text>
+        </Pressable>
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -347,6 +394,19 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+  },
+  consultantFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.lg,
+    marginTop: Spacing.sm,
+  },
+  consultantText: {
+    fontSize: FontSize.sm,
+    color: Colors.primary,
     fontFamily: "Inter_400Regular",
   },
 });
