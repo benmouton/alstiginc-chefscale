@@ -1,0 +1,105 @@
+PHASE 6: My Prices Screen
+Build the My Prices screen (app/(tabs)/prices.tsx) for ChefScale.
+
+This is where users manage ingredient costs that apply across all recipes.
+
+LAYOUT:
+
+HEADER:
+- "My Prices" title
+- Search bar to filter ingredients
+- "Last updated" timestamp
+
+INGREDIENT PRICE LIST:
+- Grouped by category (Dairy, Protein, Produce, Dry Goods, Spices, Other)
+- Each row shows:
+  - Ingredient name
+  - Current cost: "$4.99 per lb" (or "No price set" in gray)
+  - Tap to edit → inline expansion or modal:
+    - Purchase price (what you pay): number input
+    - Purchase unit (what you buy it in): dropdown (lb, oz, gallon, each, bag, case, can)
+    - App auto-calculates cost per recipe unit
+  - Number of recipes using this ingredient: "(used in 5 recipes)"
+
+EMPTY STATE:
+- "Prices will appear here as you add ingredients to recipes. Tap any ingredient to set its cost."
+
+AUTO-POPULATION:
+- When user adds ingredients to any recipe, they automatically appear in this list
+- Ingredient names are normalized (lowercase, trimmed) for matching across recipes
+- If user sets a price here, it auto-applies to ALL recipes using that ingredient
+
+BULK ACTIONS:
+- "Update All Prices" — prompts through each ingredient one by one (useful for weekly price updates from vendor invoices)
+
+PHASE 7: Settings & Branding
+Build the Settings screen (app/(tabs)/settings.tsx) for ChefScale.
+
+SECTIONS:
+
+PROFILE:
+- User name display
+- Email display
+- "Sign Out" button
+
+PREFERENCES:
+- Default units toggle: Imperial / Metric
+- Default base servings for new recipes: number input (default 4)
+- Target food cost percentage: number input (default 30) — used for cost warnings
+- Dark mode / Light mode toggle (dark is default)
+
+DATA:
+- "Export All Recipes" → generates JSON file
+- "Import Recipes" → accepts JSON file
+- Sync status indicator (for future Supabase sync)
+
+ABOUT:
+- App version number
+- "Powered by The Restaurant Consultant" — tappable, opens https://restaurantai.consulting in browser
+  - Style this as a subtle footer element: small text, teal color, with a small version of The Restaurant Consultant logo or chef hat icon
+- "Rate ChefScale" → opens App Store rating
+- "Send Feedback" → opens email compose to a support address
+- Privacy Policy link
+- Terms of Service link
+
+PHASE 8: Auth with Supabase (Add When Ready)
+Add Supabase authentication and cloud sync to ChefScale.
+
+SETUP:
+- Install @supabase/supabase-js and configure with project URL and anon key
+- Create lib/supabase.ts with client initialization
+
+AUTH SCREENS:
+- app/login.tsx — Email + password login
+- app/signup.tsx — Email + password signup
+- app/forgot-password.tsx — Password reset
+- Style these screens with the ChefScale branding (dark background, teal accents, app logo at top)
+- After successful auth, navigate to main tabs
+
+AUTH FLOW:
+- Check for existing session on app launch
+- If authenticated → show tabs
+- If not → show login screen
+- Store session token securely using expo-secure-store
+
+CLOUD SYNC (add to existing SQLite logic):
+- Create matching tables in Supabase (recipes, ingredients, instructions, ingredient_prices)
+- Add user_id column to all tables
+- Enable Row Level Security: users can only read/write their own data
+- Sync logic in lib/sync.ts:
+  - On save: write to SQLite first (instant), then push to Supabase in background
+  - On launch: pull any server updates newer than last sync timestamp
+  - Conflict resolution: server timestamp wins
+  - Show sync status indicator in settings
+
+NOTES FOR REPLIT AI
+
+Build each phase completely before moving to the next
+Test in Expo Go after each phase
+Use consistent error handling — try/catch with user-friendly error messages
+All database operations should be async
+Keep the UI responsive — never block the main thread
+Ingredient amount inputs should accept decimals AND fractions (convert "1/2" to 0.5 on save)
+The scaling feature is the #1 priority — it must be bulletproof and fast
+Touch targets minimum 48px for kitchen use (wet/flour hands)
+All text should be readable in both bright and dim lighting conditions
