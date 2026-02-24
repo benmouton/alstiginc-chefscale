@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Colors, BorderRadius, Spacing, FontSize, TouchTarget } from '@/constants/theme';
+import { useSubscriptionStore } from '@/store/useSubscriptionStore';
 
 interface ScalingControlsProps {
   originalServings: number;
@@ -11,7 +13,8 @@ interface ScalingControlsProps {
   yieldUnit?: string;
 }
 
-const QUICK_MULTIPLIERS = [1, 2, 5, 10, 25];
+const FREE_MULTIPLIERS = [1, 2, 5, 10];
+const PREMIUM_MULTIPLIERS = [25];
 
 export default function ScalingControls({
   originalServings,
@@ -20,6 +23,9 @@ export default function ScalingControls({
   yieldUnit = 'servings',
 }: ScalingControlsProps) {
   const [customInput, setCustomInput] = useState('');
+  const checkAccess = useSubscriptionStore((s) => s.checkAccess);
+  const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);
+  const hasPremiumScaling = checkAccess('custom_scaling');
   const scaleFactor = originalServings > 0 ? currentServings / originalServings : 1;
   const isScaled = currentServings !== originalServings;
 
@@ -28,7 +34,16 @@ export default function ScalingControls({
     onServingsChange(Math.max(1, Math.round(originalServings * multiplier)));
   };
 
+  const handlePremiumGate = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push({ pathname: '/paywall', params: { feature: 'custom_scaling', headline: getPaywallHeadline('custom_scaling') } });
+  };
+
   const handleCustomScale = () => {
+    if (!hasPremiumScaling) {
+      handlePremiumGate();
+      return;
+    }
     const val = parseInt(customInput);
     if (val > 0) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -62,7 +77,7 @@ export default function ScalingControls({
       </View>
 
       <View style={styles.quickButtons}>
-        {QUICK_MULTIPLIERS.map((mult) => {
+        {FREE_MULTIPLIERS.map((mult) => {
           const target = Math.max(1, Math.round(originalServings * mult));
           const isActive = currentServings === target;
           return (
@@ -82,31 +97,64 @@ export default function ScalingControls({
             </Pressable>
           );
         })}
+        {PREMIUM_MULTIPLIERS.map((mult) => {
+          const target = Math.max(1, Math.round(originalServings * mult));
+          const isActive = currentServings === target;
+          return (
+            <Pressable
+              key={mult}
+              onPress={() => hasPremiumScaling ? handleQuickScale(mult) : handlePremiumGate()}
+              style={({ pressed }) => [
+                styles.quickBtn,
+                isActive && styles.quickBtnActive,
+                !hasPremiumScaling && styles.quickBtnLocked,
+                pressed && { opacity: 0.7 },
+              ]}
+              testID={`scale-${mult}x`}
+            >
+              <Text style={[styles.quickBtnText, isActive && styles.quickBtnTextActive, !hasPremiumScaling && styles.quickBtnTextLocked]}>
+                ×{mult}
+              </Text>
+              {!hasPremiumScaling ? <Ionicons name="lock-closed" size={10} color={Colors.textMuted} style={{ marginLeft: 2 }} /> : null}
+            </Pressable>
+          );
+        })}
       </View>
 
       <View style={styles.customRow}>
-        <TextInput
-          style={styles.customInput}
-          value={customInput}
-          onChangeText={setCustomInput}
-          placeholder={`Custom ${yieldUnit}`}
-          placeholderTextColor={Colors.textMuted}
-          keyboardType="number-pad"
-          returnKeyType="go"
-          onSubmitEditing={handleCustomScale}
-          testID="custom-servings-input"
-        />
+        <Pressable
+          onPress={!hasPremiumScaling ? handlePremiumGate : undefined}
+          style={{ flex: 1 }}
+          disabled={hasPremiumScaling}
+        >
+          <TextInput
+            style={[styles.customInput, !hasPremiumScaling && styles.customInputLocked]}
+            value={customInput}
+            onChangeText={hasPremiumScaling ? setCustomInput : undefined}
+            placeholder={hasPremiumScaling ? `Custom ${yieldUnit}` : `Custom ${yieldUnit} (Premium)`}
+            placeholderTextColor={Colors.textMuted}
+            keyboardType="number-pad"
+            returnKeyType="go"
+            onSubmitEditing={handleCustomScale}
+            editable={hasPremiumScaling}
+            testID="custom-servings-input"
+          />
+        </Pressable>
         <Pressable
           onPress={handleCustomScale}
           style={({ pressed }) => [
             styles.scaleBtn,
             pressed && { opacity: 0.7 },
-            !customInput && styles.scaleBtnDisabled,
+            (!customInput && hasPremiumScaling) && styles.scaleBtnDisabled,
           ]}
-          disabled={!customInput}
+          disabled={!customInput && hasPremiumScaling}
           testID="custom-scale-btn"
         >
-          <Text style={styles.scaleBtnText}>Scale</Text>
+          {!hasPremiumScaling ? (
+            <Ionicons name="lock-closed" size={16} color={Colors.textPrimary} />
+          ) : (
+            <Text style={styles.scaleBtnText}>Scale</Text>
+          )}
         </Pressable>
       </View>
     </View>
@@ -185,6 +233,14 @@ const styles = StyleSheet.create({
   quickBtnTextActive: {
     color: Colors.textPrimary,
   },
+  quickBtnLocked: {
+    borderColor: Colors.border + '60',
+    flexDirection: 'row',
+    gap: 2,
+  },
+  quickBtnTextLocked: {
+    color: Colors.textMuted,
+  },
   customRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
@@ -201,6 +257,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     minHeight: TouchTarget.min,
+  },
+  customInputLocked: {
+    opacity: 0.5,
   },
   scaleBtn: {
     backgroundColor: Colors.primary,

@@ -27,6 +27,56 @@ import InstructionStep from "@/components/InstructionStep";
 import CostSummary from "@/components/CostSummary";
 import { AllergenList } from "@/components/AllergenBadge";
 import TimerOverlay from "@/components/TimerOverlay";
+import PremiumGate from "@/components/PremiumGate";
+import { useSubscriptionStore } from "@/store/useSubscriptionStore";
+
+function CookModeButton() {
+  const checkAccess = useSubscriptionStore((s) => s.checkAccess);
+  const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);
+  const hasCookMode = checkAccess('cook_mode');
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (!hasCookMode) {
+      router.push({ pathname: '/paywall', params: { feature: 'cook_mode', headline: getPaywallHeadline('cook_mode') } });
+    } else {
+      Alert.alert("Cook Mode", "Cook Mode is coming soon! This will provide a step-by-step cooking view with large text and voice control.");
+    }
+  };
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => [cookModeStyles.actionBtn, cookModeStyles.cookModeBtn, pressed && { opacity: 0.7 }]}
+      testID="cook-mode-btn"
+    >
+      <Ionicons name="flame" size={20} color={Colors.textPrimary} />
+      <Text style={cookModeStyles.cookModeText}>Cook Mode</Text>
+      {!hasCookMode ? <Ionicons name="lock-closed" size={14} color={Colors.textPrimary + '80'} /> : null}
+    </Pressable>
+  );
+}
+
+const cookModeStyles = StyleSheet.create({
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 16,
+    minHeight: 48,
+  },
+  cookModeBtn: {
+    backgroundColor: Colors.primary,
+  },
+  cookModeText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_700Bold',
+  },
+});
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -356,7 +406,13 @@ export default function RecipeDetailScreen() {
           {/* COST SUMMARY */}
           {costSummary && costSummary.ingredientCosts.some((c) => c.hasPriceData) ? (
             <View style={styles.section}>
-              <CostSummary summary={costSummary} />
+              <PremiumGate
+                feature="cost_calculator"
+                fallbackTitle="Cost Calculator"
+                fallbackDescription="See your exact food cost per plate"
+              >
+                <CostSummary summary={costSummary} />
+              </PremiumGate>
             </View>
           ) : null}
 
@@ -421,17 +477,8 @@ export default function RecipeDetailScreen() {
 
           {/* BOTTOM ACTIONS */}
           <View style={styles.actionsSection}>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                Alert.alert("Cook Mode", "Cook Mode is coming soon! This will provide a step-by-step cooking view with large text and voice control.");
-              }}
-              style={({ pressed }) => [styles.actionBtn, styles.cookModeBtn, pressed && { opacity: 0.7 }]}
-              testID="cook-mode-btn"
-            >
-              <Ionicons name="flame" size={20} color={Colors.textPrimary} />
-              <Text style={styles.cookModeText}>Cook Mode</Text>
-            </Pressable>
+            <CookModeButton />
+
 
             <Pressable
               onPress={handleDuplicate}

@@ -14,8 +14,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as FileSystem from "expo-file-system";
+import { router } from "expo-router";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
+import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 
 interface SettingsRowProps {
   icon: string;
@@ -51,7 +53,21 @@ export default function SettingsScreen() {
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const { recipes, clearAllData, loadRecipes } = useRecipeStore();
 
+  const { tier, isTrialing, trialEndsAt } = useSubscriptionStore();
+  const checkAccess = useSubscriptionStore((s) => s.checkAccess);
+  const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);
+
+  const trialDaysLeft = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
   const handleExportRecipes = async () => {
+    if (!checkAccess('export')) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      router.push({ pathname: '/paywall', params: { feature: 'export', headline: getPaywallHeadline('export') } });
+      return;
+    }
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     if (recipes.length === 0) {
@@ -101,6 +117,12 @@ export default function SettingsScreen() {
   };
 
   const handleImportRecipes = () => {
+    if (!checkAccess('import')) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      router.push({ pathname: '/paywall', params: { feature: 'import', headline: getPaywallHeadline('import') } });
+      return;
+    }
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Alert.alert("Coming Soon", "Recipe import will be available in a future update.");
   };
@@ -171,6 +193,11 @@ export default function SettingsScreen() {
     Linking.openURL("https://restaurantai.consulting/terms");
   };
 
+  const handleUpgrade = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push({ pathname: '/paywall', params: { feature: 'unlimited_recipes', headline: getPaywallHeadline('unlimited_recipes') } });
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top + webTopInset }]}>
       <View style={styles.header}>
@@ -206,6 +233,46 @@ export default function SettingsScreen() {
               showChevron={false}
             />
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Subscription</Text>
+          {tier === 'free' ? (
+            <Pressable
+              onPress={handleUpgrade}
+              style={({ pressed }) => [styles.upgradeBanner, pressed && { opacity: 0.85 }]}
+            >
+              <View style={styles.upgradeBannerContent}>
+                <View style={styles.upgradeIconCircle}>
+                  <Ionicons name="star" size={24} color={Colors.accent} />
+                </View>
+                <View style={styles.upgradeBannerText}>
+                  <Text style={styles.upgradeTitle}>Upgrade to Premium</Text>
+                  <Text style={styles.upgradeSubtitle}>Unlock export, import, nutrition, and more</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.accent} />
+              </View>
+            </Pressable>
+          ) : (
+            <View style={styles.sectionCard}>
+              <View style={styles.subscriptionStatusRow}>
+                <View style={styles.statusIconCircle}>
+                  <Ionicons name="checkmark-circle" size={24} color={Colors.success} />
+                </View>
+                <View style={styles.settingsContent}>
+                  <Text style={styles.settingsLabel}>
+                    {isTrialing ? 'Trial' : 'Premium'}
+                  </Text>
+                  <Text style={styles.settingsSubtitle}>
+                    {isTrialing ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left` : 'Active subscription'}
+                  </Text>
+                </View>
+                <View style={styles.activeBadge}>
+                  <Text style={styles.activeBadgeText}>Active</Text>
+                </View>
+              </View>
+            </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -285,6 +352,19 @@ export default function SettingsScreen() {
             />
           </View>
         </View>
+
+        <Pressable
+          onPress={handleConsultantLink}
+          style={({ pressed }) => [styles.consultantBanner, pressed && { opacity: 0.85 }]}
+        >
+          <View style={styles.consultantBannerContent}>
+            <Ionicons name="diamond-outline" size={20} color={Colors.accent} />
+            <Text style={styles.consultantBannerText}>
+              Get Premium free with a Restaurant Consultant subscription
+            </Text>
+            <Ionicons name="open-outline" size={16} color={Colors.textMuted} />
+          </View>
+        </Pressable>
 
         <Pressable
           onPress={handleConsultantLink}
@@ -393,6 +473,88 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+  },
+  upgradeBanner: {
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.accent + '40',
+    overflow: "hidden",
+  },
+  upgradeBannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+  },
+  upgradeIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.accent + '15',
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.md,
+  },
+  upgradeBannerText: {
+    flex: 1,
+  },
+  upgradeTitle: {
+    fontSize: FontSize.md,
+    fontWeight: "700" as const,
+    color: Colors.accent,
+    fontFamily: "Inter_700Bold",
+  },
+  upgradeSubtitle: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    marginTop: 2,
+  },
+  subscriptionStatusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+    minHeight: 56,
+  },
+  statusIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: Colors.success + '20',
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.md,
+  },
+  activeBadge: {
+    backgroundColor: Colors.success + '20',
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+  },
+  activeBadgeText: {
+    fontSize: FontSize.xs,
+    fontWeight: "600" as const,
+    color: Colors.success,
+    fontFamily: "Inter_600SemiBold",
+  },
+  consultantBanner: {
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.sm,
+  },
+  consultantBannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  consultantBannerText: {
+    flex: 1,
+    fontSize: FontSize.sm,
     color: Colors.textSecondary,
     fontFamily: "Inter_400Regular",
   },

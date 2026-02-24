@@ -13,9 +13,12 @@ import {
   Modal,
   Switch,
   FlatList,
+  Linking,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useSubscriptionStore } from '@/store/useSubscriptionStore';
+import { ProBadge } from '@/components/PremiumGate';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as Crypto from "expo-crypto";
@@ -658,6 +661,12 @@ export default function EditRecipeScreen() {
   };
 
   const performSave = async () => {
+    const subStore = useSubscriptionStore.getState();
+    if (!isEditing && !subStore.checkAccess('unlimited_recipes')) {
+      router.push({ pathname: '/paywall', params: { feature: 'unlimited_recipes', headline: "You've hit 10 recipes — unlock unlimited" } });
+      return;
+    }
+
     setSaving(true);
     try {
       const validIngredients = ingredients.filter((i) => i.name.trim());
@@ -713,7 +722,21 @@ export default function EditRecipeScreen() {
         })),
       });
 
+      useSubscriptionStore.getState().incrementRecipeCount();
+      useSubscriptionStore.getState().incrementSaveCount();
+
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      if (useSubscriptionStore.getState().shouldShowPromo()) {
+        Alert.alert(
+          "Level Up Your Kitchen",
+          "Want a full kitchen operations system? The Restaurant Consultant covers staffing, training, crisis management, and more.",
+          [
+            { text: "Dismiss", onPress: () => useSubscriptionStore.getState().incrementPromoDismissals() },
+            { text: "Learn More", onPress: () => Linking.openURL("https://restaurantai.consulting") },
+          ]
+        );
+      }
 
       if (isEditing) {
         router.back();
@@ -790,12 +813,19 @@ export default function EditRecipeScreen() {
           </View>
         ) : (
           <Pressable
-            onPress={scanRecipe}
+            onPress={() => {
+              if (useSubscriptionStore.getState().checkAccess('ocr_scan')) {
+                scanRecipe();
+              } else {
+                router.push({ pathname: '/paywall', params: { feature: 'ocr_scan', headline: 'Scan recipes in seconds — no typing' } });
+              }
+            }}
             style={({ pressed }) => [styles.scanButton, pressed && { opacity: 0.7 }]}
             testID="scan-recipe-btn"
           >
             <Ionicons name="scan-outline" size={20} color={Colors.accent} />
             <Text style={styles.scanButtonText}>Scan written recipe</Text>
+            <ProBadge feature="ocr_scan" />
           </Pressable>
         )}
 

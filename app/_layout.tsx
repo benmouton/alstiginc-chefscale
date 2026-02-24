@@ -10,6 +10,7 @@ import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from "@e
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
 import { initDatabase } from "@/lib/database";
+import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -59,6 +60,13 @@ function RootLayoutNav() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen
+        name="paywall"
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
     </Stack>
   );
 }
@@ -72,13 +80,14 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      initDatabase()
-        .catch((e) => {
+      Promise.all([
+        initDatabase().catch((e) => {
           console.warn('Database init warning:', e?.message || e);
-        })
-        .finally(() => {
-          SplashScreen.hideAsync();
-        });
+        }),
+        useSubscriptionStore.getState().hydrate(),
+      ]).finally(() => {
+        SplashScreen.hideAsync();
+      });
     }
   }, [fontsLoaded]);
 
