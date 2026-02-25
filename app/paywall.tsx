@@ -193,9 +193,23 @@ export default function PaywallScreen() {
             </Pressable>
           ) : null}
 
+          <Text style={styles.renewalDisclosure}>
+            Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period. Your Apple ID account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions by going to your App Store account settings.
+          </Text>
+
           <Pressable onPress={handleRestore} style={styles.restoreLink}>
             <Text style={styles.restoreLinkText}>Restore Purchase</Text>
           </Pressable>
+
+          <View style={styles.legalLinks}>
+            <Pressable onPress={() => Linking.openURL('https://restaurantai.consulting/privacy')}>
+              <Text style={styles.legalLinkText}>Privacy Policy</Text>
+            </Pressable>
+            <Text style={styles.legalSeparator}>|</Text>
+            <Pressable onPress={() => Linking.openURL('https://restaurantai.consulting/terms')}>
+              <Text style={styles.legalLinkText}>Terms of Service</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.consultantSection}>
@@ -414,6 +428,30 @@ const styles = StyleSheet.create({
     color: Colors.accent,
     fontFamily: 'Inter_600SemiBold',
     textDecorationLine: 'underline',
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  legalLinkText: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+    fontFamily: 'Inter_400Regular',
+    textDecorationLine: 'underline' as const,
+  },
+  legalSeparator: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+  },
+  renewalDisclosure: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'center',
+    lineHeight: 16,
+    paddingHorizontal: Spacing.sm,
   },
   restoreLink: {
     paddingVertical: Spacing.sm,

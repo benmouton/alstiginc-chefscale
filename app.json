@@ -15,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.chefscale"
+      "bundleIdentifier": "com.alstiginc.chefscale"
     },
     "android": {
-      "package": "com.chefscale",
+      "package": "com.alstiginc.chefscale",
       "adaptiveIcon": {
         "backgroundColor": "#0F172A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

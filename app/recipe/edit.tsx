@@ -35,7 +35,9 @@ const API_BASE = (() => {
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
   if (!domain) return "http://localhost:5000";
   if (Platform.OS === "web") return "";
-  return `https://${domain}`;
+  const url = new URL(`https://${domain}`);
+  url.port = "";
+  return url.origin;
 })();
 
 interface EditableIngredient {
