@@ -1,0 +1,219 @@
+# ChefScale — Cross-Promotion for MyCookbook
+
+## Add this component: `components/MyCookbookPromo.tsx`
+
+```tsx
+import React, { useState, useEffect } from "react";
+import { View, Text, Pressable, StyleSheet, Linking, Platform } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Haptics from "expo-haptics";
+import { Colors, BorderRadius, Spacing, FontSize } from "@/constants/theme";
+
+const MYCOOKBOOK_APP_STORE_URL = "https://apps.apple.com/app/mycookbook/id_YOUR_MYCOOKBOOK_ID";
+const DISMISSED_KEY = "@chefscale_mycookbook_promo_dismissed";
+
+interface MyCookbookPromoProps {
+  trigger: "organize" | "mealplan" | "cooking" | "settings";
+  compact?: boolean;
+}
+
+export default function MyCookbookPromo({ trigger, compact = false }: MyCookbookPromoProps) {
+  const [dismissed, setDismissed] = useState(false);
+
+  if (dismissed) return null;
+
+  const messages = {
+    organize: {
+      title: "Organize Your Collection",
+      body: "MyCookbook lets you build a personal digital cookbook — organize by station or category, with a beautiful card-based layout.",
+      icon: "book-outline" as const,
+    },
+    mealplan: {
+      title: "Meal Planning & Grocery Lists",
+      body: "MyCookbook generates weekly meal plans and auto-consolidated shopping lists from your saved recipes.",
+      icon: "calendar-outline" as const,
+    },
+    cooking: {
+      title: "Hands-Free Cooking Mode",
+      body: "MyCookbook has a dedicated cooking mode with step-by-step navigation, keep-awake, and ingredient check-off.",
+      icon: "flame-outline" as const,
+    },
+    settings: {
+      title: "Also by ALSTIG INC",
+      body: "MyCookbook — your personal digital cookbook. Organize, collect, and cook from your recipe collection.",
+      icon: "book-outline" as const,
+    },
+  };
+
+  const msg = messages[trigger];
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL(MYCOOKBOOK_APP_STORE_URL);
+  };
+
+  const handleDismiss = async () => {
+    Haptics.selectionAsync();
+    setDismissed(true);
+    const dismissals = JSON.parse((await AsyncStorage.getItem(DISMISSED_KEY)) || "[]");
+    dismissals.push({ trigger, date: new Date().toISOString() });
+    await AsyncStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissals));
+  };
+
+  if (compact) {
+    return (
+      <Pressable onPress={handlePress} style={styles.compactContainer}>
+        <Ionicons name={msg.icon} size={16} color="#C2703E" />
+        <Text style={styles.compactText} numberOfLines={1}>
+          {msg.title} — Try MyCookbook
+        </Text>
+        <Ionicons name="open-outline" size={14} color="#C2703E" />
+      </Pressable>
+    );
+  }
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <View style={styles.iconCircle}>
+          <Ionicons name={msg.icon} size={20} color="#C2703E" />
+        </View>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>{msg.title}</Text>
+          <Text style={styles.appLabel}>MyCookbook by ALSTIG INC</Text>
+        </View>
+        <Pressable onPress={handleDismiss} hitSlop={12}>
+          <Ionicons name="close" size={18} color={Colors.textMuted} />
+        </Pressable>
+      </View>
+      <Text style={styles.body}>{msg.body}</Text>
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => [styles.ctaButton, pressed && { opacity: 0.9 }]}
+      >
+        <Text style={styles.ctaText}>View on App Store</Text>
+        <Ionicons name="open-outline" size={14} color="#fff" />
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    marginHorizontal: Spacing.lg,
+    marginVertical: Spacing.sm,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#C2703E20",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerText: {
+    flex: 1,
+  },
+  title: {
+    fontSize: FontSize.md,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textPrimary,
+  },
+  appLabel: {
+    fontSize: FontSize.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textMuted,
+    marginTop: 1,
+  },
+  body: {
+    fontSize: FontSize.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 18,
+    marginBottom: Spacing.md,
+  },
+  ctaButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#C2703E",
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+  },
+  ctaText: {
+    fontSize: FontSize.sm,
+    fontFamily: "Inter_600SemiBold",
+    color: "#fff",
+  },
+  compactContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: "#C2703E30",
+    backgroundColor: "#C2703E10",
+    marginHorizontal: Spacing.lg,
+    marginVertical: Spacing.xs,
+  },
+  compactText: {
+    flex: 1,
+    fontSize: FontSize.sm,
+    fontFamily: "Inter_500Medium",
+    color: "#C2703E",
+  },
+});
+```
+
+## Where to place it in ChefScale:
+
+### 1. Settings screen — "Our Other Apps" section
+In `app/(tabs)/settings.tsx`, add a new section:
+
+```tsx
+// Add import at top
+import MyCookbookPromo from "@/components/MyCookbookPromo";
+
+// Add after the existing settings sections, before "Danger Zone" / clear data
+<View style={styles.section}>
+  <Text style={styles.sectionTitle}>Our Other Apps</Text>
+  <MyCookbookPromo trigger="settings" />
+</View>
+```
+
+### 2. Home screen — after user has 20+ recipes (one-time)
+In `app/(tabs)/index.tsx`, when the recipe list is getting long and the user might want better organization:
+
+```tsx
+// Add import
+import MyCookbookPromo from "@/components/MyCookbookPromo";
+
+// In the FlatList's ListFooterComponent or after the recipe grid
+{recipes.length >= 20 && !promoDismissed && (
+  <MyCookbookPromo trigger="organize" />
+)}
+```
+
+### 3. Recipe detail — compact banner below instructions
+In `app/recipe/[id].tsx`, at the bottom of the recipe detail after instructions and cost summary:
+
+```tsx
+<MyCookbookPromo trigger="cooking" compact />
+```
+
+This shows the cooking mode promo since ChefScale doesn't have one — users who want guided step-by-step cooking will be interested.

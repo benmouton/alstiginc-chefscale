@@ -138,3 +138,9 @@ constants/
   - Settings: subscription status section (upgrade card for free, status badge for premium), export/import gated, Restaurant Consultant banner
   - Promo system: cross-sell alert every 5th save (max 3 dismissals), links to restaurantai.consulting
   - 7-day trial: startTrial() grants full premium, auto-expires, trialEndsAt tracked
+- Cross-Promotion: MyCookbook by ALSTIG INC
+  - MyCookbookPromo component (components/MyCookbookPromo.tsx): full card + compact banner variants
+  - 4 contextual triggers: organize, mealplan, cooking, settings — each with unique messaging
+  - Dismissible with AsyncStorage persistence (@chefscale_mycookbook_promo_dismissed)
+  - Placements: Settings ("Our Other Apps" section), Home (footer after 20+ recipes), Recipe Detail (compact banner above actions)
+  - CTA links to App Store (placeholder ID), branded with #C2703E warm brown

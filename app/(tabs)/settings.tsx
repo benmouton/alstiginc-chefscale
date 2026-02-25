@@ -18,6 +18,7 @@ import { router } from "expo-router";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
+import MyCookbookPromo from "@/components/MyCookbookPromo";
 
 interface SettingsRowProps {
   icon: string;
@@ -351,6 +352,11 @@ export default function SettingsScreen() {
               onPress={handleTermsOfService}
             />
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Our Other Apps</Text>
+          <MyCookbookPromo trigger="settings" />
         </View>
 
         <Pressable

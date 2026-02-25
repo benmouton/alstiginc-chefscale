@@ -29,6 +29,7 @@ import { AllergenList } from "@/components/AllergenBadge";
 import TimerOverlay from "@/components/TimerOverlay";
 import PremiumGate from "@/components/PremiumGate";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
+import MyCookbookPromo from "@/components/MyCookbookPromo";
 
 function CookModeButton() {
   const checkAccess = useSubscriptionStore((s) => s.checkAccess);
@@ -474,6 +475,11 @@ export default function RecipeDetailScreen() {
               </Pressable>
             </View>
           ) : null}
+
+          {/* MYCOOKBOOK PROMO */}
+          <View style={styles.section}>
+            <MyCookbookPromo trigger="cooking" compact />
+          </View>
 
           {/* BOTTOM ACTIONS */}
           <View style={styles.actionsSection}>

@@ -18,6 +18,7 @@ import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import type { RecipeRow } from "@/lib/database";
 import RecipeCard from "@/components/RecipeCard";
+import MyCookbookPromo from "@/components/MyCookbookPromo";
 
 const CATEGORIES = ["All", "Entr\u00e9e", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage"];
 
@@ -149,6 +150,13 @@ export default function HomeScreen() {
                 <Text style={styles.nudgeLink}>Upgrade</Text>
               </Text>
             </Pressable>
+          ) : null
+        }
+        ListFooterComponent={
+          recipes.length >= 20 ? (
+            <View style={{ paddingHorizontal: Spacing.lg, marginTop: Spacing.md }}>
+              <MyCookbookPromo trigger="organize" />
+            </View>
           ) : null
         }
         refreshControl={
