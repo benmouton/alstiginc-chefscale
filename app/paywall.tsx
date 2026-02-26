@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,6 +8,7 @@ import {
   Platform,
   Linking,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,12 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from '@/constants/theme';
 import { useSubscriptionStore } from '@/store/useSubscriptionStore';
+import {
+  getOfferings,
+  purchasePackage,
+  restorePurchases,
+  isRevenueCatReady,
+} from '@/lib/revenueCat';
 
 interface ComparisonRow {
   label: string;
@@ -41,25 +48,67 @@ export default function PaywallScreen() {
   const { feature, headline } = useLocalSearchParams<{ feature?: string; headline?: string }>();
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
-  const { startTrial, isTrialing, trialEndsAt, tier } = useSubscriptionStore();
+  const { startTrial, isTrialing, trialEndsAt, tier, setPremium, syncWithRevenueCat } = useSubscriptionStore();
+
+  const [offerings, setOfferings] = useState<any>(null);
+  const [loadingOfferings, setLoadingOfferings] = useState(false);
+  const [purchasing, setPurchasing] = useState(false);
 
   const displayHeadline = headline || 'Unlock the full kitchen toolkit';
 
-  const handleMonthly = () => {
+  useEffect(() => {
+    if (isRevenueCatReady()) {
+      setLoadingOfferings(true);
+      getOfferings()
+        .then((o) => setOfferings(o))
+        .finally(() => setLoadingOfferings(false));
+    }
+  }, []);
+
+  const monthlyPkg = offerings?.availablePackages?.find(
+    (p: any) => p.packageType === 'MONTHLY' || p.identifier === '$rc_monthly'
+  );
+  const annualPkg = offerings?.availablePackages?.find(
+    (p: any) => p.packageType === 'ANNUAL' || p.identifier === '$rc_annual'
+  );
+
+  const monthlyPrice = monthlyPkg?.product?.priceString || '$4.99 / month';
+  const annualPrice = annualPkg?.product?.priceString || '$39.99 / year';
+
+  const handlePurchase = async (pkg: any, fallbackName: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      'Monthly Plan',
-      'In-app purchases will be available once ChefScale is on the App Store. Start a free trial in the meantime!',
-    );
+
+    if (!pkg || !isRevenueCatReady()) {
+      Alert.alert(
+        fallbackName,
+        'In-app purchases will be available once ChefScale is on the App Store. Start a free trial in the meantime!',
+      );
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      const success = await purchasePackage(pkg);
+      if (success) {
+        const farFuture = new Date();
+        farFuture.setFullYear(farFuture.getFullYear() + 1);
+        setPremium(farFuture.toISOString());
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert('Welcome to Premium!', 'All features are now unlocked.', [
+          { text: 'Let\'s go!', onPress: () => router.back() },
+        ]);
+      }
+    } catch (e: any) {
+      if (!e?.userCancelled) {
+        Alert.alert('Purchase Failed', 'Something went wrong. Please try again.');
+      }
+    } finally {
+      setPurchasing(false);
+    }
   };
 
-  const handleAnnual = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      'Annual Plan',
-      'In-app purchases will be available once ChefScale is on the App Store. Start a free trial in the meantime!',
-    );
-  };
+  const handleMonthly = () => handlePurchase(monthlyPkg, 'Monthly Plan');
+  const handleAnnual = () => handlePurchase(annualPkg, 'Annual Plan');
 
   const handleTrial = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -71,9 +120,31 @@ export default function PaywallScreen() {
     );
   };
 
-  const handleRestore = () => {
+  const handleRestore = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Alert.alert('Restore', 'Purchase restoration will be available once connected to the App Store.');
+
+    if (!isRevenueCatReady()) {
+      Alert.alert('Restore', 'Purchase restoration will be available once connected to the App Store.');
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      const success = await restorePurchases();
+      if (success) {
+        await syncWithRevenueCat();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert('Restored!', 'Your Premium subscription has been restored.', [
+          { text: 'Great!', onPress: () => router.back() },
+        ]);
+      } else {
+        Alert.alert('No Purchases Found', 'We could not find any previous purchases to restore.');
+      }
+    } catch {
+      Alert.alert('Restore Failed', 'Something went wrong. Please try again.');
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   const handleConsultantVerify = () => {
@@ -169,22 +240,28 @@ export default function PaywallScreen() {
         </View>
 
         <View style={styles.pricingSection}>
+          {loadingOfferings ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : null}
+
           <Pressable
             onPress={handleAnnual}
-            style={({ pressed }) => [styles.annualBtn, pressed && { opacity: 0.85 }]}
+            disabled={purchasing}
+            style={({ pressed }) => [styles.annualBtn, (pressed || purchasing) && { opacity: 0.85 }]}
           >
             <View style={styles.saveBadge}>
               <Text style={styles.saveBadgeText}>SAVE 33%</Text>
             </View>
-            <Text style={styles.annualPrice}>$39.99 / year</Text>
+            <Text style={styles.annualPrice}>{annualPrice}</Text>
             <Text style={styles.annualSubtext}>$3.33/mo — Best value</Text>
           </Pressable>
 
           <Pressable
             onPress={handleMonthly}
-            style={({ pressed }) => [styles.monthlyBtn, pressed && { opacity: 0.85 }]}
+            disabled={purchasing}
+            style={({ pressed }) => [styles.monthlyBtn, (pressed || purchasing) && { opacity: 0.85 }]}
           >
-            <Text style={styles.monthlyPrice}>$4.99 / month</Text>
+            <Text style={styles.monthlyPrice}>{monthlyPrice}</Text>
           </Pressable>
 
           {!isTrialing && tier === 'free' ? (
@@ -197,7 +274,7 @@ export default function PaywallScreen() {
             Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period. Your Apple ID account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions by going to your App Store account settings.
           </Text>
 
-          <Pressable onPress={handleRestore} style={styles.restoreLink}>
+          <Pressable onPress={handleRestore} disabled={purchasing} style={styles.restoreLink}>
             <Text style={styles.restoreLinkText}>Restore Purchase</Text>
           </Pressable>
 
@@ -227,6 +304,13 @@ export default function PaywallScreen() {
             </Pressable>
           </View>
         </View>
+
+        {purchasing ? (
+          <View style={styles.purchasingOverlay}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.purchasingText}>Processing...</Text>
+          </View>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -459,6 +543,16 @@ const styles = StyleSheet.create({
   restoreLinkText: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
+    fontFamily: 'Inter_400Regular',
+  },
+  purchasingOverlay: {
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingVertical: Spacing.xl,
+  },
+  purchasingText: {
+    fontSize: FontSize.md,
+    color: Colors.textSecondary,
     fontFamily: 'Inter_400Regular',
   },
   consultantSection: {

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { checkPremiumStatus, isRevenueCatReady } from '@/lib/revenueCat';
 
 export type SubscriptionTier = 'free' | 'premium';
 
@@ -57,6 +58,7 @@ interface SubscriptionState {
   incrementSaveCount: () => void;
   incrementPromoDismissals: () => void;
   shouldShowPromo: () => boolean;
+  syncWithRevenueCat: () => Promise<void>;
   hydrate: () => Promise<void>;
   persist: () => Promise<void>;
 }
@@ -136,6 +138,27 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     if (s.tier === 'premium') return false;
     if (s.promoDismissals >= 3) return false;
     return s.saveCount > 0 && s.saveCount % 5 === 0;
+  },
+
+  syncWithRevenueCat: async () => {
+    if (!isRevenueCatReady()) return;
+    try {
+      const isPremium = await checkPremiumStatus();
+      if (isPremium) {
+        const farFuture = new Date();
+        farFuture.setFullYear(farFuture.getFullYear() + 1);
+        set({ tier: 'premium', expiresAt: farFuture.toISOString(), isTrialing: false });
+        get().persist();
+      } else {
+        const state = get();
+        if (!state.isTrialing) {
+          set({ tier: 'free', expiresAt: null });
+          get().persist();
+        }
+      }
+    } catch (e) {
+      console.error('RevenueCat sync error:', e);
+    }
   },
 
   hydrate: async () => {

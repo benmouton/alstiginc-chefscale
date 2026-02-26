@@ -144,3 +144,16 @@ constants/
   - Dismissible with AsyncStorage persistence (@chefscale_mycookbook_promo_dismissed)
   - Placements: Settings ("Our Other Apps" section), Home (footer after 20+ recipes), Recipe Detail (compact banner above actions)
   - CTA links to App Store (placeholder ID), branded with #C2703E warm brown
+- RevenueCat Integration (lib/revenueCat.ts)
+  - SDK: react-native-purchases, API key placeholder 'appl_PLACEHOLDER'
+  - Expo Go detection: skips initialization in Expo Go (uses Preview API Mode on web)
+  - initializePurchases() called in _layout.tsx on app launch
+  - syncWithRevenueCat() checks entitlements and syncs with subscription store
+  - Paywall: fetches real offerings, shows dynamic prices, calls purchasePackage/restorePurchases
+  - Graceful fallback: shows placeholder alerts when RevenueCat not ready (Expo Go/web)
+- App Store Compliance
+  - Bundle ID: com.alstiginc.chefscale (iOS + Android)
+  - Auto-renewal disclosure text on paywall
+  - Privacy Policy + Terms of Service links on paywall
+  - Restore Purchase button visible (Apple requirement)
+  - API URL port stripping for production builds
