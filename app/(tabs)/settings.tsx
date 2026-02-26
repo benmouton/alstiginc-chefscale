@@ -18,6 +18,7 @@ import { router } from "expo-router";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import MyCookbookPromo from "@/components/MyCookbookPromo";
 
 interface SettingsRowProps {
@@ -49,6 +50,19 @@ function SettingsRow({ icon, label, subtitle, onPress, color, showChevron = true
   );
 }
 
+const APPEARANCE_OPTIONS: { label: string; value: 'dark' | 'light' | 'system' }[] = [
+  { label: 'Dark mode', value: 'dark' },
+  { label: 'Light mode', value: 'light' },
+  { label: 'System default', value: 'system' },
+];
+
+const UNIT_OPTIONS: { label: string; value: 'us' | 'metric' }[] = [
+  { label: 'US Customary', value: 'us' },
+  { label: 'Metric', value: 'metric' },
+];
+
+const SERVING_OPTIONS = [1, 2, 4, 6, 8, 10, 12];
+
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === "web" ? 67 : 0;
@@ -58,9 +72,53 @@ export default function SettingsScreen() {
   const checkAccess = useSubscriptionStore((s) => s.checkAccess);
   const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);
 
+  const { appearance, unitSystem, defaultServings, setAppearance, setUnitSystem, setDefaultServings } = useSettingsStore();
+
   const trialDaysLeft = trialEndsAt
     ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0;
+
+  const appearanceLabel = APPEARANCE_OPTIONS.find((o) => o.value === appearance)?.label || 'Dark mode';
+  const unitLabel = UNIT_OPTIONS.find((o) => o.value === unitSystem)?.label || 'US Customary';
+
+  const handleAppearance = () => {
+    Haptics.selectionAsync();
+    Alert.alert(
+      'Appearance',
+      'Choose your preferred theme',
+      APPEARANCE_OPTIONS.map((opt) => ({
+        text: opt.label + (opt.value === appearance ? ' ✓' : ''),
+        onPress: () => setAppearance(opt.value),
+      }))
+    );
+  };
+
+  const handleUnits = () => {
+    Haptics.selectionAsync();
+    Alert.alert(
+      'Default Units',
+      'Choose your preferred unit system',
+      UNIT_OPTIONS.map((opt) => ({
+        text: opt.label + (opt.value === unitSystem ? ' ✓' : ''),
+        onPress: () => setUnitSystem(opt.value),
+      }))
+    );
+  };
+
+  const handleServings = () => {
+    Haptics.selectionAsync();
+    Alert.alert(
+      'Default Servings',
+      'Choose the default number of servings for new recipes',
+      [
+        ...SERVING_OPTIONS.map((n) => ({
+          text: `${n} serving${n !== 1 ? 's' : ''}` + (n === defaultServings ? ' ✓' : ''),
+          onPress: () => setDefaultServings(n),
+        })),
+        { text: 'Cancel', style: 'cancel' as const },
+      ]
+    );
+  };
 
   const handleExportRecipes = async () => {
     if (!checkAccess('export')) {
@@ -215,23 +273,23 @@ export default function SettingsScreen() {
             <SettingsRow
               icon="color-palette-outline"
               label="Appearance"
-              subtitle="Dark mode"
+              subtitle={appearanceLabel}
               color={Colors.primary}
-              showChevron={false}
+              onPress={handleAppearance}
             />
             <SettingsRow
               icon="scale-outline"
               label="Default Units"
-              subtitle="US Customary"
+              subtitle={unitLabel}
               color={Colors.accent}
-              showChevron={false}
+              onPress={handleUnits}
             />
             <SettingsRow
               icon="people-outline"
               label="Default Servings"
-              subtitle="4 servings"
+              subtitle={`${defaultServings} serving${defaultServings !== 1 ? 's' : ''}`}
               color="#8B5CF6"
-              showChevron={false}
+              onPress={handleServings}
             />
           </View>
         </View>

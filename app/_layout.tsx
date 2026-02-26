@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "@/lib/query-client";
 import { initDatabase } from "@/lib/database";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { initializePurchases } from "@/lib/revenueCat";
 
 SplashScreen.preventAutoHideAsync();
@@ -86,6 +87,7 @@ export default function RootLayout() {
           console.warn('Database init warning:', e?.message || e);
         }),
         useSubscriptionStore.getState().hydrate(),
+        useSettingsStore.getState().hydrate(),
         initializePurchases().then(() => {
           useSubscriptionStore.getState().syncWithRevenueCat();
         }).catch((e) => {
