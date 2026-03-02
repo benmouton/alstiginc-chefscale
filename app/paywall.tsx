@@ -266,7 +266,7 @@ export default function PaywallScreen() {
 
           {!isTrialing && tier === 'free' ? (
             <Pressable onPress={handleTrial} style={styles.trialLink}>
-              <Text style={styles.trialLinkText}>Start 7-day free trial</Text>
+              <Text style={styles.trialLinkText}>Try Premium free for 7 days — no payment required</Text>
             </Pressable>
           ) : null}
 
@@ -275,7 +275,7 @@ export default function PaywallScreen() {
           </Text>
 
           <Pressable onPress={handleRestore} disabled={purchasing} style={styles.restoreLink}>
-            <Text style={styles.restoreLinkText}>Restore Purchase</Text>
+            <Text style={styles.restoreLinkText}>Restore Purchases</Text>
           </Pressable>
 
           <View style={styles.legalLinks}>
