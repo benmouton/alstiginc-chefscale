@@ -157,3 +157,10 @@ constants/
   - Privacy Policy + Terms of Service links on paywall
   - Restore Purchase button visible (Apple requirement)
   - API URL port stripping for production builds
+
+## Future Enhancements (Production Build)
+- **Apple Vision OCR**: When moving to dev client / production builds, switch OCR to a hybrid approach:
+  1. Apple Vision (on-device) extracts raw text from recipe photos — fast, offline, no API cost
+  2. Extracted text sent to OpenAI GPT-4o for structuring into recipe fields
+  3. Keep current GPT-4o vision as fallback for Android/web users
+  - Requires native module (e.g., react-native-mlkit-ocr or custom native module) — not available in Expo Go
