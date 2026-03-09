@@ -28,6 +28,7 @@ import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
+import { extractTextOnDevice } from "@/lib/ocr";
 
 const CATEGORIES = ["Entrée", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage", "Other"];
 
@@ -234,6 +235,108 @@ export default function EditRecipeScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
+  const applyScannedData = (data: any) => {
+    if (data.name) setName(data.name);
+    if (data.description) setDescription(data.description);
+    if (data.category && CATEGORIES.includes(data.category)) setCategory(data.category);
+    if (data.baseServings) setServings(data.baseServings.toString());
+    if (data.prepTime) setPrepTime(data.prepTime.toString());
+    if (data.cookTime) setCookTime(data.cookTime.toString());
+    if (data.notes) setNotes(data.notes);
+    if (data.source) setSource(data.source);
+    if (data.ingredients?.length > 0) {
+      setIngredients(
+        data.ingredients.map((ing: any) => ({
+          id: Crypto.randomUUID(),
+          name: ing.name || "",
+          amount: (ing.amount || "").toString(),
+          unit: ing.unit || "each",
+          prepNote: ing.prepNote || "",
+          isScalable: true,
+        }))
+      );
+    }
+    if (data.instructions?.length > 0) {
+      setInstructions(
+        data.instructions.map((inst: any) => ({
+          id: Crypto.randomUUID(),
+          text: inst.text || "",
+          timerMinutes: inst.timerMinutes ? inst.timerMinutes.toString() : "",
+          temperature: inst.temperature || "",
+          photoUri: "",
+        }))
+      );
+    }
+  };
+
+  const scanViaServerVision = async (imageUri: string, abortSignal: AbortSignal): Promise<any> => {
+    const resized = await manipulateAsync(
+      imageUri,
+      [{ resize: { width: 800 } }],
+      { compress: 0.3, format: SaveFormat.JPEG }
+    );
+
+    let base64: string;
+    if (Platform.OS === "web") {
+      const response = await fetch(resized.uri);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          resolve(dataUrl.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } else {
+      base64 = await FileSystem.readAsStringAsync(resized.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    }
+
+    console.log("[OCR] Using server vision, base64 length:", base64.length);
+    const ocrResponse = await fetch(`${API_BASE}/api/ocr-recipe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageBase64: base64 }),
+      signal: abortSignal,
+    });
+
+    if (!ocrResponse.ok) {
+      const errorText = await ocrResponse.text();
+      throw new Error(`Server returned ${ocrResponse.status}: ${errorText.substring(0, 200)}`);
+    }
+
+    const responseText = await ocrResponse.text();
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("Server returned non-JSON response. Please try again.");
+    return JSON.parse(jsonMatch[0]);
+  };
+
+  const scanViaOnDeviceOCR = async (imageUri: string, abortSignal: AbortSignal): Promise<any | null> => {
+    const ocrResult = await extractTextOnDevice(imageUri);
+    if (!ocrResult) return null;
+
+    console.log("[OCR] On-device extracted text:", ocrResult.text.substring(0, 200));
+    const parseResponse = await fetch(`${API_BASE}/api/parse-recipe-text`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ extractedText: ocrResult.text }),
+      signal: abortSignal,
+    });
+
+    if (!parseResponse.ok) {
+      console.log("[OCR] Text parse failed, falling back to server vision");
+      return null;
+    }
+
+    const responseText = await parseResponse.text();
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    return JSON.parse(jsonMatch[0]);
+  };
+
   const scanRecipe = async () => {
     if (!(await ensureCameraPermission())) return;
     const result = await ImagePicker.launchCameraAsync({
@@ -247,88 +350,23 @@ export default function EditRecipeScreen() {
     scanAbortRef.current = abortController;
 
     try {
-      const resized = await manipulateAsync(
-        result.assets[0].uri,
-        [{ resize: { width: 800 } }],
-        { compress: 0.3, format: SaveFormat.JPEG }
-      );
-      console.log("[OCR] Resized image URI:", resized.uri);
+      const imageUri = result.assets[0].uri;
+      let data: any = null;
 
-      let base64: string;
-      if (Platform.OS === "web") {
-        const response = await fetch(resized.uri);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        base64 = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => {
-            const dataUrl = reader.result as string;
-            resolve(dataUrl.split(",")[1]);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      } else {
-        base64 = await FileSystem.readAsStringAsync(resized.uri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
+      if (Platform.OS !== 'web') {
+        console.log("[OCR] Attempting on-device text recognition...");
+        data = await scanViaOnDeviceOCR(imageUri, abortController.signal);
+        if (data) {
+          console.log("[OCR] On-device OCR succeeded:", data.name || "unnamed");
+        }
       }
 
-      const ocrUrl = `${API_BASE}/api/ocr-recipe`;
-      console.log("[OCR] Sending request to:", ocrUrl);
-      console.log("[OCR] Base64 length:", base64.length);
-
-      const ocrResponse = await fetch(ocrUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64 }),
-        signal: abortController.signal,
-      });
-
-      console.log("[OCR] Response status:", ocrResponse.status);
-      const responseText = await ocrResponse.text();
-      console.log("[OCR] Response body (first 500 chars):", responseText.substring(0, 500));
-
-      if (!ocrResponse.ok) {
-        console.error("[OCR] Error response body:", responseText);
-        throw new Error(`Server returned ${ocrResponse.status}: ${responseText.substring(0, 200)}`);
+      if (!data) {
+        console.log("[OCR] Using server-side GPT-4o vision...");
+        data = await scanViaServerVision(imageUri, abortController.signal);
       }
 
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("Server returned non-JSON response. Please try again.");
-      }
-      const data = JSON.parse(jsonMatch[0]);
-      if (data.name) setName(data.name);
-      if (data.description) setDescription(data.description);
-      if (data.category && CATEGORIES.includes(data.category)) setCategory(data.category);
-      if (data.baseServings) setServings(data.baseServings.toString());
-      if (data.prepTime) setPrepTime(data.prepTime.toString());
-      if (data.cookTime) setCookTime(data.cookTime.toString());
-      if (data.notes) setNotes(data.notes);
-      if (data.source) setSource(data.source);
-      if (data.ingredients?.length > 0) {
-        setIngredients(
-          data.ingredients.map((ing: any) => ({
-            id: Crypto.randomUUID(),
-            name: ing.name || "",
-            amount: (ing.amount || "").toString(),
-            unit: ing.unit || "each",
-            prepNote: ing.prepNote || "",
-            isScalable: true,
-          }))
-        );
-      }
-      if (data.instructions?.length > 0) {
-        setInstructions(
-          data.instructions.map((inst: any) => ({
-            id: Crypto.randomUUID(),
-            text: inst.text || "",
-            timerMinutes: inst.timerMinutes ? inst.timerMinutes.toString() : "",
-            temperature: inst.temperature || "",
-            photoUri: "",
-          }))
-        );
-      }
+      applyScannedData(data);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert("Recipe Scanned", "Review the extracted data and make any corrections.");
     } catch (e: any) {

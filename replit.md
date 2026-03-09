@@ -158,9 +158,10 @@ constants/
   - Restore Purchase button visible (Apple requirement)
   - API URL port stripping for production builds
 
-## Future Enhancements (Production Build)
-- **Apple Vision OCR**: When moving to dev client / production builds, switch OCR to a hybrid approach:
-  1. Apple Vision (on-device) extracts raw text from recipe photos — fast, offline, no API cost
-  2. Extracted text sent to OpenAI GPT-4o for structuring into recipe fields
-  3. Keep current GPT-4o vision as fallback for Android/web users
-  - Requires native module (e.g., react-native-mlkit-ocr or custom native module) — not available in Expo Go
+## Hybrid OCR Architecture
+- **On-device OCR** (iOS/Android production builds): `@react-native-ml-kit/text-recognition` extracts text locally → sent to `/api/parse-recipe-text` for GPT-4o structuring (lightweight text request, no image upload)
+- **Server vision fallback** (Expo Go, web, or when on-device fails): Full image sent as base64 to `/api/ocr-recipe` for GPT-4o vision extraction
+- `lib/ocr.ts`: Platform detection + dynamic import with try/catch — gracefully falls back when native module unavailable
+- `app/recipe/edit.tsx`: `scanRecipe()` tries on-device first, then server vision
+- In Expo Go: on-device OCR is unavailable, automatically uses server vision (no user-facing difference)
+- In production builds: on-device OCR runs first for faster, cheaper scans

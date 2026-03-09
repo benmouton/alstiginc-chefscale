@@ -96,6 +96,72 @@ If you cannot determine a value, use reasonable defaults. Extract as much as pos
     }
   });
 
+  app.post("/api/parse-recipe-text", async (req, res) => {
+    const startTime = Date.now();
+    console.log("[OCR-Text] === TEXT PARSE REQUEST RECEIVED ===");
+    try {
+      const { extractedText } = req.body;
+      if (!extractedText || extractedText.trim().length < 10) {
+        return res.status(400).json({ error: "extractedText is required and must contain meaningful content" });
+      }
+      console.log("[OCR-Text] Text length:", extractedText.length, "chars");
+      console.log("[OCR-Text] Sending to OpenAI for structuring...");
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a recipe extraction assistant. Parse the following raw text extracted from a recipe image (via OCR) and structure it into JSON. The text may contain OCR artifacts, misspellings, or formatting issues — do your best to interpret them.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "name": "recipe name",
+  "description": "brief description",
+  "category": "best fit from: Entrée (main dishes/proteins), Appetizer (starters/snacks), Sauce (sauces/dressings/condiments), Dessert (sweets/baking/breads/pastries), Prep (stocks/bases/doughs), Side (side dishes/salads/vegetables), Beverage (drinks), Other",
+  "baseServings": 4,
+  "prepTime": 0,
+  "cookTime": 0,
+  "ingredients": [
+    { "name": "ingredient name", "amount": 1.0, "unit": "cup", "prepNote": "diced" }
+  ],
+  "instructions": [
+    { "text": "instruction text", "timerMinutes": null, "temperature": "" }
+  ],
+  "notes": "",
+  "source": ""
+}
+Valid units: tsp, tbsp, cup, fl_oz, oz, lb, g, kg, ml, l, each, pinch, bunch, can, bottle, clove, sprig, head, stalk, piece.
+If you cannot determine a value, use reasonable defaults. Fix any obvious OCR errors (e.g., "f1our" → "flour", "1/2 tsp sa1t" → "1/2 tsp salt").`,
+          },
+          {
+            role: "user",
+            content: `Here is the raw text extracted from a recipe image. Please parse it into the structured JSON format:\n\n${extractedText}`,
+          },
+        ],
+        max_completion_tokens: 4096,
+      });
+
+      const elapsed = Date.now() - startTime;
+      console.log("[OCR-Text] OpenAI responded in", elapsed + "ms");
+      const content = response.choices[0]?.message?.content || "";
+
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.log("[OCR-Text] ERROR: No JSON found in response");
+        return res.status(422).json({ error: "Could not parse recipe from text" });
+      }
+
+      const recipe = JSON.parse(jsonMatch[0]);
+      console.log("[OCR-Text] SUCCESS: Parsed recipe:", recipe.name || "unnamed");
+      res.json(recipe);
+    } catch (error: any) {
+      const elapsed = Date.now() - startTime;
+      console.error("[OCR-Text] FAILED after", elapsed + "ms:", error?.message);
+      res.status(500).json({ error: error?.message || "Failed to parse recipe text" });
+    }
+  });
+
   app.post("/api/validate-recipe", async (req, res) => {
     try {
       const { name, ingredients, instructions } = req.body;
