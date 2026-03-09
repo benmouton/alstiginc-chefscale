@@ -269,19 +269,18 @@ export default function EditRecipeScreen() {
     }
   };
 
-  const scanViaServerVision = async (imageUri: string, abortSignal: AbortSignal): Promise<any> => {
+  const imageToBase64 = async (uri: string): Promise<string> => {
     const resized = await manipulateAsync(
-      imageUri,
+      uri,
       [{ resize: { width: 800 } }],
       { compress: 0.3, format: SaveFormat.JPEG }
     );
 
-    let base64: string;
     if (Platform.OS === "web") {
       const response = await fetch(resized.uri);
       const blob = await response.blob();
       const reader = new FileReader();
-      base64 = await new Promise<string>((resolve, reject) => {
+      return new Promise<string>((resolve, reject) => {
         reader.onload = () => {
           const dataUrl = reader.result as string;
           resolve(dataUrl.split(",")[1]);
@@ -289,17 +288,24 @@ export default function EditRecipeScreen() {
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
-    } else {
-      base64 = await FileSystem.readAsStringAsync(resized.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
     }
+    return FileSystem.readAsStringAsync(resized.uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+  };
 
-    console.log("[OCR] Using server vision, base64 length:", base64.length);
+  const scanViaServerVision = async (imageUris: string[], abortSignal: AbortSignal): Promise<any> => {
+    const imagesBase64 = await Promise.all(imageUris.map((uri) => imageToBase64(uri)));
+    console.log("[OCR] Using server vision,", imagesBase64.length, "image(s)");
+
+    const body = imagesBase64.length === 1
+      ? { imageBase64: imagesBase64[0] }
+      : { imagesBase64 };
+
     const ocrResponse = await fetch(`${API_BASE}/api/ocr-recipe`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageBase64: base64 }),
+      body: JSON.stringify(body),
       signal: abortSignal,
     });
 
@@ -314,15 +320,23 @@ export default function EditRecipeScreen() {
     return JSON.parse(jsonMatch[0]);
   };
 
-  const scanViaOnDeviceOCR = async (imageUri: string, abortSignal: AbortSignal): Promise<any | null> => {
-    const ocrResult = await extractTextOnDevice(imageUri);
-    if (!ocrResult) return null;
+  const scanViaOnDeviceOCR = async (imageUris: string[], abortSignal: AbortSignal): Promise<any | null> => {
+    const textParts: string[] = [];
+    for (const uri of imageUris) {
+      const ocrResult = await extractTextOnDevice(uri);
+      if (!ocrResult) return null;
+      textParts.push(ocrResult.text);
+    }
 
-    console.log("[OCR] On-device extracted text:", ocrResult.text.substring(0, 200));
+    const combinedText = imageUris.length > 1
+      ? textParts.map((t, i) => `--- Page ${i + 1} ---\n${t}`).join('\n\n')
+      : textParts[0];
+
+    console.log("[OCR] On-device extracted text:", combinedText.substring(0, 200));
     const parseResponse = await fetch(`${API_BASE}/api/parse-recipe-text`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ extractedText: ocrResult.text }),
+      body: JSON.stringify({ extractedText: combinedText }),
       signal: abortSignal,
     });
 
@@ -337,25 +351,64 @@ export default function EditRecipeScreen() {
     return JSON.parse(jsonMatch[0]);
   };
 
+  const captureMultiplePhotos = async (): Promise<string[] | null> => {
+    const uris: string[] = [];
+
+    const captureOne = async (): Promise<boolean> => {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        quality: 0.3,
+      });
+      if (result.canceled || !result.assets[0]) return false;
+      uris.push(result.assets[0].uri);
+      return true;
+    };
+
+    const firstCaptured = await captureOne();
+    if (!firstCaptured) return null;
+
+    let addMore = true;
+    while (addMore && uris.length < 5) {
+      const response = await new Promise<boolean>((resolve) => {
+        Alert.alert(
+          `Page ${uris.length} captured`,
+          `Recipe spans multiple pages? Take a photo of the next page, or tap Done to scan ${uris.length} page${uris.length > 1 ? 's' : ''}.`,
+          [
+            { text: 'Done', style: 'default', onPress: () => resolve(false) },
+            { text: 'Add next page', onPress: () => resolve(true) },
+          ],
+          { cancelable: false }
+        );
+      });
+
+      if (!response) {
+        addMore = false;
+      } else {
+        const captured = await captureOne();
+        if (!captured) addMore = false;
+      }
+    }
+
+    return uris.length > 0 ? uris : null;
+  };
+
   const scanRecipe = async () => {
     if (!(await ensureCameraPermission())) return;
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["images"],
-      quality: 0.3,
-    });
-    if (result.canceled || !result.assets[0]) return;
+
+    const imageUris = await captureMultiplePhotos();
+    if (!imageUris || imageUris.length === 0) return;
 
     setScanning(true);
     const abortController = new AbortController();
     scanAbortRef.current = abortController;
 
     try {
-      const imageUri = result.assets[0].uri;
+      console.log("[OCR] Processing", imageUris.length, "page(s)...");
       let data: any = null;
 
       if (Platform.OS !== 'web') {
         console.log("[OCR] Attempting on-device text recognition...");
-        data = await scanViaOnDeviceOCR(imageUri, abortController.signal);
+        data = await scanViaOnDeviceOCR(imageUris, abortController.signal);
         if (data) {
           console.log("[OCR] On-device OCR succeeded:", data.name || "unnamed");
         }
@@ -363,12 +416,12 @@ export default function EditRecipeScreen() {
 
       if (!data) {
         console.log("[OCR] Using server-side GPT-4o vision...");
-        data = await scanViaServerVision(imageUri, abortController.signal);
+        data = await scanViaServerVision(imageUris, abortController.signal);
       }
 
       applyScannedData(data);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Recipe Scanned", "Review the extracted data and make any corrections.");
+      Alert.alert("Recipe Scanned", `Extracted from ${imageUris.length} page${imageUris.length > 1 ? 's' : ''}. Review the data and make any corrections.`);
     } catch (e: any) {
       if (e?.name === "AbortError") return;
       console.error("Scan error:", e?.message || e);

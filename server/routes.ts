@@ -21,20 +21,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("[OCR] === OCR REQUEST RECEIVED ===");
     console.log("[OCR] Body size:", JSON.stringify(req.body || {}).length, "bytes");
     try {
-      const { imageBase64 } = req.body;
-      if (!imageBase64) {
-        console.log("[OCR] ERROR: Missing imageBase64 in request body");
-        return res.status(400).json({ error: "imageBase64 is required" });
+      const { imageBase64, imagesBase64 } = req.body;
+      const images: string[] = imagesBase64 || (imageBase64 ? [imageBase64] : []);
+      if (images.length === 0) {
+        console.log("[OCR] ERROR: Missing imageBase64 or imagesBase64 in request body");
+        return res.status(400).json({ error: "imageBase64 or imagesBase64 is required" });
       }
-      console.log("[OCR] Image base64 length:", imageBase64.length, "chars (~" + Math.round(imageBase64.length * 0.75 / 1024) + "KB)");
-      console.log("[OCR] Sending to OpenAI (model: gpt-4o, timeout: 30s)...");
+      console.log("[OCR] Processing", images.length, "image(s)");
+      images.forEach((img, i) => {
+        console.log(`[OCR] Image ${i + 1} base64 length:`, img.length, "chars (~" + Math.round(img.length * 0.75 / 1024) + "KB)");
+      });
+      console.log("[OCR] Sending to OpenAI (model: gpt-4o, timeout: 60s)...");
+
+      const imageContent = images.map((img, i) => [
+        {
+          type: "image_url" as const,
+          image_url: { url: `data:image/jpeg;base64,${img}` },
+        },
+        {
+          type: "text" as const,
+          text: images.length > 1 ? `Page ${i + 1} of ${images.length}` : "",
+        },
+      ]).flat().filter((c) => c.type !== "text" || c.text);
+
+      const systemPrompt = images.length > 1
+        ? `You are a recipe extraction assistant. You are given ${images.length} images that together form a single recipe (the recipe was too long for one photo). Analyze ALL images in order and combine the information into a single structured JSON recipe. Return ONLY valid JSON with this exact structure:`
+        : `You are a recipe extraction assistant. Analyze the image of a recipe (handwritten or typed) and extract all information into structured JSON. Return ONLY valid JSON with this exact structure:`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: `You are a recipe extraction assistant. Analyze the image of a recipe (handwritten or typed) and extract all information into structured JSON. Return ONLY valid JSON with this exact structure:
+            content: `${systemPrompt}
 {
   "name": "recipe name",
   "description": "brief description",
@@ -52,18 +71,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   "source": ""
 }
 Valid units: tsp, tbsp, cup, fl_oz, oz, lb, g, kg, ml, l, each, pinch, bunch, can, bottle, clove, sprig, head, stalk, piece.
-If you cannot determine a value, use reasonable defaults. Extract as much as possible from the image.`,
+If you cannot determine a value, use reasonable defaults. Extract as much as possible from the image${images.length > 1 ? 's. Combine all pages into one complete recipe' : ''}.`,
           },
           {
             role: "user",
             content: [
-              {
-                type: "image_url",
-                image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
-              },
+              ...imageContent,
               {
                 type: "text",
-                text: "Extract the recipe from this image into the JSON format specified.",
+                text: images.length > 1
+                  ? `These ${images.length} photos show different parts of the same recipe. Extract and combine everything into the JSON format specified.`
+                  : "Extract the recipe from this image into the JSON format specified.",
               },
             ],
           },
