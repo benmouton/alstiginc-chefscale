@@ -235,11 +235,11 @@ export default function ScalingControls({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
-    borderWidth: 2,
-    borderColor: Colors.primary + '40',
+    borderWidth: 1,
+    borderColor: 'rgba(217,119,6,0.3)',
   },
   headerRow: {
     flexDirection: 'row',
@@ -269,6 +269,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.primary,
     fontFamily: 'Inter_700Bold',
+    textShadowColor: 'rgba(217,119,6,0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
   },
   servingsText: {
     fontSize: FontSize.md,

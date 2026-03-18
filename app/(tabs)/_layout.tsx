@@ -47,15 +47,15 @@ function ClassicTabLayout() {
           position: "absolute",
           backgroundColor: isIOS ? "transparent" : Colors.backgroundDark,
           borderTopWidth: isWeb ? 1 : StyleSheet.hairlineWidth,
-          borderTopColor: Colors.tabBarBorder,
+          borderTopColor: 'rgba(255,255,255,0.08)',
           elevation: 0,
           ...(isWeb ? { height: 84 } : {}),
         },
         tabBarBackground: () =>
           isIOS ? (
             <BlurView
-              intensity={80}
-              tint="dark"
+              intensity={60}
+              tint="systemChromeMaterialDark"
               style={StyleSheet.absoluteFill}
             />
           ) : isWeb ? (

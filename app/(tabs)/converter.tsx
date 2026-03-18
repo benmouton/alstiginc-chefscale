@@ -23,6 +23,13 @@ const DISPLAY_CATEGORIES: { label: string; value: UnitCategory | "all" }[] = [
   { label: "Count", value: "count" },
 ];
 
+const PRESETS = [
+  { label: '1 cup', from: 'cup', to: 'ml', value: '1' },
+  { label: '1 lb', from: 'lb', to: 'g', value: '1' },
+  { label: '1 oz', from: 'oz', to: 'g', value: '1' },
+  { label: '°F→°C', from: 'cup', to: 'tbsp', value: '1' },
+];
+
 export default function ConverterScreen() {
   const insets = useSafeAreaInsets();
   const [inputValue, setInputValue] = useState("1");
@@ -76,6 +83,13 @@ export default function ConverterScreen() {
       setToUnit(unitKey);
     }
     setActivePickerField(null);
+  };
+
+  const handlePreset = (preset: typeof PRESETS[number]) => {
+    Haptics.selectionAsync();
+    setFromUnit(preset.from);
+    setToUnit(preset.to);
+    setInputValue(preset.value);
   };
 
   const renderResultText = () => {
@@ -210,6 +224,22 @@ export default function ConverterScreen() {
           contentContainerStyle={styles.scrollContentInner}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Quick presets */}
+          <View style={styles.presetsRow}>
+            {PRESETS.map((preset) => (
+              <Pressable
+                key={preset.label}
+                onPress={() => handlePreset(preset)}
+                style={({ pressed }) => [
+                  styles.presetPill,
+                  pressed && { opacity: 0.7 },
+                ]}
+              >
+                <Text style={styles.presetLabel}>{preset.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+
           {/* Input section */}
           <View style={styles.card}>
             <Text style={styles.cardLabel}>Amount</Text>
@@ -248,7 +278,7 @@ export default function ConverterScreen() {
               onPress={handleSwap}
               style={({ pressed }) => [styles.swapButton, pressed && { opacity: 0.7 }]}
             >
-              <Ionicons name="swap-vertical" size={24} color={Colors.textPrimary} />
+              <Ionicons name="swap-vertical" size={24} color="#FFFFFF" />
             </Pressable>
           </View>
 
@@ -316,13 +346,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
   },
   categoryChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: '#D97706',
+    borderColor: '#D97706',
   },
   categoryText: {
     fontSize: FontSize.sm,
@@ -331,6 +361,24 @@ const styles = StyleSheet.create({
   },
   categoryTextActive: {
     color: Colors.textPrimary,
+  },
+  presetsRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  presetPill: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+  presetLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    fontFamily: "Inter_600SemiBold",
   },
   scrollContent: {
     flex: 1,
@@ -341,10 +389,10 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   card: {
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
     padding: Spacing.lg,
   },
   cardLabel: {
@@ -392,18 +440,25 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#D97706',
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: '#D97706',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   resultCard: {
     marginTop: Spacing.sm,
   },
   resultValue: {
-    fontSize: FontSize.display,
+    fontSize: 42,
     fontWeight: "700",
-    color: Colors.accent,
+    color: '#D97706',
     fontFamily: "Inter_700Bold",
+    textShadowColor: '#D97706',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
   resultPlaceholder: {
     fontSize: FontSize.xl,
@@ -451,17 +506,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     minHeight: TouchTarget.min,
   },
   pickerItemSelected: {
-    backgroundColor: Colors.primary + "20",
-    borderColor: Colors.primary,
+    backgroundColor: '#D97706' + '20',
+    borderColor: '#D97706',
   },
   pickerItemName: {
     fontSize: FontSize.md,

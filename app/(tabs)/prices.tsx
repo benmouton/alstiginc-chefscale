@@ -13,6 +13,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as Crypto from "expo-crypto";
@@ -81,6 +82,7 @@ export default function PricesScreen() {
   const [editingPrice, setEditingPrice] = useState<IngredientPriceRow | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("alpha");
 
   const [name, setName] = useState("");
@@ -253,12 +255,14 @@ export default function PricesScreen() {
       )}
 
       <View style={styles.searchRow}>
-        <View style={styles.searchContainer}>
+        <View style={[styles.searchContainer, searchFocused && styles.searchContainerFocused]}>
           <Ionicons name="search" size={18} color={Colors.textMuted} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
             placeholder="Search ingredients..."
             placeholderTextColor={Colors.textMuted}
           />
@@ -319,11 +323,15 @@ export default function PricesScreen() {
           </Pressable>
         )}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="pricetag-outline" size={64} color={Colors.textMuted} />
+          <LinearGradient
+            colors={['#0F1115', '#1A1008', '#0F1115']}
+            style={styles.emptyContainer}
+          >
+            <Ionicons name="pricetag-outline" size={80} color={Colors.textMuted} />
             <Text style={styles.emptyTitle}>
               {searchQuery ? "No matches found" : "Start tracking prices"}
             </Text>
+            <Text style={styles.emptySubtitle}>Track ingredient costs to know your margins</Text>
             <Text style={styles.emptyText}>
               {searchQuery
                 ? `No ingredients match "${searchQuery}". Try a different search.`
@@ -341,7 +349,7 @@ export default function PricesScreen() {
                 <Text style={styles.emptyHint}>Long press any item to delete it</Text>
               </>
             )}
-          </View>
+          </LinearGradient>
         }
       />
 
@@ -481,22 +489,27 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#D97706',
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: '#D97706',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   statsRow: {
     flexDirection: "row",
     marginHorizontal: Spacing.lg,
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
     alignItems: "center",
   },
   statCard: {
@@ -531,12 +544,15 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.backgroundCard,
-    borderRadius: BorderRadius.md,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: BorderRadius.full,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
     paddingHorizontal: Spacing.md,
     minHeight: TouchTarget.min,
+  },
+  searchContainerFocused: {
+    borderColor: 'rgba(255,255,255,0.20)',
   },
   searchIcon: {
     marginRight: Spacing.sm,
@@ -551,10 +567,10 @@ const styles = StyleSheet.create({
   sortButton: {
     width: 44,
     height: 44,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
     alignItems: "center",
     justifyContent: "center",
   },
@@ -568,12 +584,12 @@ const styles = StyleSheet.create({
   },
   priceCard: {
     flexDirection: "row",
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
     alignItems: "center",
   },
   priceInfo: {
@@ -623,6 +639,13 @@ const styles = StyleSheet.create({
     fontWeight: "600" as const,
     color: Colors.textPrimary,
     fontFamily: "Inter_600SemiBold",
+  },
+  emptySubtitle: {
+    fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    textAlign: "center",
+    fontFamily: "Inter_400Regular",
+    fontStyle: "italic" as const,
   },
   emptyText: {
     fontSize: FontSize.md,

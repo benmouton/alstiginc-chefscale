@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
@@ -36,7 +37,7 @@ function SettingsRow({ icon, label, subtitle, onPress, color, showChevron = true
       onPress={onPress}
       style={({ pressed }) => [styles.settingsRow, pressed && onPress && { opacity: 0.7 }]}
     >
-      <View style={[styles.settingsIcon, color ? { backgroundColor: color + '20' } : {}]}>
+      <View style={[styles.settingsIcon, { backgroundColor: (color || Colors.textSecondary) + '26' }]}>
         <Ionicons name={icon as any} size={20} color={color || Colors.textSecondary} />
       </View>
       <View style={styles.settingsContent}>
@@ -267,6 +268,7 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* General */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>General</Text>
           <View style={styles.sectionCard}>
@@ -294,23 +296,29 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Subscription */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Subscription</Text>
           {tier === 'free' ? (
             <Pressable
               onPress={handleUpgrade}
-              style={({ pressed }) => [styles.upgradeBanner, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [pressed && { opacity: 0.85 }]}
             >
-              <View style={styles.upgradeBannerContent}>
-                <View style={styles.upgradeIconCircle}>
-                  <Ionicons name="star" size={24} color={Colors.accent} />
+              <LinearGradient
+                colors={['#1A1008', '#251A0A']}
+                style={styles.upgradeBanner}
+              >
+                <View style={styles.upgradeBannerContent}>
+                  <View style={styles.upgradeIconCircle}>
+                    <Ionicons name="star" size={24} color="#D97706" />
+                  </View>
+                  <View style={styles.upgradeBannerText}>
+                    <Text style={styles.upgradeTitle}>Upgrade to Premium</Text>
+                    <Text style={styles.upgradeSubtitle}>Unlock export, import, nutrition, and more</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#D97706" />
                 </View>
-                <View style={styles.upgradeBannerText}>
-                  <Text style={styles.upgradeTitle}>Upgrade to Premium</Text>
-                  <Text style={styles.upgradeSubtitle}>Unlock export, import, nutrition, and more</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={Colors.accent} />
-              </View>
+              </LinearGradient>
             </Pressable>
           ) : (
             <View style={styles.sectionCard}>
@@ -334,6 +342,7 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        {/* Data */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Data</Text>
           <View style={styles.sectionCard}>
@@ -351,6 +360,8 @@ export default function SettingsScreen() {
               color={Colors.success}
               onPress={handleImportRecipes}
             />
+          </View>
+          <View style={styles.dangerCard}>
             <SettingsRow
               icon="trash-outline"
               label="Clear All Data"
@@ -361,6 +372,7 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* About */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
           <View style={styles.sectionCard}>
@@ -438,6 +450,8 @@ export default function SettingsScreen() {
           <Text style={styles.consultantText}>Powered by The Restaurant Consultant</Text>
         </Pressable>
 
+        <Text style={styles.versionFooter}>ChefScale v1.0.0</Text>
+
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
@@ -460,41 +474,44 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   scrollContent: {
-    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
   },
   section: {
-    marginBottom: Spacing.xxl,
+    marginBottom: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: FontSize.sm,
-    fontWeight: "600" as const,
-    color: Colors.textMuted,
-    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
+    fontWeight: "700" as const,
+    color: '#D97706',
+    fontFamily: "Inter_700Bold",
     textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: Spacing.sm,
-    marginLeft: Spacing.xs,
+    letterSpacing: 1.5,
+    marginBottom: 8,
+    marginTop: 4,
+    paddingHorizontal: Spacing.lg,
   },
   sectionCard: {
-    backgroundColor: Colors.backgroundCard,
-    borderRadius: BorderRadius.lg,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.08)',
     overflow: "hidden",
+    padding: 4,
+    marginHorizontal: 16,
   },
   settingsRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md + 2,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
     minHeight: 56,
   },
   settingsIcon: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: Colors.backgroundElevated,
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.md,
@@ -517,13 +534,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: Spacing.xxl,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.border,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   logoCircle: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#D97706',
     alignItems: "center",
     justifyContent: "center",
     marginBottom: Spacing.md,
@@ -541,11 +558,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
   },
   upgradeBanner: {
-    backgroundColor: Colors.backgroundCard,
-    borderRadius: BorderRadius.lg,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.accent + '40',
+    borderColor: 'rgba(217,119,6,0.3)',
     overflow: "hidden",
+    marginHorizontal: 16,
   },
   upgradeBannerContent: {
     flexDirection: "row",
@@ -556,7 +573,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.accent + '15',
+    backgroundColor: 'rgba(217,119,6,0.15)',
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.md,
@@ -567,7 +584,7 @@ const styles = StyleSheet.create({
   upgradeTitle: {
     fontSize: FontSize.md,
     fontWeight: "700" as const,
-    color: Colors.accent,
+    color: '#D97706',
     fontFamily: "Inter_700Bold",
   },
   upgradeSubtitle: {
@@ -603,12 +620,23 @@ const styles = StyleSheet.create({
     color: Colors.success,
     fontFamily: "Inter_600SemiBold",
   },
-  consultantBanner: {
-    backgroundColor: Colors.backgroundElevated,
-    borderRadius: BorderRadius.lg,
+  dangerCard: {
+    backgroundColor: 'rgba(239,68,68,0.08)',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(239,68,68,0.15)',
+    overflow: "hidden",
+    padding: 4,
+    marginHorizontal: 16,
+    marginTop: Spacing.sm,
+  },
+  consultantBanner: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
     marginBottom: Spacing.sm,
+    marginHorizontal: 16,
   },
   consultantBannerContent: {
     flexDirection: "row",
@@ -634,5 +662,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: Colors.primary,
     fontFamily: "Inter_400Regular",
+  },
+  versionFooter: {
+    textAlign: 'center',
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+    fontFamily: "Inter_400Regular",
+    marginTop: Spacing.xs,
   },
 });

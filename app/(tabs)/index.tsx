@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
@@ -219,13 +220,26 @@ export default function HomeScreen() {
           />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="restaurant-outline" size={64} color={Colors.textMuted} />
+          <LinearGradient
+            colors={['#0F1115', '#1A1008', '#0F1115']}
+            style={styles.emptyContainer}
+          >
+            <Ionicons name="restaurant-outline" size={80} color={Colors.textMuted} />
             <Text style={styles.emptyTitle}>No recipes yet</Text>
+            <Text style={styles.emptyTagline}>Your kitchen. Your costs. Your scale.</Text>
             <Text style={styles.emptyText}>
               Tap the + button to add your first recipe
             </Text>
-          </View>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push("/recipe/edit");
+              }}
+              style={({ pressed }) => [styles.getStartedButton, pressed && { opacity: 0.8 }]}
+            >
+              <Text style={styles.getStartedText}>Get Started</Text>
+            </Pressable>
+          </LinearGradient>
         }
       />
     </View>
@@ -265,17 +279,24 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
     alignItems: "center",
     justifyContent: "center",
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#D97706',
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: '#D97706',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   categoriesContainer: {
     marginBottom: Spacing.md,
@@ -291,17 +312,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
   },
   categoryChipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: '#D97706',
+    borderColor: '#D97706',
   },
   stationChipActive: {
-    backgroundColor: Colors.primaryLight,
-    borderColor: Colors.primaryLight,
+    backgroundColor: '#0D9488',
+    borderColor: '#0D9488',
   },
   categoryText: {
     fontSize: FontSize.sm,
@@ -331,12 +352,37 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontFamily: "Inter_600SemiBold",
   },
+  emptyTagline: {
+    fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    textAlign: "center",
+    fontFamily: "Inter_400Regular",
+    fontStyle: "italic",
+  },
   emptyText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
     textAlign: "center",
     fontFamily: "Inter_400Regular",
     paddingHorizontal: Spacing.xxxl,
+  },
+  getStartedButton: {
+    backgroundColor: '#D97706',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
+    shadowColor: '#D97706',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  getStartedText: {
+    fontSize: FontSize.md,
+    fontWeight: "600" as const,
+    color: '#F5F5F4',
+    fontFamily: "Inter_600SemiBold",
   },
   nudgeBanner: {
     flexDirection: 'row',
@@ -346,10 +392,10 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
-    backgroundColor: Colors.accent + '15',
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.accent + '30',
+    borderColor: 'rgba(255,255,255,0.10)',
   },
   nudgeText: {
     fontSize: FontSize.sm,

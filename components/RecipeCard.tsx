@@ -20,9 +20,22 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Beverage': 'wine-outline',
 };
 
+const DIETARY_COLORS: Record<string, string> = {
+  'vegan': '#22C55E',
+  'vegetarian': '#4ADE80',
+  'gluten-free': '#F59E0B',
+  'dairy-free': '#3B82F6',
+  'nut-free': '#EF4444',
+  'halal': '#8B5CF6',
+  'kosher': '#06B6D4',
+};
+
 export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardProps) {
   const iconName = CATEGORY_ICONS[recipe.category] || 'grid-outline';
   const totalTime = recipe.prepTime + recipe.cookTime;
+  const dietaryFlags = recipe.dietaryFlags
+    ? recipe.dietaryFlags.split(',').map((f) => f.trim()).filter(Boolean)
+    : [];
 
   return (
     <Pressable
@@ -58,6 +71,24 @@ export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardP
             <Text style={styles.metaText}>{recipe.category}</Text>
           </View>
         </View>
+        {recipe.station ? (
+          <View style={styles.stationBadge}>
+            <Text style={styles.stationText}>{recipe.station}</Text>
+          </View>
+        ) : null}
+        {dietaryFlags.length > 0 ? (
+          <View style={styles.dietaryRow}>
+            {dietaryFlags.map((flag) => (
+              <View
+                key={flag}
+                style={[
+                  styles.dietaryDot,
+                  { backgroundColor: DIETARY_COLORS[flag.toLowerCase()] || Colors.accent },
+                ]}
+              />
+            ))}
+          </View>
+        ) : null}
       </View>
       <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
     </Pressable>
@@ -68,13 +99,14 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: Colors.glass,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.glassBorder,
+    borderTopColor: 'rgba(255,255,255,0.15)',
   },
   cardPressed: {
     opacity: 0.8,
@@ -84,7 +116,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
@@ -119,5 +151,28 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
     fontFamily: 'Inter_400Regular',
+  },
+  stationBadge: {
+    alignSelf: 'flex-start',
+    marginTop: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.primary + '20',
+  },
+  stationText: {
+    fontSize: FontSize.xs,
+    color: Colors.primary,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  dietaryRow: {
+    flexDirection: 'row',
+    marginTop: Spacing.xs,
+    gap: 6,
+  },
+  dietaryDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

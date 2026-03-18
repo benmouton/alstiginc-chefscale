@@ -230,7 +230,7 @@ export default function EditRecipeScreen() {
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
-      presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+      presentationStyle: ImagePicker.UIImagePickerPresentationStyle.OVER_FULL_SCREEN,
     });
     if (!result.canceled && result.assets[0]) {
       setImageUri(result.assets[0].uri);
@@ -424,11 +424,11 @@ export default function EditRecipeScreen() {
     if (!(await ensureMediaLibraryPermission())) return null;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
+      allowsEditing: false,
       allowsMultipleSelection: true,
       selectionLimit: 10,
-      quality: 0.3,
-      base64: false,
-      presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+      quality: 0.8,
+      base64: true,
     });
     if (result.canceled || !result.assets || result.assets.length === 0) return null;
     return result.assets.map((a) => a.uri);
@@ -440,8 +440,8 @@ export default function EditRecipeScreen() {
         "Scan Recipe",
         "Choose how to capture your recipe",
         [
-          { text: "Camera", onPress: () => resolve('camera') },
-          { text: "Photo Library", onPress: () => resolve('library') },
+          { text: "Take Photos", onPress: () => resolve('camera') },
+          { text: "Select from Library (multi)", onPress: () => resolve('library') },
           { text: "Cancel", style: "cancel", onPress: () => resolve(null) },
         ],
         { cancelable: true, onDismiss: () => resolve(null) }
@@ -559,7 +559,7 @@ export default function EditRecipeScreen() {
             mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.7,
-            presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+            presentationStyle: ImagePicker.UIImagePickerPresentationStyle.OVER_FULL_SCREEN,
           });
           if (!result.canceled && result.assets[0]) {
             updateInstruction(instId, "photoUri", result.assets[0].uri);
@@ -603,7 +603,7 @@ export default function EditRecipeScreen() {
             mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.7,
-            presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+            presentationStyle: ImagePicker.UIImagePickerPresentationStyle.OVER_FULL_SCREEN,
           });
           if (!result.canceled && result.assets[0]) {
             setGalleryPhotos((prev) => [
@@ -1416,7 +1416,7 @@ export default function EditRecipeScreen() {
                 mediaTypes: ['images'],
                 allowsEditing: true,
                 quality: 0.7,
-                presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+                presentationStyle: ImagePicker.UIImagePickerPresentationStyle.OVER_FULL_SCREEN,
               });
               if (!result.canceled && result.assets[0]) {
                 setPlatingPhotos((prev) => [

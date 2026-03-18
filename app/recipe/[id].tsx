@@ -71,7 +71,12 @@ const cookModeStyles = StyleSheet.create({
     minHeight: 48,
   },
   cookModeBtn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#D97706',
+    shadowColor: '#D97706',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   cookModeText: {
     fontSize: 17,
@@ -301,14 +306,14 @@ export default function RecipeDetailScreen() {
             <Image source={{ uri: recipe.imageUri }} style={styles.heroImage} />
           ) : (
             <LinearGradient
-              colors={['#0D9488', '#0F766E', '#0F172A']}
+              colors={['#D97706', '#B45309', '#0F1115']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.heroGradient}
             />
           )}
           <LinearGradient
-            colors={['rgba(15,23,42,0.6)', 'transparent', 'rgba(15,23,42,0.9)']}
+            colors={['rgba(15,17,21,0.6)', 'transparent', 'rgba(15,17,21,0.95)']}
             locations={[0, 0.3, 1]}
             style={styles.heroOverlay}
           />
@@ -717,7 +722,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(15,23,42,0.5)",
+    backgroundColor: "rgba(15,17,21,0.6)",
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
     alignItems: "center",
     justifyContent: "center",
   },
@@ -750,9 +757,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
   },
   infoPillText: {
     fontSize: FontSize.sm,
@@ -777,11 +784,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   sectionCard: {
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
   },
   sectionHeader: {
     flexDirection: "row",
@@ -853,8 +860,8 @@ const styles = StyleSheet.create({
   },
   actionBtnOutline: {
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.backgroundCard,
+    borderColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
   actionBtnOutlineText: {
     fontSize: FontSize.md,
