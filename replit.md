@@ -157,3 +157,14 @@ constants/
   - Privacy Policy + Terms of Service links on paywall
   - Restore Purchase button visible (Apple requirement)
   - API URL port stripping for production builds
+
+## Hybrid OCR Architecture
+- **On-device OCR** (iOS/Android production builds): `@react-native-ml-kit/text-recognition` extracts text locally → sent to `/api/parse-recipe-text` for GPT-4o structuring (lightweight text request, no image upload)
+- **Server vision fallback** (Expo Go, web, or when on-device fails): Full image sent as base64 to `/api/ocr-recipe` for GPT-4o vision extraction
+- `lib/ocr.ts`: Platform detection + dynamic import with try/catch — gracefully falls back when native module unavailable
+- `app/recipe/edit.tsx`: `scanRecipe()` tries on-device first, then server vision
+- Multi-photo scan: captures up to 5 pages of a long recipe, combines them into one API call
+- Server endpoint accepts `imageBase64` (single) or `imagesBase64` (array) — GPT-4o processes all pages together
+- On-device multi-page: each page extracted separately, combined with page markers before text parsing
+- In Expo Go: on-device OCR is unavailable, automatically uses server vision (no user-facing difference)
+- In production builds: on-device OCR runs first for faster, cheaper scans
