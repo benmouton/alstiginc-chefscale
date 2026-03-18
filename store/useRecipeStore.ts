@@ -21,6 +21,8 @@ import {
   getFavoriteRecipes as dbGetFavoriteRecipes,
   toggleFavorite as dbToggleFavorite,
   clearAllData as dbClearAllData,
+  getVariationsByParentId,
+  getRecipeBasicById,
   type RecipeRow,
   type IngredientRow,
   type InstructionRow,
@@ -58,6 +60,9 @@ interface RecipeStore {
   removePrice: (id: string) => Promise<void>;
 
   clearAllData: () => Promise<void>;
+
+  getVariations: (recipeId: string) => Promise<RecipeRow[]>;
+  getRecipeBasic: (id: string) => Promise<{id: string, name: string, baseServings: number, baseYieldUnit: string} | null>;
 
   generateId: () => string;
 }
@@ -229,6 +234,24 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
       set({ recipes: [], prices: [], currentRecipe: null, currentScale: 1 });
     } catch (e) {
       set({ error: (e as Error).message });
+    }
+  },
+
+  getVariations: async (recipeId: string) => {
+    try {
+      return await getVariationsByParentId(recipeId);
+    } catch (e) {
+      set({ error: (e as Error).message });
+      return [];
+    }
+  },
+
+  getRecipeBasic: async (id: string) => {
+    try {
+      return await getRecipeBasicById(id);
+    } catch (e) {
+      set({ error: (e as Error).message });
+      return null;
     }
   },
 

@@ -28,12 +28,14 @@ import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
+import { extractTextOnDevice } from "@/lib/ocr";
+import { STATIONS } from "@/constants/stations";
+import { DIETARY_FLAGS } from "@/constants/allergens";
 
 const CATEGORIES = ["Entrée", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage", "Other"];
 
 const API_BASE = (() => {
-  const domain = process.env.EXPO_PUBLIC_DOMAIN;
-  if (!domain) return "http://localhost:5000";
+  const domain = process.env.EXPO_PUBLIC_DOMAIN || "chef-scale.replit.app";
   if (Platform.OS === "web") return "";
   const url = new URL(`https://${domain}`);
   url.port = "";
@@ -47,6 +49,8 @@ interface EditableIngredient {
   unit: string;
   prepNote: string;
   isScalable: boolean;
+  yieldPercent: string;
+  subrecipeId: string;
 }
 
 interface EditableInstruction {
@@ -112,7 +116,7 @@ export default function EditRecipeScreen() {
   const [dismissedSteps, setDismissedSteps] = useState<Set<number>>(new Set());
 
   const [ingredients, setIngredients] = useState<EditableIngredient[]>([
-    { id: Crypto.randomUUID(), name: "", amount: "", unit: "cup", prepNote: "", isScalable: true },
+    { id: Crypto.randomUUID(), name: "", amount: "", unit: "cup", prepNote: "", isScalable: true, yieldPercent: "100", subrecipeId: "" },
   ]);
 
   const [instructions, setInstructions] = useState<EditableInstruction[]>([
@@ -120,6 +124,11 @@ export default function EditRecipeScreen() {
   ]);
 
   const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
+  const [platingPhotos, setPlatingPhotos] = useState<GalleryPhoto[]>([]);
+  const [station, setStation] = useState("");
+  const [dietaryFlags, setDietaryFlags] = useState<string[]>([]);
+  const [parentRecipeId, setParentRecipeId] = useState("");
+  const [variationLabel, setVariationLabel] = useState("");
 
   const isEditing = !!id;
 
@@ -139,6 +148,10 @@ export default function EditRecipeScreen() {
           setNotes(recipe.notes);
           setSource(recipe.source || "");
           setImageUri(recipe.imageUri || "");
+          setStation(recipe.station || "");
+          try { setDietaryFlags(JSON.parse(recipe.dietaryFlags || "[]")); } catch { setDietaryFlags([]); }
+          setParentRecipeId(recipe.parentRecipeId || "");
+          setVariationLabel(recipe.variationLabel || "");
           if (recipe.ingredients.length > 0) {
             setIngredients(
               recipe.ingredients.map((i) => ({
@@ -148,6 +161,8 @@ export default function EditRecipeScreen() {
                 unit: i.unit,
                 prepNote: i.prepNote || "",
                 isScalable: i.isScalable !== 0,
+                yieldPercent: (i.yieldPercent ?? 100).toString(),
+                subrecipeId: i.subrecipeId || "",
               }))
             );
           }
@@ -164,7 +179,14 @@ export default function EditRecipeScreen() {
           }
           if (recipe.photos && recipe.photos.length > 0) {
             setGalleryPhotos(
-              recipe.photos.map((p) => ({
+              recipe.photos.filter((p) => p.photoType !== 'plating').map((p) => ({
+                id: p.id,
+                uri: p.uri,
+                caption: p.caption || "",
+              }))
+            );
+            setPlatingPhotos(
+              recipe.photos.filter((p) => p.photoType === 'plating').map((p) => ({
                 id: p.id,
                 uri: p.uri,
                 caption: p.caption || "",
@@ -208,6 +230,7 @@ export default function EditRecipeScreen() {
       allowsEditing: true,
       aspect: [16, 9],
       quality: 0.8,
+      presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
     });
     if (!result.canceled && result.assets[0]) {
       setImageUri(result.assets[0].uri);
@@ -234,103 +257,232 @@ export default function EditRecipeScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
   };
 
-  const scanRecipe = async () => {
-    if (!(await ensureCameraPermission())) return;
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ["images"],
-      quality: 0.3,
+  const applyScannedData = (data: any) => {
+    if (data.name) setName(data.name);
+    if (data.description) setDescription(data.description);
+    if (data.category && CATEGORIES.includes(data.category)) setCategory(data.category);
+
+    const scannedServings = data.baseServings ?? data.servings;
+    if (scannedServings != null) setServings(scannedServings.toString());
+
+    if (data.prepTime != null) setPrepTime(data.prepTime.toString());
+    if (data.cookTime != null) setCookTime(data.cookTime.toString());
+    if (data.notes) setNotes(data.notes);
+    if (data.source) setSource(data.source);
+
+    if (data.ingredients?.length > 0) {
+      setIngredients(
+        data.ingredients.map((ing: any) => ({
+          id: Crypto.randomUUID(),
+          name: ing.name || "",
+          amount: (ing.amount ?? "").toString(),
+          unit: ing.unit || "each",
+          prepNote: ing.prepNote || ing.description || "",
+          isScalable: true,
+          yieldPercent: "100",
+          subrecipeId: "",
+        }))
+      );
+    }
+    if (data.instructions?.length > 0) {
+      setInstructions(
+        data.instructions.map((inst: any) => ({
+          id: Crypto.randomUUID(),
+          text: typeof inst === "string" ? inst : (inst.text || ""),
+          timerMinutes: inst.timerMinutes != null ? inst.timerMinutes.toString() : "",
+          temperature: inst.temperature || "",
+          photoUri: "",
+        }))
+      );
+    }
+  };
+
+  const imageToBase64 = async (uri: string): Promise<string> => {
+    const resized = await manipulateAsync(
+      uri,
+      [{ resize: { width: 800 } }],
+      { compress: 0.3, format: SaveFormat.JPEG }
+    );
+
+    if (Platform.OS === "web") {
+      const response = await fetch(resized.uri);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      return new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          resolve(dataUrl.split(",")[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+    return FileSystem.readAsStringAsync(resized.uri, {
+      encoding: FileSystem.EncodingType.Base64,
     });
-    if (result.canceled || !result.assets[0]) return;
+  };
+
+  const scanViaServerVision = async (imageUris: string[], abortSignal: AbortSignal): Promise<any> => {
+    const imagesBase64 = await Promise.all(imageUris.map((uri) => imageToBase64(uri)));
+    console.log("[OCR] Using server vision,", imagesBase64.length, "image(s)");
+
+    const body = imagesBase64.length === 1
+      ? { imageBase64: imagesBase64[0] }
+      : { imagesBase64 };
+
+    const ocrResponse = await fetch(`${API_BASE}/api/ocr-recipe`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: abortSignal,
+    });
+
+    if (!ocrResponse.ok) {
+      const errorText = await ocrResponse.text();
+      throw new Error(`Server returned ${ocrResponse.status}: ${errorText.substring(0, 200)}`);
+    }
+
+    const responseText = await ocrResponse.text();
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("Server returned non-JSON response. Please try again.");
+    return JSON.parse(jsonMatch[0]);
+  };
+
+  const scanViaOnDeviceOCR = async (imageUris: string[], abortSignal: AbortSignal): Promise<any | null> => {
+    const textParts: string[] = [];
+    for (const uri of imageUris) {
+      const ocrResult = await extractTextOnDevice(uri);
+      if (!ocrResult) return null;
+      textParts.push(ocrResult.text);
+    }
+
+    const combinedText = imageUris.length > 1
+      ? textParts.map((t, i) => `--- Page ${i + 1} ---\n${t}`).join('\n\n')
+      : textParts[0];
+
+    console.log("[OCR] On-device extracted text:", combinedText.substring(0, 200));
+    const parseResponse = await fetch(`${API_BASE}/api/parse-recipe-text`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ extractedText: combinedText }),
+      signal: abortSignal,
+    });
+
+    if (!parseResponse.ok) {
+      console.log("[OCR] Text parse failed, falling back to server vision");
+      return null;
+    }
+
+    const responseText = await parseResponse.text();
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    return JSON.parse(jsonMatch[0]);
+  };
+
+  const captureMultiplePhotos = async (): Promise<string[] | null> => {
+    const uris: string[] = [];
+
+    const captureOne = async (): Promise<boolean> => {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        quality: 0.3,
+      });
+      if (result.canceled || !result.assets[0]) return false;
+      uris.push(result.assets[0].uri);
+      return true;
+    };
+
+    const firstCaptured = await captureOne();
+    if (!firstCaptured) return null;
+
+    let addMore = true;
+    while (addMore && uris.length < 5) {
+      const response = await new Promise<boolean>((resolve) => {
+        Alert.alert(
+          `Page ${uris.length} captured`,
+          `Recipe spans multiple pages? Take a photo of the next page, or tap Done to scan ${uris.length} page${uris.length > 1 ? 's' : ''}.`,
+          [
+            { text: 'Done', style: 'default', onPress: () => resolve(false) },
+            { text: 'Add next page', onPress: () => resolve(true) },
+          ],
+          { cancelable: false }
+        );
+      });
+
+      if (!response) {
+        addMore = false;
+      } else {
+        const captured = await captureOne();
+        if (!captured) addMore = false;
+      }
+    }
+
+    return uris.length > 0 ? uris : null;
+  };
+
+  const pickScanPhotosFromLibrary = async (): Promise<string[] | null> => {
+    if (!(await ensureMediaLibraryPermission())) return null;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: 10,
+      quality: 0.3,
+      base64: false,
+      presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+    });
+    if (result.canceled || !result.assets || result.assets.length === 0) return null;
+    return result.assets.map((a) => a.uri);
+  };
+
+  const scanRecipe = async () => {
+    const source = await new Promise<'camera' | 'library' | null>((resolve) => {
+      Alert.alert(
+        "Scan Recipe",
+        "Choose how to capture your recipe",
+        [
+          { text: "Camera", onPress: () => resolve('camera') },
+          { text: "Photo Library", onPress: () => resolve('library') },
+          { text: "Cancel", style: "cancel", onPress: () => resolve(null) },
+        ],
+        { cancelable: true, onDismiss: () => resolve(null) }
+      );
+    });
+
+    if (!source) return;
+
+    let imageUris: string[] | null = null;
+    if (source === 'camera') {
+      if (!(await ensureCameraPermission())) return;
+      imageUris = await captureMultiplePhotos();
+    } else {
+      imageUris = await pickScanPhotosFromLibrary();
+    }
+    if (!imageUris || imageUris.length === 0) return;
 
     setScanning(true);
     const abortController = new AbortController();
     scanAbortRef.current = abortController;
 
     try {
-      const resized = await manipulateAsync(
-        result.assets[0].uri,
-        [{ resize: { width: 800 } }],
-        { compress: 0.3, format: SaveFormat.JPEG }
-      );
-      console.log("[OCR] Resized image URI:", resized.uri);
+      console.log("[OCR] Processing", imageUris.length, "page(s)...");
+      let data: any = null;
 
-      let base64: string;
-      if (Platform.OS === "web") {
-        const response = await fetch(resized.uri);
-        const blob = await response.blob();
-        const reader = new FileReader();
-        base64 = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => {
-            const dataUrl = reader.result as string;
-            resolve(dataUrl.split(",")[1]);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      } else {
-        base64 = await FileSystem.readAsStringAsync(resized.uri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
+      if (Platform.OS !== 'web') {
+        console.log("[OCR] Attempting on-device text recognition...");
+        data = await scanViaOnDeviceOCR(imageUris, abortController.signal);
+        if (data) {
+          console.log("[OCR] On-device OCR succeeded:", data.name || "unnamed");
+        }
       }
 
-      const ocrUrl = `${API_BASE}/api/ocr-recipe`;
-      console.log("[OCR] Sending request to:", ocrUrl);
-      console.log("[OCR] Base64 length:", base64.length);
-
-      const ocrResponse = await fetch(ocrUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: base64 }),
-        signal: abortController.signal,
-      });
-
-      console.log("[OCR] Response status:", ocrResponse.status);
-      const responseText = await ocrResponse.text();
-      console.log("[OCR] Response body (first 500 chars):", responseText.substring(0, 500));
-
-      if (!ocrResponse.ok) {
-        console.error("[OCR] Error response body:", responseText);
-        throw new Error(`Server returned ${ocrResponse.status}: ${responseText.substring(0, 200)}`);
+      if (!data) {
+        console.log("[OCR] Using server-side GPT-4o vision...");
+        data = await scanViaServerVision(imageUris, abortController.signal);
       }
 
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("Server returned non-JSON response. Please try again.");
-      }
-      const data = JSON.parse(jsonMatch[0]);
-      if (data.name) setName(data.name);
-      if (data.description) setDescription(data.description);
-      if (data.category && CATEGORIES.includes(data.category)) setCategory(data.category);
-      if (data.baseServings) setServings(data.baseServings.toString());
-      if (data.prepTime) setPrepTime(data.prepTime.toString());
-      if (data.cookTime) setCookTime(data.cookTime.toString());
-      if (data.notes) setNotes(data.notes);
-      if (data.source) setSource(data.source);
-      if (data.ingredients?.length > 0) {
-        setIngredients(
-          data.ingredients.map((ing: any) => ({
-            id: Crypto.randomUUID(),
-            name: ing.name || "",
-            amount: (ing.amount || "").toString(),
-            unit: ing.unit || "each",
-            prepNote: ing.prepNote || "",
-            isScalable: true,
-          }))
-        );
-      }
-      if (data.instructions?.length > 0) {
-        setInstructions(
-          data.instructions.map((inst: any) => ({
-            id: Crypto.randomUUID(),
-            text: inst.text || "",
-            timerMinutes: inst.timerMinutes ? inst.timerMinutes.toString() : "",
-            temperature: inst.temperature || "",
-            photoUri: "",
-          }))
-        );
-      }
+      applyScannedData(data);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Recipe Scanned", "Review the extracted data and make any corrections.");
+      Alert.alert("Recipe Scanned", `Extracted from ${imageUris.length} page${imageUris.length > 1 ? 's' : ''}. Review the data and make any corrections.`);
     } catch (e: any) {
       if (e?.name === "AbortError") return;
       console.error("Scan error:", e?.message || e);
@@ -357,7 +509,7 @@ export default function EditRecipeScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIngredients((prev) => [
       ...prev,
-      { id: Crypto.randomUUID(), name: "", amount: "", unit: "each", prepNote: "", isScalable: true },
+      { id: Crypto.randomUUID(), name: "", amount: "", unit: "each", prepNote: "", isScalable: true, yieldPercent: "100", subrecipeId: "" },
     ]);
   };
 
@@ -407,6 +559,7 @@ export default function EditRecipeScreen() {
             mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.7,
+            presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
           });
           if (!result.canceled && result.assets[0]) {
             updateInstruction(instId, "photoUri", result.assets[0].uri);
@@ -450,6 +603,7 @@ export default function EditRecipeScreen() {
             mediaTypes: ['images'],
             allowsEditing: true,
             quality: 0.7,
+            presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
           });
           if (!result.canceled && result.assets[0]) {
             setGalleryPhotos((prev) => [
@@ -689,6 +843,10 @@ export default function EditRecipeScreen() {
         notes: notes.trim(),
         source: source.trim(),
         isFavorite: 0,
+        station,
+        dietaryFlags: JSON.stringify(dietaryFlags),
+        parentRecipeId,
+        variationLabel: variationLabel.trim(),
         ingredients: validIngredients.map((ing, idx) => ({
           id: ing.id,
           recipeId,
@@ -703,6 +861,8 @@ export default function EditRecipeScreen() {
           isScalable: ing.isScalable ? 1 : 0,
           prepNote: ing.prepNote.trim(),
           sortOrder: idx,
+          yieldPercent: parseFloat(ing.yieldPercent) || 100,
+          subrecipeId: ing.subrecipeId || "",
         })),
         instructions: validInstructions.map((inst, idx) => ({
           id: inst.id,
@@ -714,14 +874,26 @@ export default function EditRecipeScreen() {
           photoUri: inst.photoUri || '',
           sortOrder: idx,
         })),
-        photos: galleryPhotos.filter((p) => p.uri).map((photo, idx) => ({
-          id: photo.id,
-          recipeId,
-          uri: photo.uri,
-          caption: photo.caption,
-          sortOrder: idx,
-          createdAt: new Date().toISOString(),
-        })),
+        photos: [
+          ...galleryPhotos.filter((p) => p.uri).map((photo, idx) => ({
+            id: photo.id,
+            recipeId,
+            uri: photo.uri,
+            caption: photo.caption,
+            sortOrder: idx,
+            createdAt: new Date().toISOString(),
+            photoType: 'general' as const,
+          })),
+          ...platingPhotos.filter((p) => p.uri).map((photo, idx) => ({
+            id: photo.id,
+            recipeId,
+            uri: photo.uri,
+            caption: photo.caption,
+            sortOrder: galleryPhotos.length + idx,
+            createdAt: new Date().toISOString(),
+            photoType: 'plating' as const,
+          })),
+        ],
       });
 
       useSubscriptionStore.getState().incrementRecipeCount();
@@ -898,6 +1070,48 @@ export default function EditRecipeScreen() {
           />
         </View>
 
+        <Text style={styles.inputLabel}>Station</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+          <View style={styles.chipRow}>
+            <Pressable
+              onPress={() => setStation("")}
+              style={[styles.chip, station === "" && styles.chipActive]}
+            >
+              <Text style={[styles.chipText, station === "" && styles.chipTextActive]}>None</Text>
+            </Pressable>
+            {STATIONS.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setStation(s)}
+                style={[styles.chip, station === s && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, station === s && styles.chipTextActive]}>{s}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+
+        <Text style={styles.inputLabel}>Dietary Flags</Text>
+        <View style={styles.chipRow}>
+          {DIETARY_FLAGS.map((flag) => {
+            const isActive = dietaryFlags.includes(flag.id);
+            return (
+              <Pressable
+                key={flag.id}
+                onPress={() => {
+                  setDietaryFlags((prev) =>
+                    isActive ? prev.filter((f) => f !== flag.id) : [...prev, flag.id]
+                  );
+                }}
+                style={[styles.chip, isActive && { backgroundColor: flag.color, borderColor: flag.color }]}
+              >
+                <Ionicons name={flag.icon as any} size={14} color={isActive ? '#000' : Colors.textSecondary} />
+                <Text style={[styles.chipText, isActive && { color: '#000' }]}>{flag.name}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         <View style={styles.rowFields}>
           <View style={styles.fieldHalf}>
             <Text style={styles.inputLabel}>Servings</Text>
@@ -1027,6 +1241,19 @@ export default function EditRecipeScreen() {
                   onValueChange={(v) => updateIngredient(ing.id, "isScalable", !v)}
                   trackColor={{ false: Colors.border, true: Colors.accent }}
                   thumbColor={Colors.textPrimary}
+                />
+              </View>
+            </View>
+            <View style={styles.ingredientExtras}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+                <Text style={styles.scalableLabel}>Yield %</Text>
+                <TextInput
+                  style={[styles.input, { width: 60, textAlign: 'center', paddingVertical: 4 }]}
+                  value={ing.yieldPercent === "100" ? "" : ing.yieldPercent}
+                  onChangeText={(v) => updateIngredient(ing.id, "yieldPercent", v || "100")}
+                  placeholder="100"
+                  placeholderTextColor={Colors.textMuted}
+                  keyboardType="number-pad"
                 />
               </View>
             </View>
@@ -1179,6 +1406,76 @@ export default function EditRecipeScreen() {
             <Text style={styles.galleryEmptyText}>No gallery photos yet</Text>
           </Pressable>
         )}
+
+        <View style={[styles.sectionHeaderRow, { marginTop: Spacing.xxl }]}>
+          <Text style={styles.sectionLabel}>Plating Reference</Text>
+          <Pressable
+            onPress={async () => {
+              if (!(await ensureMediaLibraryPermission())) return;
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ['images'],
+                allowsEditing: true,
+                quality: 0.7,
+                presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+              });
+              if (!result.canceled && result.assets[0]) {
+                setPlatingPhotos((prev) => [
+                  ...prev,
+                  { id: Crypto.randomUUID(), uri: result.assets[0].uri, caption: "" },
+                ]);
+              }
+            }}
+            style={styles.addButton}
+          >
+            <Ionicons name="color-palette" size={16} color={Colors.textPrimary} />
+            <Text style={styles.addButtonText}>Add</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.galleryHint}>
+          How the finished dish should look when plated
+        </Text>
+
+        {platingPhotos.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.galleryScroll}
+            contentContainerStyle={styles.galleryScrollContent}
+          >
+            {platingPhotos.map((photo) => (
+              <View key={photo.id} style={styles.galleryItem}>
+                <Image source={{ uri: photo.uri }} style={styles.galleryItemImage} />
+                <Pressable
+                  onPress={() => setPlatingPhotos((prev) => prev.filter((p) => p.id !== photo.id))}
+                  style={styles.galleryItemRemove}
+                >
+                  <Ionicons name="close-circle" size={22} color={Colors.error} />
+                </Pressable>
+                <TextInput
+                  style={styles.galleryCaption}
+                  value={photo.caption}
+                  onChangeText={(v) => setPlatingPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, caption: v } : p))}
+                  placeholder="Plating note..."
+                  placeholderTextColor={Colors.textMuted}
+                  maxLength={60}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
+
+        {variationLabel !== undefined && parentRecipeId ? (
+          <>
+            <Text style={styles.inputLabel}>Variation Label</Text>
+            <TextInput
+              style={styles.input}
+              value={variationLabel}
+              onChangeText={setVariationLabel}
+              placeholder="e.g. Spicy Version, Dairy-Free"
+              placeholderTextColor={Colors.textMuted}
+            />
+          </>
+        ) : null}
 
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl, marginBottom: Spacing.md }]}>
           Chef's Notes

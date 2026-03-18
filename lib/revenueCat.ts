@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
-const REVENUECAT_API_KEY = 'appl_PLACEHOLDER';
+const REVENUECAT_API_KEY = 'appl_jqwniUXIHbHRyAqKkFvqHyICivO';
 const isExpoGo = Constants.appOwnership === 'expo';
 
 let initialized = false;

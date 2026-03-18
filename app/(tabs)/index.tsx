@@ -19,6 +19,7 @@ import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import type { RecipeRow } from "@/lib/database";
 import RecipeCard from "@/components/RecipeCard";
 import MyCookbookPromo from "@/components/MyCookbookPromo";
+import { STATIONS } from "@/constants/stations";
 
 const CATEGORIES = ["All", "Entr\u00e9e", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage"];
 
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const { recipes, isLoading, loadRecipes, removeRecipe } = useRecipeStore();
   const { tier, recipeCount, maxFreeRecipes, setRecipeCount } = useSubscriptionStore();
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedStation, setSelectedStation] = useState("All");
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -43,9 +45,11 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [loadRecipes]);
 
-  const filteredRecipes = selectedCategory === "All"
-    ? recipes
-    : recipes.filter((r) => r.category === selectedCategory);
+  const filteredRecipes = recipes.filter((r) => {
+    if (selectedCategory !== "All" && r.category !== selectedCategory) return false;
+    if (selectedStation !== "All" && r.station !== selectedStation) return false;
+    return true;
+  });
 
   const handleDeleteRecipe = (recipe: RecipeRow) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -78,15 +82,30 @@ export default function HomeScreen() {
             {tier === 'free' ? ` / ${maxFreeRecipes} free` : ''}
           </Text>
         </View>
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            router.push("/recipe/edit");
-          }}
-          style={({ pressed }) => [styles.addButton, pressed && { opacity: 0.7 }]}
-        >
-          <Ionicons name="add" size={24} color={Colors.textPrimary} />
-        </Pressable>
+        <View style={styles.headerBtns}>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              if (useSubscriptionStore.getState().checkAccess('prep_sheet')) {
+                router.push("/prep-sheet");
+              } else {
+                router.push({ pathname: '/paywall', params: { feature: 'prep_sheet', headline: 'Build prep sheets for your whole service' } });
+              }
+            }}
+            style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.7 }]}
+          >
+            <Ionicons name="clipboard-outline" size={22} color={Colors.textPrimary} />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push("/recipe/edit");
+            }}
+            style={({ pressed }) => [styles.addButton, pressed && { opacity: 0.7 }]}
+          >
+            <Ionicons name="add" size={24} color={Colors.textPrimary} />
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.categoriesContainer}>
@@ -106,6 +125,39 @@ export default function HomeScreen() {
                 }}
                 style={[styles.categoryChip, isActive && styles.categoryChipActive]}
               >
+                <Text
+                  style={[
+                    styles.categoryText,
+                    isActive && styles.categoryTextActive,
+                  ]}
+                >
+                  {item}
+                </Text>
+              </Pressable>
+            );
+          }}
+        />
+      </View>
+
+      {/* STATION FILTER */}
+      <View style={styles.categoriesContainer}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={["All", ...STATIONS]}
+          keyExtractor={(item) => `station-${item}`}
+          contentContainerStyle={styles.categoriesList}
+          renderItem={({ item }) => {
+            const isActive = item === selectedStation;
+            return (
+              <Pressable
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setSelectedStation(item);
+                }}
+                style={[styles.categoryChip, isActive && styles.stationChipActive]}
+              >
+                <Ionicons name="location-outline" size={12} color={isActive ? Colors.textPrimary : Colors.textMuted} />
                 <Text
                   style={[
                     styles.categoryText,
@@ -204,6 +256,19 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     marginTop: 2,
   },
+  headerBtns: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  headerBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.backgroundCard,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   addButton: {
     width: 44,
     height: 44,
@@ -220,6 +285,9 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
@@ -230,6 +298,10 @@ const styles = StyleSheet.create({
   categoryChipActive: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+  },
+  stationChipActive: {
+    backgroundColor: Colors.primaryLight,
+    borderColor: Colors.primaryLight,
   },
   categoryText: {
     fontSize: FontSize.sm,

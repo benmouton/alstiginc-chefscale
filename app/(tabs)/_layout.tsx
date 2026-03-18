@@ -20,6 +20,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "dollarsign.circle", selected: "dollarsign.circle.fill" }} />
         <Label>Prices</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="converter">
+        <Icon sf={{ default: "arrow.left.arrow.right", selected: "arrow.left.arrow.right" }} />
+        <Label>Convert</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="settings">
         <Icon sf={{ default: "gearshape", selected: "gearshape.fill" }} />
         <Label>Settings</Label>
@@ -100,6 +104,15 @@ function ClassicTabLayout() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             router.push("/recipe/edit");
           },
+        }}
+      />
+      <Tabs.Screen
+        name="converter"
+        options={{
+          title: "Convert",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="swap-horizontal-outline" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen

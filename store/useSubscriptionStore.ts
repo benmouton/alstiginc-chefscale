@@ -16,7 +16,11 @@ export type PremiumFeature =
   | 'export'
   | 'import'
   | 'step_photos'
-  | 'cook_mode';
+  | 'cook_mode'
+  | 'prep_sheet'
+  | 'menu_pricing'
+  | 'plating_photos'
+  | 'recipe_variations';
 
 const FEATURE_HEADLINES: Record<PremiumFeature, string> = {
   unlimited_recipes: "You've hit 10 recipes — unlock unlimited",
@@ -31,6 +35,10 @@ const FEATURE_HEADLINES: Record<PremiumFeature, string> = {
   import: 'Import recipes from files',
   step_photos: 'Add photos to each instruction step',
   cook_mode: 'Hands-free cooking mode for the line',
+  prep_sheet: 'Build prep sheets for your whole service',
+  menu_pricing: 'Calculate the perfect menu price',
+  plating_photos: 'Add plating reference photos',
+  recipe_variations: 'Create and link recipe variations',
 };
 
 const STORAGE_KEY = 'chefscale_subscription';

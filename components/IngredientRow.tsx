@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius } from '@/constants/theme';
-import type { ScaleResult } from '@/lib/scaling';
+import { formatQuantity, getUnitAbbreviation, type ScaleResult } from '@/lib/scaling';
 
 interface IngredientRowProps {
   name: string;
@@ -10,6 +11,9 @@ interface IngredientRowProps {
   isScalable?: boolean;
   cost?: number | null;
   isScaled?: boolean;
+  yieldPercent?: number;
+  subrecipeName?: string;
+  onSubrecipePress?: () => void;
 }
 
 export default function IngredientRow({
@@ -19,7 +23,15 @@ export default function IngredientRow({
   isScalable = true,
   cost,
   isScaled,
+  yieldPercent,
+  subrecipeName,
+  onSubrecipePress,
 }: IngredientRowProps) {
+  const hasYieldLoss = yieldPercent != null && yieldPercent < 100 && yieldPercent > 0;
+  const asPurchased = hasYieldLoss
+    ? scaleResult.amount / (yieldPercent! / 100)
+    : null;
+
   return (
     <View style={styles.row}>
       <View style={styles.left}>
@@ -36,8 +48,20 @@ export default function IngredientRow({
             </View>
           ) : null}
         </View>
+        {hasYieldLoss && asPurchased ? (
+          <Text style={styles.asPurchased}>
+            Buy {formatQuantity(asPurchased)} {getUnitAbbreviation(scaleResult.unit)} ({yieldPercent}% yield)
+          </Text>
+        ) : null}
         <View style={styles.nameRow}>
-          <Text style={styles.name}>{name}</Text>
+          {subrecipeName ? (
+            <Pressable onPress={onSubrecipePress} style={styles.subrecipeLink}>
+              <Ionicons name="link-outline" size={13} color={Colors.primary} />
+              <Text style={[styles.name, { color: Colors.primary }]}>{name}</Text>
+            </Pressable>
+          ) : (
+            <Text style={styles.name}>{name}</Text>
+          )}
           {prepNote ? <Text style={styles.prepNote}>{prepNote}</Text> : null}
         </View>
       </View>
@@ -118,5 +142,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: 'Inter_600SemiBold',
     marginTop: 2,
+  },
+  asPurchased: {
+    fontSize: FontSize.xs,
+    color: Colors.warning,
+    fontFamily: 'Inter_400Regular',
+    fontStyle: 'italic',
+    marginTop: 1,
+  },
+  subrecipeLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 });

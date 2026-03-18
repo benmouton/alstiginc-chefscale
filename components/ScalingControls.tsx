@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
+import { View, Text, Pressable, TextInput, StyleSheet, Modal, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -11,6 +11,7 @@ interface ScalingControlsProps {
   currentServings: number;
   onServingsChange: (servings: number) => void;
   yieldUnit?: string;
+  baseYieldUnit?: string;
 }
 
 const FREE_MULTIPLIERS = [1, 2, 5, 10];
@@ -21,8 +22,12 @@ export default function ScalingControls({
   currentServings,
   onServingsChange,
   yieldUnit = 'servings',
+  baseYieldUnit,
 }: ScalingControlsProps) {
   const [customInput, setCustomInput] = useState('');
+  const [yieldMode, setYieldMode] = useState(false);
+  const [yieldInput, setYieldInput] = useState('');
+  const [yieldTargetUnit, setYieldTargetUnit] = useState(baseYieldUnit || yieldUnit);
   const checkAccess = useSubscriptionStore((s) => s.checkAccess);
   const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);
   const hasPremiumScaling = checkAccess('custom_scaling');
@@ -157,6 +162,73 @@ export default function ScalingControls({
           )}
         </Pressable>
       </View>
+
+      {/* YIELD-BASED SCALING */}
+      <Pressable
+        onPress={() => {
+          if (!hasPremiumScaling) {
+            handlePremiumGate();
+            return;
+          }
+          setYieldMode(!yieldMode);
+        }}
+        style={styles.yieldToggle}
+      >
+        <Ionicons name="resize-outline" size={16} color={Colors.textSecondary} />
+        <Text style={styles.yieldToggleText}>
+          {yieldMode ? 'Hide target yield' : 'Scale by target yield'}
+        </Text>
+        {!hasPremiumScaling ? <Ionicons name="lock-closed" size={12} color={Colors.textMuted} /> : null}
+      </Pressable>
+
+      {yieldMode && hasPremiumScaling ? (
+        <View style={styles.yieldSection}>
+          <Text style={styles.yieldLabel}>
+            I need to make:
+          </Text>
+          <View style={styles.customRow}>
+            <TextInput
+              style={[styles.customInput, { flex: 1 }]}
+              value={yieldInput}
+              onChangeText={setYieldInput}
+              placeholder="Target amount"
+              placeholderTextColor={Colors.textMuted}
+              keyboardType="decimal-pad"
+              returnKeyType="go"
+              onSubmitEditing={() => {
+                const val = parseFloat(yieldInput);
+                if (val > 0 && originalServings > 0) {
+                  const multiplier = val / originalServings;
+                  onServingsChange(Math.max(1, Math.round(originalServings * multiplier)));
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                }
+              }}
+              testID="yield-input"
+            />
+            <View style={styles.yieldUnitDisplay}>
+              <Text style={styles.yieldUnitText}>{yieldUnit}</Text>
+            </View>
+            <Pressable
+              onPress={() => {
+                const val = parseFloat(yieldInput);
+                if (val > 0 && originalServings > 0) {
+                  const multiplier = val / originalServings;
+                  onServingsChange(Math.max(1, Math.round(originalServings * multiplier)));
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                }
+              }}
+              style={({ pressed }) => [
+                styles.scaleBtn,
+                pressed && { opacity: 0.7 },
+                !yieldInput && styles.scaleBtnDisabled,
+              ]}
+              disabled={!yieldInput}
+            >
+              <Text style={styles.scaleBtnText}>Go</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -277,5 +349,45 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textPrimary,
     fontFamily: 'Inter_700Bold',
+  },
+  yieldToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  yieldToggleText: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  yieldSection: {
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  yieldLabel: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+    marginBottom: Spacing.sm,
+  },
+  yieldUnitDisplay: {
+    backgroundColor: Colors.backgroundElevated,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: TouchTarget.min,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  yieldUnitText: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
   },
 });

@@ -2,7 +2,7 @@ import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
 
 const DB_NAME = 'chefscale.db';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let db: SQLite.SQLiteDatabase | null = null;
 let dbInitRetries = 0;
@@ -37,18 +37,13 @@ export async function initDatabase(): Promise<void> {
     currentVersion = 0;
   }
 
-  if (currentVersion < DB_VERSION) {
+  if (currentVersion === 0) {
+    // Fresh install: CREATE all tables with new columns included
     await database.execAsync(`
       PRAGMA journal_mode = WAL;
       PRAGMA foreign_keys = ON;
 
-      DROP TABLE IF EXISTS recipe_photos;
-      DROP TABLE IF EXISTS ingredient_prices;
-      DROP TABLE IF EXISTS instructions;
-      DROP TABLE IF EXISTS ingredients;
-      DROP TABLE IF EXISTS recipes;
-
-      CREATE TABLE recipes (
+      CREATE TABLE IF NOT EXISTS recipes (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         description TEXT DEFAULT '',
@@ -62,11 +57,15 @@ export async function initDatabase(): Promise<void> {
         notes TEXT DEFAULT '',
         source TEXT DEFAULT '',
         isFavorite INTEGER DEFAULT 0,
+        station TEXT DEFAULT '',
+        dietaryFlags TEXT DEFAULT '[]',
+        parentRecipeId TEXT DEFAULT '',
+        variationLabel TEXT DEFAULT '',
         createdAt TEXT DEFAULT (datetime('now')),
         updatedAt TEXT DEFAULT (datetime('now'))
       );
 
-      CREATE TABLE ingredients (
+      CREATE TABLE IF NOT EXISTS ingredients (
         id TEXT PRIMARY KEY,
         recipeId TEXT NOT NULL,
         name TEXT NOT NULL,
@@ -80,10 +79,12 @@ export async function initDatabase(): Promise<void> {
         isScalable INTEGER DEFAULT 1,
         prepNote TEXT DEFAULT '',
         sortOrder INTEGER DEFAULT 0,
+        yieldPercent REAL DEFAULT 100,
+        subrecipeId TEXT DEFAULT '',
         FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE instructions (
+      CREATE TABLE IF NOT EXISTS instructions (
         id TEXT PRIMARY KEY,
         recipeId TEXT NOT NULL,
         stepNumber INTEGER NOT NULL,
@@ -95,17 +96,18 @@ export async function initDatabase(): Promise<void> {
         FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE recipe_photos (
+      CREATE TABLE IF NOT EXISTS recipe_photos (
         id TEXT PRIMARY KEY,
         recipeId TEXT NOT NULL,
         uri TEXT NOT NULL,
         caption TEXT DEFAULT '',
         sortOrder INTEGER DEFAULT 0,
+        photoType TEXT DEFAULT 'general',
         createdAt TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (recipeId) REFERENCES recipes(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE ingredient_prices (
+      CREATE TABLE IF NOT EXISTS ingredient_prices (
         id TEXT PRIMARY KEY,
         ingredientName TEXT NOT NULL UNIQUE,
         costPerUnit REAL,
@@ -114,6 +116,24 @@ export async function initDatabase(): Promise<void> {
         purchaseCost REAL,
         updatedAt TEXT DEFAULT (datetime('now'))
       );
+
+      PRAGMA user_version = ${DB_VERSION};
+    `);
+  } else if (currentVersion < DB_VERSION) {
+    // Existing install: ALTER TABLE to add new columns
+    await database.execAsync(`
+      PRAGMA journal_mode = WAL;
+      PRAGMA foreign_keys = ON;
+
+      ALTER TABLE recipes ADD COLUMN station TEXT DEFAULT '';
+      ALTER TABLE recipes ADD COLUMN dietaryFlags TEXT DEFAULT '[]';
+      ALTER TABLE recipes ADD COLUMN parentRecipeId TEXT DEFAULT '';
+      ALTER TABLE recipes ADD COLUMN variationLabel TEXT DEFAULT '';
+
+      ALTER TABLE ingredients ADD COLUMN yieldPercent REAL DEFAULT 100;
+      ALTER TABLE ingredients ADD COLUMN subrecipeId TEXT DEFAULT '';
+
+      ALTER TABLE recipe_photos ADD COLUMN photoType TEXT DEFAULT 'general';
 
       PRAGMA user_version = ${DB_VERSION};
     `);
@@ -139,6 +159,10 @@ export interface RecipeRow {
   notes: string;
   source: string;
   isFavorite: number;
+  station: string;
+  dietaryFlags: string;
+  parentRecipeId: string;
+  variationLabel: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -157,6 +181,8 @@ export interface IngredientRow {
   isScalable: number;
   prepNote: string;
   sortOrder: number;
+  yieldPercent: number;
+  subrecipeId: string;
 }
 
 export interface InstructionRow {
@@ -176,6 +202,7 @@ export interface RecipePhotoRow {
   uri: string;
   caption: string;
   sortOrder: number;
+  photoType: string;
   createdAt: string;
 }
 
@@ -298,13 +325,14 @@ export async function getInstructionsByRecipeId(recipeId: string): Promise<Instr
 export async function insertRecipe(recipe: Omit<RecipeRow, 'createdAt' | 'updatedAt'>): Promise<void> {
   const database = await getDatabase();
   await database.runAsync(
-    `INSERT INTO recipes (id, name, description, category, tags, baseServings, baseYieldUnit, prepTime, cookTime, imageUri, notes, source, isFavorite)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO recipes (id, name, description, category, tags, baseServings, baseYieldUnit, prepTime, cookTime, imageUri, notes, source, isFavorite, station, dietaryFlags, parentRecipeId, variationLabel)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       recipe.id, recipe.name, recipe.description, recipe.category,
       recipe.tags, recipe.baseServings, recipe.baseYieldUnit,
       recipe.prepTime, recipe.cookTime, recipe.imageUri,
       recipe.notes, recipe.source, recipe.isFavorite,
+      recipe.station, recipe.dietaryFlags, recipe.parentRecipeId, recipe.variationLabel,
     ]
   );
 }
@@ -316,12 +344,14 @@ export async function updateRecipe(recipe: Omit<RecipeRow, 'createdAt' | 'update
        name = ?, description = ?, category = ?, tags = ?,
        baseServings = ?, baseYieldUnit = ?, prepTime = ?, cookTime = ?,
        imageUri = ?, notes = ?, source = ?, isFavorite = ?,
+       station = ?, dietaryFlags = ?, parentRecipeId = ?, variationLabel = ?,
        updatedAt = datetime('now')
      WHERE id = ?`,
     [
       recipe.name, recipe.description, recipe.category, recipe.tags,
       recipe.baseServings, recipe.baseYieldUnit, recipe.prepTime, recipe.cookTime,
       recipe.imageUri, recipe.notes, recipe.source, recipe.isFavorite,
+      recipe.station, recipe.dietaryFlags, recipe.parentRecipeId, recipe.variationLabel,
       recipe.id,
     ]
   );
@@ -335,14 +365,14 @@ export async function deleteRecipe(id: string): Promise<void> {
 export async function insertIngredient(ingredient: IngredientRow): Promise<void> {
   const database = await getDatabase();
   await database.runAsync(
-    `INSERT INTO ingredients (id, recipeId, name, amount, unit, category, costPerUnit, costUnit, fdcId, isOptional, isScalable, prepNote, sortOrder)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO ingredients (id, recipeId, name, amount, unit, category, costPerUnit, costUnit, fdcId, isOptional, isScalable, prepNote, sortOrder, yieldPercent, subrecipeId)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       ingredient.id, ingredient.recipeId, ingredient.name,
       ingredient.amount, ingredient.unit, ingredient.category,
       ingredient.costPerUnit, ingredient.costUnit, ingredient.fdcId,
       ingredient.isOptional, ingredient.isScalable, ingredient.prepNote,
-      ingredient.sortOrder,
+      ingredient.sortOrder, ingredient.yieldPercent, ingredient.subrecipeId,
     ]
   );
 }
@@ -373,9 +403,9 @@ export async function deleteInstructionsByRecipeId(recipeId: string): Promise<vo
 export async function insertRecipePhoto(photo: Omit<RecipePhotoRow, 'createdAt'>): Promise<void> {
   const database = await getDatabase();
   await database.runAsync(
-    `INSERT INTO recipe_photos (id, recipeId, uri, caption, sortOrder)
-     VALUES (?, ?, ?, ?, ?)`,
-    [photo.id, photo.recipeId, photo.uri, photo.caption, photo.sortOrder]
+    `INSERT INTO recipe_photos (id, recipeId, uri, caption, sortOrder, photoType)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [photo.id, photo.recipeId, photo.uri, photo.caption, photo.sortOrder, photo.photoType]
   );
 }
 
@@ -445,4 +475,20 @@ export async function getPriceCount(): Promise<number> {
   const database = await getDatabase();
   const row = await database.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM ingredient_prices');
   return row?.count ?? 0;
+}
+
+export async function getVariationsByParentId(parentId: string): Promise<RecipeRow[]> {
+  const database = await getDatabase();
+  return database.getAllAsync<RecipeRow>(
+    'SELECT * FROM recipes WHERE parentRecipeId = ? ORDER BY updatedAt DESC',
+    [parentId]
+  );
+}
+
+export async function getRecipeBasicById(id: string): Promise<{id: string, name: string, baseServings: number, baseYieldUnit: string} | null> {
+  const database = await getDatabase();
+  return database.getFirstAsync<{id: string, name: string, baseServings: number, baseYieldUnit: string}>(
+    'SELECT id, name, baseServings, baseYieldUnit FROM recipes WHERE id = ?',
+    [id]
+  );
 }

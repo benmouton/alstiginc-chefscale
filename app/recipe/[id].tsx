@@ -21,6 +21,8 @@ import type { RecipeWithDetails } from "@/lib/database";
 import { scaleAmount, formatQuantity, getUnitAbbreviation } from "@/lib/scaling";
 import { calculateRecipeCost, formatCurrency } from "@/lib/costs";
 import { detectAllergens } from "@/lib/allergens";
+import { DIETARY_FLAGS } from "@/constants/allergens";
+import type { RecipeRow } from "@/lib/database";
 import ScalingControls from "@/components/ScalingControls";
 import IngredientRow from "@/components/IngredientRow";
 import InstructionStep from "@/components/InstructionStep";
@@ -31,7 +33,7 @@ import PremiumGate from "@/components/PremiumGate";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import MyCookbookPromo from "@/components/MyCookbookPromo";
 
-function CookModeButton() {
+function CookModeButton({ recipeId, currentServings }: { recipeId: string; currentServings: number }) {
   const checkAccess = useSubscriptionStore((s) => s.checkAccess);
   const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);
   const hasCookMode = checkAccess('cook_mode');
@@ -41,7 +43,7 @@ function CookModeButton() {
     if (!hasCookMode) {
       router.push({ pathname: '/paywall', params: { feature: 'cook_mode', headline: getPaywallHeadline('cook_mode') } });
     } else {
-      Alert.alert("Cook Mode", "Cook Mode is coming soon! This will provide a step-by-step cooking view with large text and voice control.");
+      router.push({ pathname: '/recipe/cook-mode', params: { id: recipeId, servings: String(currentServings) } });
     }
   };
 
@@ -92,6 +94,8 @@ export default function RecipeDetailScreen() {
     minutes: 0,
     stepNumber: 0,
   });
+  const [variations, setVariations] = useState<RecipeRow[]>([]);
+  const [subrecipeNames, setSubrecipeNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
@@ -101,6 +105,27 @@ export default function RecipeDetailScreen() {
         if (r) {
           setRecipe(r);
           setCurrentServings(r.baseServings);
+
+          // Load variations
+          try {
+            const { getVariationsByParentId, getRecipeBasicById } = await import('@/lib/database');
+            const parentId = r.parentRecipeId || r.id;
+            const vars = await getVariationsByParentId(parentId);
+            setVariations(vars.filter((v) => v.id !== r.id));
+
+            // Load subrecipe names
+            const subIds = r.ingredients.filter((i) => i.subrecipeId).map((i) => i.subrecipeId);
+            if (subIds.length > 0) {
+              const names: Record<string, string> = {};
+              for (const subId of subIds) {
+                const basic = await getRecipeBasicById(subId);
+                if (basic) names[subId] = basic.name;
+              }
+              setSubrecipeNames(names);
+            }
+          } catch (e) {
+            console.warn('Failed to load variations/subrecipes:', e);
+          }
         }
         setLoading(false);
       }
@@ -201,6 +226,38 @@ export default function RecipeDetailScreen() {
       })),
     });
     router.replace({ pathname: "/recipe/[id]", params: { id: newId } });
+  }, [recipe, saveRecipe]);
+
+  const handleCreateVariation = useCallback(async () => {
+    if (!recipe) return;
+    const checkAccess = useSubscriptionStore.getState().checkAccess;
+    if (!checkAccess('recipe_variations')) {
+      router.push({ pathname: '/paywall', params: { feature: 'recipe_variations', headline: 'Create and link recipe variations' } });
+      return;
+    }
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    const crypto = await import("expo-crypto");
+    const newId = crypto.randomUUID();
+    const parentId = recipe.parentRecipeId || recipe.id;
+    await saveRecipe({
+      ...recipe,
+      id: newId,
+      name: `${recipe.name} (Variation)`,
+      isFavorite: 0,
+      parentRecipeId: parentId,
+      variationLabel: '',
+      ingredients: recipe.ingredients.map((ing) => ({
+        ...ing,
+        id: crypto.randomUUID(),
+        recipeId: newId,
+      })),
+      instructions: recipe.instructions.map((inst) => ({
+        ...inst,
+        id: crypto.randomUUID(),
+        recipeId: newId,
+      })),
+    });
+    router.push({ pathname: "/recipe/edit", params: { id: newId } });
   }, [recipe, saveRecipe]);
 
   const handleTimerPress = useCallback((minutes: number, stepNumber: number) => {
@@ -318,6 +375,27 @@ export default function RecipeDetailScreen() {
                 <Text style={styles.infoPillText}>Total {totalTime}m</Text>
               </View>
             ) : null}
+            {recipe.station ? (
+              <View style={styles.infoPill}>
+                <Ionicons name="location-outline" size={14} color={Colors.primaryLight} />
+                <Text style={styles.infoPillText}>{recipe.station}</Text>
+              </View>
+            ) : null}
+            {(() => {
+              try {
+                const flags: string[] = JSON.parse(recipe.dietaryFlags || '[]');
+                return flags.map((flagId) => {
+                  const flag = DIETARY_FLAGS.find((f) => f.id === flagId);
+                  if (!flag) return null;
+                  return (
+                    <View key={flag.id} style={[styles.infoPill, { borderColor: flag.color + '40' }]}>
+                      <Ionicons name={flag.icon as any} size={14} color={flag.color} />
+                      <Text style={[styles.infoPillText, { color: flag.color }]}>{flag.name}</Text>
+                    </View>
+                  );
+                });
+              } catch { return null; }
+            })()}
           </View>
 
           {recipe.description ? (
@@ -368,6 +446,9 @@ export default function RecipeDetailScreen() {
                           isScalable={ing.isScalable !== 0}
                           cost={costSummary?.ingredientCosts[idx]?.cost}
                           isScaled={isScaled}
+                          yieldPercent={ing.yieldPercent}
+                          subrecipeName={ing.subrecipeId ? subrecipeNames[ing.subrecipeId] : undefined}
+                          onSubrecipePress={ing.subrecipeId ? () => router.push({ pathname: '/recipe/[id]', params: { id: ing.subrecipeId } }) : undefined}
                         />
                       );
                     })}
@@ -425,7 +506,7 @@ export default function RecipeDetailScreen() {
           ) : null}
 
           {/* PHOTO GALLERY */}
-          {recipe.photos && recipe.photos.length > 0 ? (
+          {recipe.photos && recipe.photos.filter((p) => p.photoType !== 'plating').length > 0 ? (
             <View style={styles.section}>
               <View style={styles.sectionCard}>
                 <View style={styles.sectionHeader}>
@@ -437,7 +518,7 @@ export default function RecipeDetailScreen() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.galleryScrollContent}
                 >
-                  {recipe.photos.map((photo) => (
+                  {recipe.photos.filter((p) => p.photoType !== 'plating').map((photo) => (
                     <View key={photo.id} style={styles.galleryPhotoItem}>
                       <Image source={{ uri: photo.uri }} style={styles.galleryPhotoImage} />
                       {photo.caption ? (
@@ -446,6 +527,59 @@ export default function RecipeDetailScreen() {
                     </View>
                   ))}
                 </ScrollView>
+              </View>
+            </View>
+          ) : null}
+
+          {/* PLATING REFERENCE PHOTOS */}
+          {recipe.photos && recipe.photos.filter((p) => p.photoType === 'plating').length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="color-palette-outline" size={20} color={Colors.accent} />
+                  <Text style={styles.sectionTitle}>Plating Guide</Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.galleryScrollContent}
+                >
+                  {recipe.photos.filter((p) => p.photoType === 'plating').map((photo) => (
+                    <View key={photo.id} style={styles.galleryPhotoItem}>
+                      <Image source={{ uri: photo.uri }} style={styles.galleryPhotoImage} />
+                      {photo.caption ? (
+                        <Text style={styles.galleryPhotoCaption}>{photo.caption}</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+          ) : null}
+
+          {/* RECIPE VARIATIONS */}
+          {variations.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="git-branch-outline" size={20} color={Colors.primaryLight} />
+                  <Text style={styles.sectionTitle}>Variations</Text>
+                </View>
+                {variations.map((v) => (
+                  <Pressable
+                    key={v.id}
+                    onPress={() => router.push({ pathname: '/recipe/[id]', params: { id: v.id } })}
+                    style={({ pressed }) => [styles.variationRow, pressed && { opacity: 0.7 }]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.variationName}>{v.name}</Text>
+                      {v.variationLabel ? (
+                        <Text style={styles.variationLabel}>{v.variationLabel}</Text>
+                      ) : null}
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+                  </Pressable>
+                ))}
               </View>
             </View>
           ) : null}
@@ -483,7 +617,7 @@ export default function RecipeDetailScreen() {
 
           {/* BOTTOM ACTIONS */}
           <View style={styles.actionsSection}>
-            <CookModeButton />
+            <CookModeButton recipeId={recipe.id} currentServings={currentServings} />
 
 
             <Pressable
@@ -493,6 +627,15 @@ export default function RecipeDetailScreen() {
             >
               <Ionicons name="copy-outline" size={20} color={Colors.primary} />
               <Text style={styles.actionBtnOutlineText}>Duplicate Recipe</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleCreateVariation}
+              style={({ pressed }) => [styles.actionBtn, styles.actionBtnOutline, pressed && { opacity: 0.7 }]}
+              testID="variation-btn"
+            >
+              <Ionicons name="git-branch-outline" size={20} color={Colors.primaryLight} />
+              <Text style={styles.actionBtnOutlineText}>Create Variation</Text>
             </Pressable>
 
             <Pressable
@@ -729,6 +872,24 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
   },
 
+  variationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  variationName: {
+    fontSize: FontSize.md,
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  variationLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 2,
+  },
   galleryScrollContent: {
     gap: Spacing.sm,
     paddingVertical: Spacing.sm,

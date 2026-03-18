@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Colors, BorderRadius, Spacing, FontSize } from '@/constants/theme';
@@ -23,9 +23,17 @@ function getFoodCostLabel(percentage: number): string {
 }
 
 export default function CostSummary({ summary, menuPrice }: CostSummaryProps) {
+  const [showPricing, setShowPricing] = useState(false);
+  const [targetFoodCostPct, setTargetFoodCostPct] = useState('30');
+
   const foodCostPct = menuPrice && menuPrice > 0
     ? Math.round((summary.costPerServing / menuPrice) * 100)
     : null;
+
+  const targetPct = parseFloat(targetFoodCostPct) || 30;
+  const suggestedMenuPrice = targetPct > 0 && summary.costPerServing > 0
+    ? summary.costPerServing / (targetPct / 100)
+    : 0;
 
   return (
     <View style={styles.container}>
@@ -75,6 +83,60 @@ export default function CostSummary({ summary, menuPrice }: CostSummaryProps) {
           <Text style={styles.missingLabel}>
             Missing prices: {summary.missingPrices.join(', ')}
           </Text>
+        </View>
+      ) : null}
+
+      {/* MENU PRICING CALCULATOR */}
+      <Pressable
+        onPress={() => setShowPricing(!showPricing)}
+        style={styles.menuPricingToggle}
+      >
+        <Ionicons name="calculator-outline" size={16} color={Colors.accent} />
+        <Text style={styles.menuPricingToggleText}>
+          {showPricing ? 'Hide menu pricing' : 'Calculate menu price'}
+        </Text>
+        <Ionicons name={showPricing ? 'chevron-up' : 'chevron-down'} size={14} color={Colors.textMuted} />
+      </Pressable>
+
+      {showPricing ? (
+        <View style={styles.menuPricingSection}>
+          <View style={styles.menuPricingRow}>
+            <Text style={styles.menuPricingLabel}>Target food cost %</Text>
+            <View style={styles.pctInputRow}>
+              {['25', '28', '30', '33'].map((pct) => (
+                <Pressable
+                  key={pct}
+                  onPress={() => setTargetFoodCostPct(pct)}
+                  style={[
+                    styles.pctChip,
+                    targetFoodCostPct === pct && styles.pctChipActive,
+                  ]}
+                >
+                  <Text style={[
+                    styles.pctChipText,
+                    targetFoodCostPct === pct && styles.pctChipTextActive,
+                  ]}>{pct}%</Text>
+                </Pressable>
+              ))}
+              <TextInput
+                style={styles.pctInput}
+                value={targetFoodCostPct}
+                onChangeText={setTargetFoodCostPct}
+                keyboardType="decimal-pad"
+                placeholder="%"
+                placeholderTextColor={Colors.textMuted}
+              />
+            </View>
+          </View>
+          {suggestedMenuPrice > 0 ? (
+            <View style={styles.menuPricingResult}>
+              <Text style={styles.menuPricingResultLabel}>Suggested menu price</Text>
+              <Text style={styles.menuPricingResultValue}>{formatCurrency(suggestedMenuPrice)}</Text>
+              <Text style={styles.menuPricingResultNote}>
+                At {targetPct}% food cost with {formatCurrency(summary.costPerServing)} per serving
+              </Text>
+            </View>
+          ) : null}
         </View>
       ) : null}
 
@@ -193,6 +255,96 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     fontStyle: 'italic',
     fontFamily: 'Inter_400Regular',
+  },
+  menuPricingToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  menuPricingToggleText: {
+    fontSize: FontSize.sm,
+    color: Colors.accent,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  menuPricingSection: {
+    marginTop: Spacing.sm,
+  },
+  menuPricingRow: {
+    marginBottom: Spacing.md,
+  },
+  menuPricingLabel: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+    marginBottom: Spacing.sm,
+  },
+  pctInputRow: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    alignItems: 'center',
+  },
+  pctChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  pctChipActive: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
+  },
+  pctChipText: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  pctChipTextActive: {
+    color: '#000',
+  },
+  pctInput: {
+    flex: 1,
+    backgroundColor: Colors.backgroundDark,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    fontSize: FontSize.sm,
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_400Regular',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    textAlign: 'center',
+    minWidth: 48,
+  },
+  menuPricingResult: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.backgroundDark,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
+  },
+  menuPricingResultLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+    marginBottom: 4,
+  },
+  menuPricingResultValue: {
+    fontSize: FontSize.xxxl,
+    fontWeight: '700',
+    color: Colors.accent,
+    fontFamily: 'Inter_700Bold',
+  },
+  menuPricingResultNote: {
+    fontSize: FontSize.xs,
+    color: Colors.textMuted,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 4,
   },
   editPricesLink: {
     flexDirection: 'row',
