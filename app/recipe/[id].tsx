@@ -50,38 +50,45 @@ function CookModeButton({ recipeId, currentServings }: { recipeId: string; curre
   return (
     <Pressable
       onPress={handlePress}
-      style={({ pressed }) => [cookModeStyles.actionBtn, cookModeStyles.cookModeBtn, pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [cookModeStyles.cookModeBtnOuter, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
       testID="cook-mode-btn"
     >
-      <Ionicons name="flame" size={20} color={Colors.textPrimary} />
-      <Text style={cookModeStyles.cookModeText}>Cook Mode</Text>
-      {!hasCookMode ? <Ionicons name="lock-closed" size={14} color={Colors.textPrimary + '80'} /> : null}
+      <LinearGradient
+        colors={['#D97706', '#B45309']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={cookModeStyles.cookModeGradient}
+      >
+        <Ionicons name="flame" size={22} color="#FFF" />
+        <Text style={cookModeStyles.cookModeText}>Cook Mode</Text>
+        {!hasCookMode ? <Ionicons name="lock-closed" size={14} color="rgba(255,255,255,0.6)" /> : null}
+      </LinearGradient>
     </Pressable>
   );
 }
 
 const cookModeStyles = StyleSheet.create({
-  actionBtn: {
+  cookModeBtnOuter: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#D97706',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  cookModeGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 16,
-    minHeight: 48,
-  },
-  cookModeBtn: {
-    backgroundColor: '#D97706',
-    shadowColor: '#D97706',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   cookModeText: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: '#FFF',
     fontFamily: 'Inter_700Bold',
   },
 });
@@ -313,8 +320,8 @@ export default function RecipeDetailScreen() {
             />
           )}
           <LinearGradient
-            colors={['rgba(15,17,21,0.6)', 'transparent', 'rgba(15,17,21,0.95)']}
-            locations={[0, 0.3, 1]}
+            colors={['rgba(10,10,10,0.5)', 'transparent', 'rgba(10,10,10,0.95)']}
+            locations={[0, 0.35, 1]}
             style={styles.heroOverlay}
           />
 
@@ -668,11 +675,11 @@ export default function RecipeDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: '#0A0A0A',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: '#0A0A0A',
     alignItems: "center",
     justifyContent: "center",
   },
@@ -691,7 +698,7 @@ const styles = StyleSheet.create({
   },
 
   hero: {
-    height: 280,
+    height: 340,
     position: "relative",
     justifyContent: "space-between",
   },
@@ -734,10 +741,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   heroName: {
-    fontSize: FontSize.xxxl,
+    fontSize: 34,
     fontWeight: "700",
-    color: Colors.textPrimary,
+    color: '#FFFFFF',
     fontFamily: "Inter_700Bold",
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
 
   body: {
@@ -870,8 +880,8 @@ const styles = StyleSheet.create({
   },
   actionBtnDanger: {
     borderWidth: 1,
-    borderColor: Colors.error + "30",
-    backgroundColor: Colors.error + "10",
+    borderColor: 'rgba(239,68,68,0.2)',
+    backgroundColor: 'rgba(239,68,68,0.08)',
   },
   actionBtnDangerText: {
     fontSize: FontSize.md,

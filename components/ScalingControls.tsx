@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet, Modal, FlatList } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, Pressable, TextInput, StyleSheet, Modal, FlatList, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -24,6 +24,25 @@ export default function ScalingControls({
   yieldUnit = 'servings',
   baseYieldUnit,
 }: ScalingControlsProps) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    // Bounce animation when scale changes
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.15,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        tension: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [currentServings]);
+
   const [customInput, setCustomInput] = useState('');
   const [yieldMode, setYieldMode] = useState(false);
   const [yieldInput, setYieldInput] = useState('');
@@ -75,7 +94,11 @@ export default function ScalingControls({
       </View>
 
       <View style={styles.scaleDisplay}>
-        <Text style={styles.scaleMultiplier}>×{scaleFactor % 1 === 0 ? scaleFactor : scaleFactor.toFixed(1)}</Text>
+        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+          <Text style={styles.scaleMultiplier}>
+            ×{scaleFactor % 1 === 0 ? scaleFactor : scaleFactor.toFixed(1)}
+          </Text>
+        </Animated.View>
         <Text style={styles.servingsText}>
           Making {currentServings} {yieldUnit}
         </Text>

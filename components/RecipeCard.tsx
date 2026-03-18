@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, BorderRadius, Spacing, FontSize } from '@/constants/theme';
 import type { RecipeRow } from '@/lib/database';
 
@@ -20,6 +21,18 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Beverage': 'wine-outline',
 };
 
+const CATEGORY_GRADIENTS: Record<string, [string, string, string]> = {
+  'Entrée': ['#D97706', '#92400E', '#0A0A0A'],
+  'Appetizer': ['#DC2626', '#991B1B', '#0A0A0A'],
+  'Sauce': ['#D97706', '#78350F', '#0A0A0A'],
+  'Dessert': ['#DB2777', '#831843', '#0A0A0A'],
+  'Prep': ['#0D9488', '#134E4A', '#0A0A0A'],
+  'Side': ['#16A34A', '#14532D', '#0A0A0A'],
+  'Beverage': ['#7C3AED', '#4C1D95', '#0A0A0A'],
+};
+
+const DEFAULT_GRADIENT: [string, string, string] = ['#D97706', '#B45309', '#0A0A0A'];
+
 const DIETARY_COLORS: Record<string, string> = {
   'vegan': '#22C55E',
   'vegetarian': '#4ADE80',
@@ -33,9 +46,22 @@ const DIETARY_COLORS: Record<string, string> = {
 export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardProps) {
   const iconName = CATEGORY_ICONS[recipe.category] || 'grid-outline';
   const totalTime = recipe.prepTime + recipe.cookTime;
-  const dietaryFlags = recipe.dietaryFlags
-    ? recipe.dietaryFlags.split(',').map((f) => f.trim()).filter(Boolean)
-    : [];
+  const gradientColors = CATEGORY_GRADIENTS[recipe.category] || DEFAULT_GRADIENT;
+
+  let dietaryFlags: string[] = [];
+  if (recipe.dietaryFlags) {
+    try {
+      const parsed = JSON.parse(recipe.dietaryFlags);
+      if (Array.isArray(parsed)) {
+        dietaryFlags = parsed.filter(Boolean);
+      }
+    } catch {
+      dietaryFlags = recipe.dietaryFlags
+        .split(',')
+        .map((f) => f.trim())
+        .filter(Boolean);
+    }
+  }
 
   return (
     <Pressable
@@ -47,35 +73,61 @@ export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardP
       ]}
       testID={`recipe-card-${recipe.id}`}
     >
-      <View style={styles.iconContainer}>
-        <Ionicons name={iconName as any} size={28} color={Colors.primary} />
-      </View>
-      <View style={styles.content}>
-        <Text style={styles.name} numberOfLines={1}>{recipe.name}</Text>
+      {/* Background: image or gradient */}
+      {recipe.imageUri ? (
+        <Image source={{ uri: recipe.imageUri }} style={styles.backgroundImage} />
+      ) : (
+        <LinearGradient
+          colors={gradientColors}
+          style={styles.fallbackGradient}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+        >
+          <Ionicons name={iconName as any} size={64} color="rgba(255,255,255,0.2)" />
+        </LinearGradient>
+      )}
+
+      {/* Dark overlay gradient at bottom */}
+      <LinearGradient
+        colors={['transparent', 'rgba(10,10,10,0.85)']}
+        start={{ x: 0, y: 0.4 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.overlay}
+      />
+
+      {/* Bottom content */}
+      <View style={styles.bottomContent}>
+        <Text style={styles.name} numberOfLines={1}>
+          {recipe.name}
+        </Text>
+
         {recipe.description ? (
-          <Text style={styles.description} numberOfLines={2}>{recipe.description}</Text>
+          <Text style={styles.description} numberOfLines={1}>
+            {recipe.description}
+          </Text>
         ) : null}
-        <View style={styles.meta}>
-          <View style={styles.metaItem}>
-            <Ionicons name="people-outline" size={14} color={Colors.textSecondary} />
-            <Text style={styles.metaText}>{recipe.baseServings}</Text>
+
+        <View style={styles.metaRow}>
+          <View style={styles.pill}>
+            <Text style={styles.pillText}>{recipe.baseServings} servings</Text>
           </View>
           {totalTime > 0 ? (
-            <View style={styles.metaItem}>
-              <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-              <Text style={styles.metaText}>{totalTime}m</Text>
+            <View style={styles.pill}>
+              <Text style={styles.pillText}>{totalTime}m</Text>
             </View>
           ) : null}
-          <View style={styles.metaItem}>
-            <Ionicons name="layers-outline" size={14} color={Colors.textSecondary} />
-            <Text style={styles.metaText}>{recipe.category}</Text>
+          <View style={styles.pill}>
+            <Text style={styles.pillText}>{recipe.category}</Text>
           </View>
+          {recipe.station ? (
+            <View style={[styles.pill, styles.stationPill]}>
+              <Text style={[styles.pillText, styles.stationPillText]}>
+                {recipe.station}
+              </Text>
+            </View>
+          ) : null}
         </View>
-        {recipe.station ? (
-          <View style={styles.stationBadge}>
-            <Text style={styles.stationText}>{recipe.station}</Text>
-          </View>
-        ) : null}
+
         {dietaryFlags.length > 0 ? (
           <View style={styles.dietaryRow}>
             {dietaryFlags.map((flag) => (
@@ -83,91 +135,97 @@ export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardP
                 key={flag}
                 style={[
                   styles.dietaryDot,
-                  { backgroundColor: DIETARY_COLORS[flag.toLowerCase()] || Colors.accent },
+                  {
+                    backgroundColor:
+                      DIETARY_COLORS[flag.toLowerCase()] || Colors.accent,
+                  },
                 ]}
               />
             ))}
           </View>
         ) : null}
       </View>
-      <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.glass,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
+    height: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginHorizontal: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    borderTopColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(255,255,255,0.08)',
   },
   cardPressed: {
-    opacity: 0.8,
+    opacity: 0.9,
     transform: [{ scale: 0.98 }],
   },
-  iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primary + '15',
+  backgroundImage: {
+    ...StyleSheet.absoluteFillObject,
+    resizeMode: 'cover',
+  },
+  fallbackGradient: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: Spacing.md,
   },
-  content: {
-    flex: 1,
-    marginRight: Spacing.sm,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  bottomContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
   },
   name: {
-    fontSize: FontSize.lg,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#F5F5F4',
+    fontFamily: 'Inter_700Bold',
   },
   description: {
-    fontSize: FontSize.sm,
-    color: Colors.textSecondary,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    fontFamily: 'Inter_400Regular',
+    fontStyle: 'italic',
     marginTop: 2,
-    fontFamily: 'Inter_400Regular',
   },
-  meta: {
+  metaRow: {
     flexDirection: 'row',
-    marginTop: Spacing.xs,
-    gap: Spacing.md,
+    marginTop: 8,
+    gap: 8,
+    flexWrap: 'wrap',
   },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  pill: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 9999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
-  metaText: {
-    fontSize: FontSize.xs,
-    color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
-  },
-  stationBadge: {
-    alignSelf: 'flex-start',
-    marginTop: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.primary + '20',
-  },
-  stationText: {
-    fontSize: FontSize.xs,
-    color: Colors.primary,
+  pillText: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.8)',
     fontFamily: 'Inter_600SemiBold',
+  },
+  stationPill: {
+    backgroundColor: 'rgba(217,119,6,0.25)',
+  },
+  stationPillText: {
+    color: '#D97706',
   },
   dietaryRow: {
     flexDirection: 'row',
-    marginTop: Spacing.xs,
+    marginTop: 8,
     gap: 6,
   },
   dietaryDot: {

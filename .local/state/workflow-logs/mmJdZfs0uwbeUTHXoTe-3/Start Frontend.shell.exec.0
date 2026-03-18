@@ -1,0 +1,710 @@
+
+> expo-app@1.0.0 expo:dev
+> EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 npx expo start --localhost
+
+[1G[0K[1G[0K[90mStarting project at /home/runner/workspace[39m
+[31mJsonFileError: Error parsing JSON: [39m
+[31mChef Scale[39m
+[31m/[39m
+[31mok, where were we[39m
+[31m[39m
+[31m6:14 PM[39m
+[31mLet me check our recent conversations to pick up where we left off.[39m
+[31m[39m
+[31m[39m
+[31mRelevant chats[39m
+[31mRelevant chats[39m
+[31mWe were working through your ChefScale app rejection issues from Apple. Here's where we stand:[39m
+[31m[39m
+[31m✅ Resolved / In Progress:[39m
+[31m[39m
+[31mIssue 1 (2.1.0 - App Completeness): Products likely weren't set up in App Store Connect / agreement wasn't signed — that was the root cause[39m
+[31mIssue 2 (3.1.2 - Subscriptions): Paywall UI looks solid; rejection was tied to the missing products, not the UI itself[39m
+[31mYour privacy and terms URLs are confirmed working[39m
+[31m🔜 Next up — Issue 3 (5.1.1 Privacy): I asked you to paste two files so I can check your privacy compliance:[39m
+[31m[39m
+[31mapp/(tabs)/settings.tsx — to verify Privacy Policy, Terms of Service, and account deletion are accessible from Settings[39m
+[31mapp.json or app.config.js — to check your permission usage description strings (camera, etc.)[39m
+[31mGot those ready to share?[39m
+[31m[39m
+[31mverify issue 1 resolution[39m
+[31m[39m
+[31m6:15 PM[39m
+[31mTo verify Issue 1 (2.1.0 - App Completeness) is resolved, I need to confirm a few things:[39m
+[31m[39m
+[31mPaid Apps Agreement — Did you sign the Paid Applications agreement in App Store Connect (Agreements, Tax, and Banking)?[39m
+[31mSubscription Products — Did you create your subscription products in App Store Connect (monthly + annual) and are they in "Ready to Submit" or "Approved" status?[39m
+[31mRevenueCat Configuration — Did you add the correct product IDs in your RevenueCat dashboard and link them to your App Store Connect products?[39m
+[31mSandbox Testing — Were you able to complete a test purchase using a sandbox account?[39m
+[31mWhich of these have you done so far?[39m
+[31m[39m
+[31mScreenshot 2026-03-02 at 6.15.49 PM.png[39m
+[31mwalk me through checking[39m
+[31m[39m
+[31m6:15 PM[39m
+[31mGood, I can see the App Review page with the 1.0 rejection. I need to see a few more screens to verify Issue 1 is resolved. Let me walk you through checking each piece:[39m
+[31m[39m
+[31mStep 1: Check Paid Apps Agreement[39m
+[31m[39m
+[31mGo to the top-level App Store Connect (not inside the ChefScale app) → click Business in the top nav bar. You should see your agreements listed there. Look for "Paid Applications" — it should say Active. Screenshot that for me.[39m
+[31m[39m
+[31mStep 2: Check Subscription Products[39m
+[31m[39m
+[31mYou're already in the right place. Click Subscriptions in the left sidebar (I can see it at the very bottom of your screenshot under MONETIZATION). You should see your subscription group with your monthly and annual products. Each product needs to be in "Ready to Submit" status. Screenshot that.[39m
+[31m[39m
+[31mStep 3: Check In-App Purchases[39m
+[31m[39m
+[31mWhile you're there, also click In-App Purchases right above Subscriptions — screenshot that too so I can see what's configured.[39m
+[31m[39m
+[31mStart with those three screenshots and I'll tell you exactly where things stand.[39m
+[31m[39m
+[31mScreenshot 2026-03-02 at 6.16.51 PM.png[39m
+[31mhow do I change the business address?[39m
+[31m[39m
+[31m6:17 PM[39m
+[31mStep 1 is ✅ — Paid Apps Agreement is Active. Banking and tax forms are all good too. This was likely the missing piece when you submitted Thursday.[39m
+[31m[39m
+[31mFor the business address — that's tied to your D-U-N-S number and Apple Developer enrollment, so you can't just edit it here. You'd need to update it through your Apple Developer account under the organization profile, and it may require updating your D-U-N-S record with Dun & Bradstreet first. But that's not blocking your resubmission — handle it later.[39m
+[31m[39m
+[31mNow let's keep verifying. Go back to your ChefScale app and click Subscriptions in the left sidebar under MONETIZATION. I need to see your subscription products and their status.[39m
+[31m[39m
+[31mScreenshot 2026-03-02 at 6.20.06 PM.png[39m
+[31m6:20 PM[39m
+[31mGood news: the products exist and the product IDs match what we'd expect (chefscale.premium.monthly and chefscale.premium.annual). But they both show ⚠️ Missing Metadata — that's a blocker. They won't be reviewable until that's fixed.[39m
+[31m[39m
+[31mClick on Premium Monthly first. You need to fill in:[39m
+[31m[39m
+[31mSubscription Price — set your price (e.g., $9.99/month)[39m
+[31mApp Store Localization — at minimum, add English (U.S.) with:[39m
+[31mDisplay Name: something like "ChefScale Premium"[39m
+[31mDescription: a short description of what the subscription includes (e.g., "Unlimited recipe scaling, AI-powered cost analysis, and full access to all ChefScale features.")[39m
+[31mReview Screenshot — upload a screenshot of your paywall or the subscription in action[39m
+[31mReview Notes (optional but helpful) — something like "Test account not required. Subscription unlocks premium features."[39m
+[31mDo the same for Premium Annual.[39m
+[31m[39m
+[31mOnce both show "Ready to Submit" instead of "Missing Metadata," this piece is done. Go ahead and fill those out — start with Premium Monthly and screenshot it when you're done so I can confirm it looks right.[39m
+[31m[39m
+[31mSubscription Price — set your price (e.g., $9.99/month)[39m
+[31mApp Store Localization — at minimum, add English (U.S.) with:[39m
+[31mDisplay Name: something like "ChefScale Premium"[39m
+[31mDescription: a short description of what the subscription includes (e.g., "Unlimited recipe scaling, AI-powered cost analysis, and full access to all ChefScale features.")[39m
+[31mReview Screenshot — upload a screenshot of your paywall or the subscription in action[39m
+[31mReview Notes (optional but helpful) — something like "Test account not required. Subscription unlocks premium features." This is already done and has been since original submission[39m
+[31m6:20 PM[39m
+[31mInteresting — if that metadata was already filled in but it's still showing "Missing Metadata," something got dropped or there's a validation error Apple isn't surfacing clearly.[39m
+[31m[39m
+[31mClick into Premium Monthly and scroll through the full page. Look for any yellow warning triangles or empty required fields. Common culprits:[39m
+[31m[39m
+[31mMissing localization for a territory you're distributing to (you're in 175 countries — each enabled territory may need a localization or at least a default)[39m
+[31mNo price set for certain territories[39m
+[31mReview screenshot missing or rejected[39m
+[31mScreenshot the full Premium Monthly detail page for me and I'll spot what's missing.[39m
+[31m[39m
+[31mScreenshot 2026-03-02 at 6.21.29 PM.png[39m
+[31mScreenshot 2026-03-02 at 6.21.42 PM.png[39m
+[31mScreenshot 2026-03-02 at 6.21.49 PM.png[39m
+[31m6:21 PM[39m
+[31mOK I can see the issue. Everything is filled in — localization, image, screenshot, review notes — but the status says "Prepare for Submission" on both the localization and the image. That's actually normal for a first submission. The "Missing Metadata" on the parent page is misleading.[39m
+[31m[39m
+[31mThe key is that blue info box at the top of image 1: "Your first subscription must be submitted with a new app version. Create your subscription, then select it from the app's In-App Purchases and Subscriptions section on the version page before submitting."[39m
+[31m[39m
+[31mThat's your problem. The subscriptions exist but they weren't attached to your app version when you submitted. Here's how to fix it:[39m
+[31m[39m
+[31mGo to your iOS 1.0 version page (click on "1.0 Rejected" in the left sidebar or go to App Store → your version)[39m
+[31mScroll down to the "In-App Purchases and Subscriptions" section on that page[39m
+[31mClick the "+" button to select your subscriptions[39m
+[31mAdd both Premium Monthly and Premium Annual[39m
+[31mSave[39m
+[31mThis is the step that connects the subscription products to your app submission so Apple's reviewer can actually test them. Without this, the reviewer saw a paywall with no purchasable products — which is exactly what triggered both 2.1.0 and 3.1.2.[39m
+[31m[39m
+[31mGo do that and screenshot the version page showing the subscriptions attached.[39m
+[31m[39m
+[31mScreenshot 2026-03-02 at 6.22.57 PM.png[39m
+[31mScreenshot 2026-03-02 at 6.23.05 PM.png[39m
+[31mScreenshot 2026-03-02 at 6.23.12 PM.png[39m
+[31mScreenshot 2026-03-02 at 6.23.20 PM.png[39m
+[31mScreenshot 2026-03-02 at 6.23.25 PM.png[39m
+[31m6:23 PM[39m
+[31mI don't see an "In-App Purchases and Subscriptions" section anywhere on this version page — that confirms the subscriptions were never attached to the app version. That's the root cause.[39m
+[31m[39m
+[31mThe section should appear between the Build section (image 3) and the App Review Information section (image 4). If it's not showing, scroll carefully between those two areas. Sometimes it collapses or it may only appear after you've scrolled past the Build.[39m
+[31m[39m
+[31mIf it's truly not there, try this: click the "+" or look for a link that says "Select In-App Purchases and Subscriptions" near the Build section. On some layouts, you need to click In-App Purchases in the left sidebar under MONETIZATION, then look for an option to associate them with the version.[39m
+[31m[39m
+[31mAlternatively — since this is a rejected build, you may need to scroll up and look for a section header you might have scrolled past between images 3 and 4. Can you scroll slowly between the Build/App Icon area and the Game Center/App Review Information area and screenshot that specific gap? That's where Apple puts the IAP selector.[39m
+[31m[39m
+[31mclick the + Where?[39m
+[31m[39m
+[31m7:04 PM[39m
+[31mSorry, let me be more specific. The "In-App Purchases and Subscriptions" section should already be on the version page — you shouldn't need to add it manually.[39m
+[31m[39m
+[31mScroll back to the version page and look very carefully between the Build section (where you see Build 3, version 1.0.0) and the Game Center section. There should be a section there called "In-App Purchases and Subscriptions" with a "+" button to select your products.[39m
+[31m[39m
+[31mIt's possible it was cut off between your screenshot 3 and screenshot 4. Can you scroll slowly through just that gap — right after the App Icon and before Game Center — and screenshot what's there?[39m
+[31m[39m
+[31mScreenshot 2026-03-02 at 7.05.15 PM.png[39m
+[31m7:05 PM[39m
+[31mNow I can see clearly — the "In-App Purchases and Subscriptions" section is completely missing from the version page. It should appear between the App Icon and Game Center, but it's not there.[39m
+[31m[39m
+[31mThis is likely because Apple changed how IAPs are associated with submissions. Try this:[39m
+[31m[39m
+[31mClick In-App Purchases in the left sidebar (under MONETIZATION)[39m
+[31mSee if there's an option there to select/associate products with this version[39m
+[31mIf that doesn't show anything useful, try clicking Subscriptions in the left sidebar, then click into your ChefScale Premium subscription group, and look for a "Submit with App Version" or "Include in Submission" option.[39m
+[31m[39m
+[31mIf neither of those work, the fallback is: when you click "Update Review" (the blue button top right), Apple should prompt you to select in-app purchases to include with the submission before it actually submits.[39m
+[31m[39m
+[31mTry clicking In-App Purchases in the sidebar first and screenshot what you see.[39m
+[31m[39m
+[31mScreenshot 2026-03-02 at 7.05.39 PM.png[39m
+[31m7:05 PM[39m
+[31mOK so In-App Purchases is empty — that's separate from Subscriptions (your subscriptions are under the Subscriptions section, which we already confirmed exists). That's fine since you're using subscriptions, not one-time IAPs.[39m
+[31m[39m
+[31mThe key info is in that blue banner: "Create your in-app purchase, then select it from the app's In-App Purchases and Subscriptions section on the version page."[39m
+[31m[39m
+[31mThe problem is that section isn't showing on your version page. This can happen with rejected builds. Let me check something — try this:[39m
+[31m[39m
+[31mGo back to the iOS App Version 1.0 page[39m
+[31mClick the "Update Review" button (blue, top right) — don't confirm the submission, just see if it prompts you to add subscriptions first or if it shows any validation errors[39m
+[31mIf it just submits immediately without asking, cancel out. But Apple often shows a validation step where it'll flag that no IAPs are attached.[39m
+[31m[39m
+[31mAlternatively — and this might be the real fix — you may need to remove the current build and re-add it, which sometimes forces the IAP/Subscription selector to appear on the version page. To try this: on the version page, click on the build number "3" next to your build, and see if there's an option to remove or change it.[39m
+[31m[39m
+[31mTry the Update Review button first and tell me what happens (don't actually submit yet).[39m
+[31m[39m
+[31mScreenshot 2026-03-02 at 7.06.45 PM.png[39m
+[31mHello, Thank you for submitting the new app, ChefScale, for review. We noticed some issues that require your attention. Please see below for additional information.If you have any questions, we are here to help. Reply to this message in App Store Connect and let us know.[39m
+[31mReview Environment[39m
+[31mSubmission ID: 16ab7f08-c9b9-4c2d-b3f6-038594bb0621Review date: March 02, 2026Review Device: iPad Air 11-inch (M3)Version reviewed: 1.0[39m
+[31mGuideline 2.1 - Performance - App Completeness[39m
+[31mWe are unable to complete the review of the app because one or more of the in-app purchase products have not been submitted for review.Next StepsTo resolve this issue, please be sure to take action and submit your in-app purchases and upload a new binary in App Store Connect so we can proceed with our review. Note you must provide an App Review screenshot in App Store Connect in order to submit in-app purchases for review. Learn more about required in-app purchase metadata.Resources - Learn more about how to offer in-app purchases.- Learn more about submitting In-App Purchases and subscriptions to App Review.[39m
+[31mGuideline 3.1.2 - Business - Payments - Subscriptions[39m
+[31mIssue DescriptionThe submission did not include all the required information for apps offering auto-renewable subscriptions.You can use SubscriptionStoreView to easily include all of the required information in the app's purchase flow.The following information needs to be included in the App Store metadata:- A functional link to the Terms of Use (EULA). If you are using the standard Apple Terms of Use (EULA), include a link to the Terms of Use in the App Description. If you are using a custom EULA, add it in App Store Connect.Next StepsUpdate the App Store metadata to include the information specified above.ResourcesApps offering auto-renewable subscriptions must include all of the following required information in the app itself:- Title of auto-renewing subscription (this may be the same as the in-app purchase product name)- Length of subscription- Price of subscription, and price per unit if appropriate- Functional links to the privacy policy and Terms of Use (EULA)The app metadata must also include functional links to the privacy policy in the Privacy Policy field in App Store Connect and the Terms of Use (EULA) in the App Description or EULA field in App Store Connect.Review Schedule 2 of the Apple Developer Program License Agreement to learn more.[39m
+[31mGuideline 5.1.1 - Legal - Privacy - Data Collection and Storage[39m
+[31mIssue DescriptionOne or more purpose strings in the app do not sufficiently explain the use of protected resources. Purpose strings must clearly and completely describe the app's use of data and, in most cases, provide an example of how the data will be used.Next StepsUpdate the camera purpose string to explain how the app will use the requested information and provide a specific example of how the data will be used. See the attached screenshot.ResourcesPurpose strings must clearly describe how an app uses the ability, data, or resource. The following are hypothetical examples of unclear purpose strings that would not pass review: - "App would like to access your Contacts"- "App needs microphone access"See examples of helpful, informative purpose strings.[39m
+[31mSupport[39m
+[31m- Reply to this message in your preferred language if you need assistance. If you need additional support, use the Contact Us module.- Consult with fellow developers and Apple engineers on the Apple Developer Forums.- Provide feedback on this message and your review experience by completing a short survey.[39m
+[31m[39m
+[31mShow more[39m
+[31m7:07 PM[39m
+[31mThis is really helpful — now I can see the exact rejection details. Let me break down what Apple is actually asking for:[39m
+[31m[39m
+[31mIssue 1 (2.1.0) — CONFIRMED: Subscriptions not submitted with the app. Apple says it explicitly: "one or more of the in-app purchase products have not been submitted for review." You need to attach them to the version and upload a new binary.[39m
+[31m[39m
+[31mIssue 2 (3.1.2) — It's about the Terms of Use (EULA), not the paywall UI. Apple wants a functional link to your Terms of Use either in your App Store description or as a custom EULA in App Store Connect. Your privacy policy link is probably set, but you need to add the Terms link.[39m
+[31m[39m
+[31mIssue 3 (5.1.1) — Camera purpose string is too vague. They want a more descriptive NSCameraUsageDescription that explains specifically why and how you use the camera (for OCR recipe scanning).[39m
+[31m[39m
+[31mSo here's your action plan:[39m
+[31m[39m
+[31mFor Issue 1: You need to submit a new binary that includes the subscriptions. Since the IAP section isn't appearing on your version page, you'll likely need to upload a new build (bump your build number to 4), and when you create the new submission, the subscription selector should appear. This is a known quirk with rejected builds.[39m
+[31m[39m
+[31mFor Issue 2: Two options — go to App Information in the left sidebar and look for a License Agreement (EULA) section where you can either add a custom EULA or link to yours. Or add your Terms URL to your App Store description text.[39m
+[31m[39m
+[31mFor Issue 3: What does your current camera permission string say? Paste your app.json or app.config.js so I can write you a proper one.[39m
+[31m[39m
+[31mLet's tackle Issue 3 first since it's a quick code fix — paste that config file.[39m
+[31m[39m
+[31m{[39m
+[31m  "expo": {[39m
+[31m    "name": "ChefScale",[39m
+[31m    "slug": "chefscale",[39m
+[31m    "version": "1.0.0",[39m
+[31m    "orientation": "portrait",[39m
+[31m    "icon": "./assets/images/icon.png",[39m
+[31m    "scheme": "chefscale",[39m
+[31m    "userInterfaceStyle": "dark",[39m
+[31m    "newArchEnabled": true,[39m
+[31m    "splash": {[39m
+[31m      "image": "./assets/images/splash-icon.png",[39m
+[31m      "resizeMode": "contain",[39m
+[31m      "backgroundColor": "[39m
+[31m#0F172A"[39m
+[31m    },[39m
+[31m    "ios": {[39m
+[31m      "supportsTablet": false,[39m
+[31m      "bundleIdentifier": "com.alstiginc.chefscale"[39m
+[31m    },[39m
+[31m    "android": {[39m
+[31m      "package": "com.alstiginc.chefscale",[39m
+[31m      "adaptiveIcon": {[39m
+[31m        "backgroundColor": "[39m
+[31m#0F172A",[39m
+[31m        "foregroundImage": "./assets/images/android-icon-foreground.png",[39m
+[31m        "backgroundImage": "./assets/images/android-icon-background.png",[39m
+[31m        "monochromeImage": "./assets/images/android-icon-monochrome.png"[39m
+[31m      }[39m
+[31m    },[39m
+[31m    "web": {[39m
+[31m      "favicon": "./assets/images/favicon.png"[39m
+[31m    },[39m
+[31m    "plugins": [[39m
+[31m      [[39m
+[31m        "expo-router",[39m
+[31m        {[39m
+[31m          "origin": "https://replit.com/"[39m
+[31m        }[39m
+[31m      ],[39m
+[31m      "expo-font",[39m
+[31m      "expo-web-browser"[39m
+[31m    ],[39m
+[31m    "experiments": {[39m
+[31m      "typedRoutes": true,[39m
+[31m      "reactCompiler": true[39m
+[31m    }[39m
+[31m  }[39m
+[31m}[39m
+[31m[39m
+[31mShow more[39m
+[31m7:08 PM[39m
+[31mThere's your problem — there's no camera permission string at all in your config. Apple saw a camera request with no NSCameraUsageDescription or a default/generic one from a plugin.[39m
+[31m[39m
+[31mAdd this to your ios section in app.json:[39m
+[31m[39m
+[31mjson[39m
+[31m"ios": {[39m
+[31m  "supportsTablet": false,[39m
+[31m  "bundleIdentifier": "com.alstiginc.chefscale",[39m
+[31m  "infoPlist": {[39m
+[31m    "NSCameraUsageDescription": "ChefScale uses your camera to scan and photograph recipes, ingredient lists, and nutrition labels so you can quickly import them into the app for scaling and cost tracking."[39m
+[31m  }[39m
+[31m}[39m
+[31mThat's specific, explains the purpose, and gives concrete examples — exactly what Apple wants.[39m
+[31m[39m
+[31mNow — are you using expo-camera or expo-image-picker for the OCR scanning? If you're using expo-image-picker, you'll also need:[39m
+[31m[39m
+[31mjson[39m
+[31m"NSPhotoLibraryUsageDescription": "ChefScale accesses your photo library so you can import photos of recipes, ingredient lists, and nutrition labels for scanning and recipe entry."[39m
+[31mAdd both to be safe. Then rebuild (bump build number to 4) and upload.[39m
+[31m[39m
+[31mThat handles Issue 3. Ready to tackle Issue 2 (the EULA/Terms link)? That one is an App Store Connect fix, no code needed.[39m
+[31m[39m
+[31mgive me the full rewritten json[39m
+[31m[39m
+[31m7:10 PM[39m
+[31mjson[39m
+[31m{[39m
+[31m  "expo": {[39m
+[31m    "name": "ChefScale",[39m
+[31m    "slug": "chefscale",[39m
+[31m    "version": "1.0.0",[39m
+[31m    "orientation": "portrait",[39m
+[31m    "icon": "./assets/images/icon.png",[39m
+[31m    "scheme": "chefscale",[39m
+[31m    "userInterfaceStyle": "dark",[39m
+[31m    "newArchEnabled": true,[39m
+[31m    "splash": {[39m
+[31m      "image": "./assets/images/splash-icon.png",[39m
+[31m      "resizeMode": "contain",[39m
+[31m      "backgroundColor": "#0F172A"[39m
+[31m    },[39m
+[31m    "ios": {[39m
+[31m      "supportsTablet": false,[39m
+[31m      "bundleIdentifier": "com.alstiginc.chefscale",[39m
+[31m      "infoPlist": {[39m
+[31m        "NSCameraUsageDescription": "ChefScale uses your camera to scan and photograph recipes, ingredient lists, and nutrition labels so you can quickly import them into the app for scaling and cost tracking.",[39m
+[31m        "NSPhotoLibraryUsageDescription": "ChefScale accesses your photo library so you can import photos of recipes, ingredient lists, and nutrition labels for scanning and recipe entry."[39m
+[31m      }[39m
+[31m    },[39m
+[31m    "android": {[39m
+[31m      "package": "com.alstiginc.chefscale",[39m
+[31m      "adaptiveIcon": {[39m
+[31m        "backgroundColor": "#0F172A",[39m
+[31m        "foregroundImage": "./assets/images/android-icon-foreground.png",[39m
+[31m        "backgroundImage": "./assets/images/android-icon-background.png",[39m
+[31m        "monochromeImage": "./assets/images/android-icon-monochrome.png"[39m
+[31m      }[39m
+[31m    },[39m
+[31m    "web": {[39m
+[31m      "favicon": "./assets/images/favicon.png"[39m
+[31m    },[39m
+[31m    "plugins": [[39m
+[31m      [[39m
+[31m        "expo-router",[39m
+[31m        {[39m
+[31m          "origin": "https://replit.com/"[39m
+[31m        }[39m
+[31m      ],[39m
+[31m      "expo-font",[39m
+[31m      "expo-web-browser"[39m
+[31m    ],[39m
+[31m    "experiments": {[39m
+[31m      "typedRoutes": true,[39m
+[31m      "reactCompiler": true[39m
+[31m    }[39m
+[31m  }[39m
+[31m}[39m
+[31mThat's Issue 3 done. Ready for Issue 2 (adding the EULA/Terms link in App Store Connect)?[39m
+[31m[39m
+[31m[39m
+[31m[39m
+[31m[39m
+[31m[39m
+[31m[39m
+[31m[39m
+[31mClaude is AI and can make mistakes. Please double-check responses.[39m
+[31m[39m
+[31m├─ File: /home/runner/workspace/app.json[39m
+[31m└─ Cause: SyntaxError: JSON5: invalid character 'C' at 2:1[39m
+[31m  1 | [39m
+[31m> 2 | Chef Scale[39m
+[31m    | ^[39m
+[31m  3 | /[39m
+[31m  4 | ok, where were we[39m
+[31m  5 | [39m
+[90mJsonFileError: Error parsing JSON: [39m
+[90mChef Scale[39m
+[90m/[39m
+[90mok, where were we[39m
+[90m[39m
+[90m6:14 PM[39m
+[90mLet me check our recent conversations to pick up where we left off.[39m
+[90m[39m
+[90m[39m
+[90mRelevant chats[39m
+[90mRelevant chats[39m
+[90mWe were working through your ChefScale app rejection issues from Apple. Here's where we stand:[39m
+[90m[39m
+[90m✅ Resolved / In Progress:[39m
+[90m[39m
+[90mIssue 1 (2.1.0 - App Completeness): Products likely weren't set up in App Store Connect / agreement wasn't signed — that was the root cause[39m
+[90mIssue 2 (3.1.2 - Subscriptions): Paywall UI looks solid; rejection was tied to the missing products, not the UI itself[39m
+[90mYour privacy and terms URLs are confirmed working[39m
+[90m🔜 Next up — Issue 3 (5.1.1 Privacy): I asked you to paste two files so I can check your privacy compliance:[39m
+[90m[39m
+[90mapp/(tabs)/settings.tsx — to verify Privacy Policy, Terms of Service, and account deletion are accessible from Settings[39m
+[90mapp.json or app.config.js — to check your permission usage description strings (camera, etc.)[39m
+[90mGot those ready to share?[39m
+[90m[39m
+[90mverify issue 1 resolution[39m
+[90m[39m
+[90m6:15 PM[39m
+[90mTo verify Issue 1 (2.1.0 - App Completeness) is resolved, I need to confirm a few things:[39m
+[90m[39m
+[90mPaid Apps Agreement — Did you sign the Paid Applications agreement in App Store Connect (Agreements, Tax, and Banking)?[39m
+[90mSubscription Products — Did you create your subscription products in App Store Connect (monthly + annual) and are they in "Ready to Submit" or "Approved" status?[39m
+[90mRevenueCat Configuration — Did you add the correct product IDs in your RevenueCat dashboard and link them to your App Store Connect products?[39m
+[90mSandbox Testing — Were you able to complete a test purchase using a sandbox account?[39m
+[90mWhich of these have you done so far?[39m
+[90m[39m
+[90mScreenshot 2026-03-02 at 6.15.49 PM.png[39m
+[90mwalk me through checking[39m
+[90m[39m
+[90m6:15 PM[39m
+[90mGood, I can see the App Review page with the 1.0 rejection. I need to see a few more screens to verify Issue 1 is resolved. Let me walk you through checking each piece:[39m
+[90m[39m
+[90mStep 1: Check Paid Apps Agreement[39m
+[90m[39m
+[90mGo to the top-level App Store Connect (not inside the ChefScale app) → click Business in the top nav bar. You should see your agreements listed there. Look for "Paid Applications" — it should say Active. Screenshot that for me.[39m
+[90m[39m
+[90mStep 2: Check Subscription Products[39m
+[90m[39m
+[90mYou're already in the right place. Click Subscriptions in the left sidebar (I can see it at the very bottom of your screenshot under MONETIZATION). You should see your subscription group with your monthly and annual products. Each product needs to be in "Ready to Submit" status. Screenshot that.[39m
+[90m[39m
+[90mStep 3: Check In-App Purchases[39m
+[90m[39m
+[90mWhile you're there, also click In-App Purchases right above Subscriptions — screenshot that too so I can see what's configured.[39m
+[90m[39m
+[90mStart with those three screenshots and I'll tell you exactly where things stand.[39m
+[90m[39m
+[90mScreenshot 2026-03-02 at 6.16.51 PM.png[39m
+[90mhow do I change the business address?[39m
+[90m[39m
+[90m6:17 PM[39m
+[90mStep 1 is ✅ — Paid Apps Agreement is Active. Banking and tax forms are all good too. This was likely the missing piece when you submitted Thursday.[39m
+[90m[39m
+[90mFor the business address — that's tied to your D-U-N-S number and Apple Developer enrollment, so you can't just edit it here. You'd need to update it through your Apple Developer account under the organization profile, and it may require updating your D-U-N-S record with Dun & Bradstreet first. But that's not blocking your resubmission — handle it later.[39m
+[90m[39m
+[90mNow let's keep verifying. Go back to your ChefScale app and click Subscriptions in the left sidebar under MONETIZATION. I need to see your subscription products and their status.[39m
+[90m[39m
+[90mScreenshot 2026-03-02 at 6.20.06 PM.png[39m
+[90m6:20 PM[39m
+[90mGood news: the products exist and the product IDs match what we'd expect (chefscale.premium.monthly and chefscale.premium.annual). But they both show ⚠️ Missing Metadata — that's a blocker. They won't be reviewable until that's fixed.[39m
+[90m[39m
+[90mClick on Premium Monthly first. You need to fill in:[39m
+[90m[39m
+[90mSubscription Price — set your price (e.g., $9.99/month)[39m
+[90mApp Store Localization — at minimum, add English (U.S.) with:[39m
+[90mDisplay Name: something like "ChefScale Premium"[39m
+[90mDescription: a short description of what the subscription includes (e.g., "Unlimited recipe scaling, AI-powered cost analysis, and full access to all ChefScale features.")[39m
+[90mReview Screenshot — upload a screenshot of your paywall or the subscription in action[39m
+[90mReview Notes (optional but helpful) — something like "Test account not required. Subscription unlocks premium features."[39m
+[90mDo the same for Premium Annual.[39m
+[90m[39m
+[90mOnce both show "Ready to Submit" instead of "Missing Metadata," this piece is done. Go ahead and fill those out — start with Premium Monthly and screenshot it when you're done so I can confirm it looks right.[39m
+[90m[39m
+[90mSubscription Price — set your price (e.g., $9.99/month)[39m
+[90mApp Store Localization — at minimum, add English (U.S.) with:[39m
+[90mDisplay Name: something like "ChefScale Premium"[39m
+[90mDescription: a short description of what the subscription includes (e.g., "Unlimited recipe scaling, AI-powered cost analysis, and full access to all ChefScale features.")[39m
+[90mReview Screenshot — upload a screenshot of your paywall or the subscription in action[39m
+[90mReview Notes (optional but helpful) — something like "Test account not required. Subscription unlocks premium features." This is already done and has been since original submission[39m
+[90m6:20 PM[39m
+[90mInteresting — if that metadata was already filled in but it's still showing "Missing Metadata," something got dropped or there's a validation error Apple isn't surfacing clearly.[39m
+[90m[39m
+[90mClick into Premium Monthly and scroll through the full page. Look for any yellow warning triangles or empty required fields. Common culprits:[39m
+[90m[39m
+[90mMissing localization for a territory you're distributing to (you're in 175 countries — each enabled territory may need a localization or at least a default)[39m
+[90mNo price set for certain territories[39m
+[90mReview screenshot missing or rejected[39m
+[90mScreenshot the full Premium Monthly detail page for me and I'll spot what's missing.[39m
+[90m[39m
+[90mScreenshot 2026-03-02 at 6.21.29 PM.png[39m
+[90mScreenshot 2026-03-02 at 6.21.42 PM.png[39m
+[90mScreenshot 2026-03-02 at 6.21.49 PM.png[39m
+[90m6:21 PM[39m
+[90mOK I can see the issue. Everything is filled in — localization, image, screenshot, review notes — but the status says "Prepare for Submission" on both the localization and the image. That's actually normal for a first submission. The "Missing Metadata" on the parent page is misleading.[39m
+[90m[39m
+[90mThe key is that blue info box at the top of image 1: "Your first subscription must be submitted with a new app version. Create your subscription, then select it from the app's In-App Purchases and Subscriptions section on the version page before submitting."[39m
+[90m[39m
+[90mThat's your problem. The subscriptions exist but they weren't attached to your app version when you submitted. Here's how to fix it:[39m
+[90m[39m
+[90mGo to your iOS 1.0 version page (click on "1.0 Rejected" in the left sidebar or go to App Store → your version)[39m
+[90mScroll down to the "In-App Purchases and Subscriptions" section on that page[39m
+[90mClick the "+" button to select your subscriptions[39m
+[90mAdd both Premium Monthly and Premium Annual[39m
+[90mSave[39m
+[90mThis is the step that connects the subscription products to your app submission so Apple's reviewer can actually test them. Without this, the reviewer saw a paywall with no purchasable products — which is exactly what triggered both 2.1.0 and 3.1.2.[39m
+[90m[39m
+[90mGo do that and screenshot the version page showing the subscriptions attached.[39m
+[90m[39m
+[90mScreenshot 2026-03-02 at 6.22.57 PM.png[39m
+[90mScreenshot 2026-03-02 at 6.23.05 PM.png[39m
+[90mScreenshot 2026-03-02 at 6.23.12 PM.png[39m
+[90mScreenshot 2026-03-02 at 6.23.20 PM.png[39m
+[90mScreenshot 2026-03-02 at 6.23.25 PM.png[39m
+[90m6:23 PM[39m
+[90mI don't see an "In-App Purchases and Subscriptions" section anywhere on this version page — that confirms the subscriptions were never attached to the app version. That's the root cause.[39m
+[90m[39m
+[90mThe section should appear between the Build section (image 3) and the App Review Information section (image 4). If it's not showing, scroll carefully between those two areas. Sometimes it collapses or it may only appear after you've scrolled past the Build.[39m
+[90m[39m
+[90mIf it's truly not there, try this: click the "+" or look for a link that says "Select In-App Purchases and Subscriptions" near the Build section. On some layouts, you need to click In-App Purchases in the left sidebar under MONETIZATION, then look for an option to associate them with the version.[39m
+[90m[39m
+[90mAlternatively — since this is a rejected build, you may need to scroll up and look for a section header you might have scrolled past between images 3 and 4. Can you scroll slowly between the Build/App Icon area and the Game Center/App Review Information area and screenshot that specific gap? That's where Apple puts the IAP selector.[39m
+[90m[39m
+[90mclick the + Where?[39m
+[90m[39m
+[90m7:04 PM[39m
+[90mSorry, let me be more specific. The "In-App Purchases and Subscriptions" section should already be on the version page — you shouldn't need to add it manually.[39m
+[90m[39m
+[90mScroll back to the version page and look very carefully between the Build section (where you see Build 3, version 1.0.0) and the Game Center section. There should be a section there called "In-App Purchases and Subscriptions" with a "+" button to select your products.[39m
+[90m[39m
+[90mIt's possible it was cut off between your screenshot 3 and screenshot 4. Can you scroll slowly through just that gap — right after the App Icon and before Game Center — and screenshot what's there?[39m
+[90m[39m
+[90mScreenshot 2026-03-02 at 7.05.15 PM.png[39m
+[90m7:05 PM[39m
+[90mNow I can see clearly — the "In-App Purchases and Subscriptions" section is completely missing from the version page. It should appear between the App Icon and Game Center, but it's not there.[39m
+[90m[39m
+[90mThis is likely because Apple changed how IAPs are associated with submissions. Try this:[39m
+[90m[39m
+[90mClick In-App Purchases in the left sidebar (under MONETIZATION)[39m
+[90mSee if there's an option there to select/associate products with this version[39m
+[90mIf that doesn't show anything useful, try clicking Subscriptions in the left sidebar, then click into your ChefScale Premium subscription group, and look for a "Submit with App Version" or "Include in Submission" option.[39m
+[90m[39m
+[90mIf neither of those work, the fallback is: when you click "Update Review" (the blue button top right), Apple should prompt you to select in-app purchases to include with the submission before it actually submits.[39m
+[90m[39m
+[90mTry clicking In-App Purchases in the sidebar first and screenshot what you see.[39m
+[90m[39m
+[90mScreenshot 2026-03-02 at 7.05.39 PM.png[39m
+[90m7:05 PM[39m
+[90mOK so In-App Purchases is empty — that's separate from Subscriptions (your subscriptions are under the Subscriptions section, which we already confirmed exists). That's fine since you're using subscriptions, not one-time IAPs.[39m
+[90m[39m
+[90mThe key info is in that blue banner: "Create your in-app purchase, then select it from the app's In-App Purchases and Subscriptions section on the version page."[39m
+[90m[39m
+[90mThe problem is that section isn't showing on your version page. This can happen with rejected builds. Let me check something — try this:[39m
+[90m[39m
+[90mGo back to the iOS App Version 1.0 page[39m
+[90mClick the "Update Review" button (blue, top right) — don't confirm the submission, just see if it prompts you to add subscriptions first or if it shows any validation errors[39m
+[90mIf it just submits immediately without asking, cancel out. But Apple often shows a validation step where it'll flag that no IAPs are attached.[39m
+[90m[39m
+[90mAlternatively — and this might be the real fix — you may need to remove the current build and re-add it, which sometimes forces the IAP/Subscription selector to appear on the version page. To try this: on the version page, click on the build number "3" next to your build, and see if there's an option to remove or change it.[39m
+[90m[39m
+[90mTry the Update Review button first and tell me what happens (don't actually submit yet).[39m
+[90m[39m
+[90mScreenshot 2026-03-02 at 7.06.45 PM.png[39m
+[90mHello, Thank you for submitting the new app, ChefScale, for review. We noticed some issues that require your attention. Please see below for additional information.If you have any questions, we are here to help. Reply to this message in App Store Connect and let us know.[39m
+[90mReview Environment[39m
+[90mSubmission ID: 16ab7f08-c9b9-4c2d-b3f6-038594bb0621Review date: March 02, 2026Review Device: iPad Air 11-inch (M3)Version reviewed: 1.0[39m
+[90mGuideline 2.1 - Performance - App Completeness[39m
+[90mWe are unable to complete the review of the app because one or more of the in-app purchase products have not been submitted for review.Next StepsTo resolve this issue, please be sure to take action and submit your in-app purchases and upload a new binary in App Store Connect so we can proceed with our review. Note you must provide an App Review screenshot in App Store Connect in order to submit in-app purchases for review. Learn more about required in-app purchase metadata.Resources - Learn more about how to offer in-app purchases.- Learn more about submitting In-App Purchases and subscriptions to App Review.[39m
+[90mGuideline 3.1.2 - Business - Payments - Subscriptions[39m
+[90mIssue DescriptionThe submission did not include all the required information for apps offering auto-renewable subscriptions.You can use SubscriptionStoreView to easily include all of the required information in the app's purchase flow.The following information needs to be included in the App Store metadata:- A functional link to the Terms of Use (EULA). If you are using the standard Apple Terms of Use (EULA), include a link to the Terms of Use in the App Description. If you are using a custom EULA, add it in App Store Connect.Next StepsUpdate the App Store metadata to include the information specified above.ResourcesApps offering auto-renewable subscriptions must include all of the following required information in the app itself:- Title of auto-renewing subscription (this may be the same as the in-app purchase product name)- Length of subscription- Price of subscription, and price per unit if appropriate- Functional links to the privacy policy and Terms of Use (EULA)The app metadata must also include functional links to the privacy policy in the Privacy Policy field in App Store Connect and the Terms of Use (EULA) in the App Description or EULA field in App Store Connect.Review Schedule 2 of the Apple Developer Program License Agreement to learn more.[39m
+[90mGuideline 5.1.1 - Legal - Privacy - Data Collection and Storage[39m
+[90mIssue DescriptionOne or more purpose strings in the app do not sufficiently explain the use of protected resources. Purpose strings must clearly and completely describe the app's use of data and, in most cases, provide an example of how the data will be used.Next StepsUpdate the camera purpose string to explain how the app will use the requested information and provide a specific example of how the data will be used. See the attached screenshot.ResourcesPurpose strings must clearly describe how an app uses the ability, data, or resource. The following are hypothetical examples of unclear purpose strings that would not pass review: - "App would like to access your Contacts"- "App needs microphone access"See examples of helpful, informative purpose strings.[39m
+[90mSupport[39m
+[90m- Reply to this message in your preferred language if you need assistance. If you need additional support, use the Contact Us module.- Consult with fellow developers and Apple engineers on the Apple Developer Forums.- Provide feedback on this message and your review experience by completing a short survey.[39m
+[90m[39m
+[90mShow more[39m
+[90m7:07 PM[39m
+[90mThis is really helpful — now I can see the exact rejection details. Let me break down what Apple is actually asking for:[39m
+[90m[39m
+[90mIssue 1 (2.1.0) — CONFIRMED: Subscriptions not submitted with the app. Apple says it explicitly: "one or more of the in-app purchase products have not been submitted for review." You need to attach them to the version and upload a new binary.[39m
+[90m[39m
+[90mIssue 2 (3.1.2) — It's about the Terms of Use (EULA), not the paywall UI. Apple wants a functional link to your Terms of Use either in your App Store description or as a custom EULA in App Store Connect. Your privacy policy link is probably set, but you need to add the Terms link.[39m
+[90m[39m
+[90mIssue 3 (5.1.1) — Camera purpose string is too vague. They want a more descriptive NSCameraUsageDescription that explains specifically why and how you use the camera (for OCR recipe scanning).[39m
+[90m[39m
+[90mSo here's your action plan:[39m
+[90m[39m
+[90mFor Issue 1: You need to submit a new binary that includes the subscriptions. Since the IAP section isn't appearing on your version page, you'll likely need to upload a new build (bump your build number to 4), and when you create the new submission, the subscription selector should appear. This is a known quirk with rejected builds.[39m
+[90m[39m
+[90mFor Issue 2: Two options — go to App Information in the left sidebar and look for a License Agreement (EULA) section where you can either add a custom EULA or link to yours. Or add your Terms URL to your App Store description text.[39m
+[90m[39m
+[90mFor Issue 3: What does your current camera permission string say? Paste your app.json or app.config.js so I can write you a proper one.[39m
+[90m[39m
+[90mLet's tackle Issue 3 first since it's a quick code fix — paste that config file.[39m
+[90m[39m
+[90m{[39m
+[90m  "expo": {[39m
+[90m    "name": "ChefScale",[39m
+[90m    "slug": "chefscale",[39m
+[90m    "version": "1.0.0",[39m
+[90m    "orientation": "portrait",[39m
+[90m    "icon": "./assets/images/icon.png",[39m
+[90m    "scheme": "chefscale",[39m
+[90m    "userInterfaceStyle": "dark",[39m
+[90m    "newArchEnabled": true,[39m
+[90m    "splash": {[39m
+[90m      "image": "./assets/images/splash-icon.png",[39m
+[90m      "resizeMode": "contain",[39m
+[90m      "backgroundColor": "[39m
+[90m#0F172A"[39m
+[90m    },[39m
+[90m    "ios": {[39m
+[90m      "supportsTablet": false,[39m
+[90m      "bundleIdentifier": "com.alstiginc.chefscale"[39m
+[90m    },[39m
+[90m    "android": {[39m
+[90m      "package": "com.alstiginc.chefscale",[39m
+[90m      "adaptiveIcon": {[39m
+[90m        "backgroundColor": "[39m
+[90m#0F172A",[39m
+[90m        "foregroundImage": "./assets/images/android-icon-foreground.png",[39m
+[90m        "backgroundImage": "./assets/images/android-icon-background.png",[39m
+[90m        "monochromeImage": "./assets/images/android-icon-monochrome.png"[39m
+[90m      }[39m
+[90m    },[39m
+[90m    "web": {[39m
+[90m      "favicon": "./assets/images/favicon.png"[39m
+[90m    },[39m
+[90m    "plugins": [[39m
+[90m      [[39m
+[90m        "expo-router",[39m
+[90m        {[39m
+[90m          "origin": "https://replit.com/"[39m
+[90m        }[39m
+[90m      ],[39m
+[90m      "expo-font",[39m
+[90m      "expo-web-browser"[39m
+[90m    ],[39m
+[90m    "experiments": {[39m
+[90m      "typedRoutes": true,[39m
+[90m      "reactCompiler": true[39m
+[90m    }[39m
+[90m  }[39m
+[90m}[39m
+[90m[39m
+[90mShow more[39m
+[90m7:08 PM[39m
+[90mThere's your problem — there's no camera permission string at all in your config. Apple saw a camera request with no NSCameraUsageDescription or a default/generic one from a plugin.[39m
+[90m[39m
+[90mAdd this to your ios section in app.json:[39m
+[90m[39m
+[90mjson[39m
+[90m"ios": {[39m
+[90m  "supportsTablet": false,[39m
+[90m  "bundleIdentifier": "com.alstiginc.chefscale",[39m
+[90m  "infoPlist": {[39m
+[90m    "NSCameraUsageDescription": "ChefScale uses your camera to scan and photograph recipes, ingredient lists, and nutrition labels so you can quickly import them into the app for scaling and cost tracking."[39m
+[90m  }[39m
+[90m}[39m
+[90mThat's specific, explains the purpose, and gives concrete examples — exactly what Apple wants.[39m
+[90m[39m
+[90mNow — are you using expo-camera or expo-image-picker for the OCR scanning? If you're using expo-image-picker, you'll also need:[39m
+[90m[39m
+[90mjson[39m
+[90m"NSPhotoLibraryUsageDescription": "ChefScale accesses your photo library so you can import photos of recipes, ingredient lists, and nutrition labels for scanning and recipe entry."[39m
+[90mAdd both to be safe. Then rebuild (bump build number to 4) and upload.[39m
+[90m[39m
+[90mThat handles Issue 3. Ready to tackle Issue 2 (the EULA/Terms link)? That one is an App Store Connect fix, no code needed.[39m
+[90m[39m
+[90mgive me the full rewritten json[39m
+[90m[39m
+[90m7:10 PM[39m
+[90mjson[39m
+[90m{[39m
+[90m  "expo": {[39m
+[90m    "name": "ChefScale",[39m
+[90m    "slug": "chefscale",[39m
+[90m    "version": "1.0.0",[39m
+[90m    "orientation": "portrait",[39m
+[90m    "icon": "./assets/images/icon.png",[39m
+[90m    "scheme": "chefscale",[39m
+[90m    "userInterfaceStyle": "dark",[39m
+[90m    "newArchEnabled": true,[39m
+[90m    "splash": {[39m
+[90m      "image": "./assets/images/splash-icon.png",[39m
+[90m      "resizeMode": "contain",[39m
+[90m      "backgroundColor": "#0F172A"[39m
+[90m    },[39m
+[90m    "ios": {[39m
+[90m      "supportsTablet": false,[39m
+[90m      "bundleIdentifier": "com.alstiginc.chefscale",[39m
+[90m      "infoPlist": {[39m
+[90m        "NSCameraUsageDescription": "ChefScale uses your camera to scan and photograph recipes, ingredient lists, and nutrition labels so you can quickly import them into the app for scaling and cost tracking.",[39m
+[90m        "NSPhotoLibraryUsageDescription": "ChefScale accesses your photo library so you can import photos of recipes, ingredient lists, and nutrition labels for scanning and recipe entry."[39m
+[90m      }[39m
+[90m    },[39m
+[90m    "android": {[39m
+[90m      "package": "com.alstiginc.chefscale",[39m
+[90m      "adaptiveIcon": {[39m
+[90m        "backgroundColor": "#0F172A",[39m
+[90m        "foregroundImage": "./assets/images/android-icon-foreground.png",[39m
+[90m        "backgroundImage": "./assets/images/android-icon-background.png",[39m
+[90m        "monochromeImage": "./assets/images/android-icon-monochrome.png"[39m
+[90m      }[39m
+[90m    },[39m
+[90m    "web": {[39m
+[90m      "favicon": "./assets/images/favicon.png"[39m
+[90m    },[39m
+[90m    "plugins": [[39m
+[90m      [[39m
+[90m        "expo-router",[39m
+[90m        {[39m
+[90m          "origin": "https://replit.com/"[39m
+[90m        }[39m
+[90m      ],[39m
+[90m      "expo-font",[39m
+[90m      "expo-web-browser"[39m
+[90m    ],[39m
+[90m    "experiments": {[39m
+[90m      "typedRoutes": true,[39m
+[90m      "reactCompiler": true[39m
+[90m    }[39m
+[90m  }[39m
+[90m}[39m
+[90mThat's Issue 3 done. Ready for Issue 2 (adding the EULA/Terms link in App Store Connect)?[39m
+[90m[39m
+[90m[39m
+[90m[39m
+[90m[39m
+[90m[39m
+[90m[39m
+[90m[39m
+[90mClaude is AI and can make mistakes. Please double-check responses.[39m
+[90m[39m
+[90m├─ File: /home/runner/workspace/app.json[39m
+[90m└─ Cause: SyntaxError: JSON5: invalid character 'C' at 2:1[39m
+[90m  1 | [39m
+[90m> 2 | Chef Scale[39m
+[90m    | ^[39m
+[90m  3 | /[39m
+[90m  4 | ok, where were we[39m
+[90m  5 | [39m
+[90m    at parseJsonString (/home/runner/workspace/node_modules/@expo/json-file/build/JsonFile.js:198:19)[39m
+[90m    at JsonFile.read (/home/runner/workspace/node_modules/@expo/json-file/build/JsonFile.js:160:12)[39m
+[90m    at getStaticConfig (/home/runner/workspace/node_modules/@expo/config/build/getConfig.js:64:38)[39m
+[90m    at getConfig (/home/runner/workspace/node_modules/@expo/config/build/Config.js:206:85)[39m
+[90m    at startAsync (/home/runner/workspace/node_modules/expo/node_modules/@expo/cli/build/src/start/startAsync.js:129:68)[39m
+[90m    at expoStart (/home/runner/workspace/node_modules/expo/node_modules/@expo/cli/build/src/start/index.js:146:12)[39m
+[1G[0K⠙[1G[0K[1G[0K⠙[1G[0K

@@ -1,0 +1,11 @@
+
+> expo-app@1.0.0 server:dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K[OpenAI] API key present: [33mtrue[39m (starts with: _DUMMY_A...)
+[OpenAI] Base URL: http://localhost:1106/modelfarm/openai
+Serving static Expo files with dynamic manifest routing
+Expo routing: Checking expo-platform header on / and /manifest
+express server serving on port 5000
+baseUrl http://127.0.0.1:5000
+expsUrl 127.0.0.1:5000

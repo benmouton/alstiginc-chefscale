@@ -14,9 +14,9 @@ export const Colors = {
   success: '#22C55E',
 
   // Backgrounds — dark charcoal, not pure black
-  backgroundDark: '#0F1115',     // deep charcoal (was #0F172A navy)
-  backgroundCard: '#1A1D23',     // elevated charcoal (was #1E293B)
-  backgroundElevated: '#252830', // higher elevation (was #334155)
+  backgroundDark: '#0A0A0A',     // true rich black
+  backgroundCard: '#141414',     // darker card
+  backgroundElevated: '#1E1E1E', // higher elevation
 
   // Glass effect base
   glass: 'rgba(255,255,255,0.08)',
@@ -33,8 +33,8 @@ export const Colors = {
   borderLight: '#3A3D45',    // lighter
 
   // Tab bar
-  tabBar: '#0F1115',
-  tabBarBorder: '#1A1D23',
+  tabBar: '#0A0A0A',
+  tabBarBorder: '#141414',
 };
 
 export const Spacing = {

@@ -104,7 +104,12 @@ export default function HomeScreen() {
             }}
             style={({ pressed }) => [styles.addButton, pressed && { opacity: 0.7 }]}
           >
-            <Ionicons name="add" size={24} color={Colors.textPrimary} />
+            <LinearGradient
+              colors={['#D97706', '#B45309']}
+              style={styles.addButtonGradient}
+            >
+              <Ionicons name="add" size={24} color="#FFF" />
+            </LinearGradient>
           </Pressable>
         </View>
       </View>
@@ -220,26 +225,34 @@ export default function HomeScreen() {
           />
         }
         ListEmptyComponent={
-          <LinearGradient
-            colors={['#0F1115', '#1A1008', '#0F1115']}
-            style={styles.emptyContainer}
-          >
-            <Ionicons name="restaurant-outline" size={80} color={Colors.textMuted} />
-            <Text style={styles.emptyTitle}>No recipes yet</Text>
-            <Text style={styles.emptyTagline}>Your kitchen. Your costs. Your scale.</Text>
-            <Text style={styles.emptyText}>
-              Tap the + button to add your first recipe
-            </Text>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push("/recipe/edit");
-              }}
-              style={({ pressed }) => [styles.getStartedButton, pressed && { opacity: 0.8 }]}
+          <View style={styles.emptyContainer}>
+            <LinearGradient
+              colors={['#0A0A0A', '#1A1008', '#0A0A0A']}
+              style={styles.emptyGradient}
             >
-              <Text style={styles.getStartedText}>Get Started</Text>
-            </Pressable>
-          </LinearGradient>
+              <View style={styles.emptyIconRing}>
+                <Ionicons name="restaurant" size={48} color="#D97706" />
+              </View>
+              <Text style={styles.emptyTitle}>Your Kitchen Awaits</Text>
+              <Text style={styles.emptyTagline}>
+                Scale recipes. Track costs. Cook with confidence.
+              </Text>
+              <Pressable
+                onPress={() => router.push("/recipe/edit")}
+                style={({ pressed }) => [styles.emptyButton, pressed && { opacity: 0.8 }]}
+              >
+                <LinearGradient
+                  colors={['#D97706', '#B45309']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.emptyButtonGradient}
+                >
+                  <Ionicons name="add" size={20} color="#FFF" />
+                  <Text style={styles.emptyButtonText}>Add Your First Recipe</Text>
+                </LinearGradient>
+              </Pressable>
+            </LinearGradient>
+          </View>
         }
       />
     </View>
@@ -249,7 +262,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: '#0A0A0A',
   },
   header: {
     flexDirection: "row",
@@ -259,10 +272,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   title: {
-    fontSize: FontSize.xxxl,
+    fontSize: 34,
     fontWeight: "700",
     color: Colors.textPrimary,
     fontFamily: "Inter_700Bold",
+    textShadowColor: 'rgba(217,119,6,0.2)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
   subtitle: {
     fontSize: FontSize.sm,
@@ -286,17 +302,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   addButton: {
+    borderRadius: 26,
+    shadowColor: '#D97706',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  addButtonGradient: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#D97706',
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: '#D97706',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoriesContainer: {
     marginBottom: Spacing.md,
@@ -341,48 +359,68 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 80,
-    gap: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyGradient: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+    borderRadius: 24,
+    marginHorizontal: 20,
+  },
+  emptyIconRing: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: 'rgba(217,119,6,0.12)',
+    borderWidth: 2,
+    borderColor: 'rgba(217,119,6,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
   },
   emptyTitle: {
-    fontSize: FontSize.xl,
-    fontWeight: "600",
-    color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#F5F5F4',
+    fontFamily: 'Inter_700Bold',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   emptyTagline: {
-    fontSize: FontSize.md,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    fontFamily: "Inter_400Regular",
-    fontStyle: "italic",
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.5)',
+    fontFamily: 'Inter_400Regular',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginBottom: 32,
+    lineHeight: 22,
   },
-  emptyText: {
-    fontSize: FontSize.md,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    fontFamily: "Inter_400Regular",
-    paddingHorizontal: Spacing.xxxl,
-  },
-  getStartedButton: {
-    backgroundColor: '#D97706',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    marginTop: Spacing.sm,
+  emptyButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
     shadowColor: '#D97706',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
     elevation: 8,
   },
-  getStartedText: {
-    fontSize: FontSize.md,
-    fontWeight: "600" as const,
-    color: '#F5F5F4',
-    fontFamily: "Inter_600SemiBold",
+  emptyButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+    borderRadius: 16,
+  },
+  emptyButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFF',
+    fontFamily: 'Inter_700Bold',
   },
   nudgeBanner: {
     flexDirection: 'row',

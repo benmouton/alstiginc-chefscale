@@ -238,9 +238,14 @@ export default function EditRecipeScreen() {
   };
 
   const showImageOptions = () => {
-    Alert.alert("Recipe Photo", "Choose a source", [
-      { text: "Camera", onPress: () => pickImage(true) },
-      { text: "Photo Library", onPress: () => pickImage(false) },
+    const canScan = __DEV__ || useSubscriptionStore.getState().checkAccess('ocr_scan');
+    Alert.alert("Add Recipe Photo", "Choose an option", [
+      { text: "Take Photo", onPress: () => pickImage(true) },
+      { text: "Scan Recipe — Choose from Library", onPress: () => {
+        if (canScan) { scanRecipe('library'); } else {
+          router.push({ pathname: '/paywall', params: { feature: 'ocr_scan', headline: 'Scan recipes in seconds — no typing' } });
+        }
+      }},
       ...(imageUri ? [{ text: "Remove Photo", style: "destructive" as const, onPress: () => setImageUri("") }] : []),
       { text: "Cancel", style: "cancel" as const },
     ]);
@@ -434,19 +439,23 @@ export default function EditRecipeScreen() {
     return result.assets.map((a) => a.uri);
   };
 
-  const scanRecipe = async () => {
-    const source = await new Promise<'camera' | 'library' | null>((resolve) => {
-      Alert.alert(
-        "Scan Recipe",
-        "Choose how to capture your recipe",
-        [
-          { text: "Take Photos", onPress: () => resolve('camera') },
-          { text: "Select from Library (multi)", onPress: () => resolve('library') },
-          { text: "Cancel", style: "cancel", onPress: () => resolve(null) },
-        ],
-        { cancelable: true, onDismiss: () => resolve(null) }
-      );
-    });
+  const scanRecipe = async (preselectedSource?: 'camera' | 'library') => {
+    let source = preselectedSource || null;
+
+    if (!source) {
+      source = await new Promise<'camera' | 'library' | null>((resolve) => {
+        Alert.alert(
+          "Scan Recipe",
+          "Choose how to capture your recipe",
+          [
+            { text: "Take Photos", onPress: () => resolve('camera') },
+            { text: "Choose from Library", onPress: () => resolve('library') },
+            { text: "Cancel", style: "cancel", onPress: () => resolve(null) },
+          ],
+          { cancelable: true, onDismiss: () => resolve(null) }
+        );
+      });
+    }
 
     if (!source) return;
 
