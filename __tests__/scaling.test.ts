@@ -5,6 +5,7 @@ import {
   formatQuantity,
   getScaleFactor,
   getUnitAbbreviation,
+  MAX_SCALE_FACTOR,
 } from '../lib/scaling';
 
 describe('scaleAmount', () => {
@@ -65,6 +66,26 @@ describe('scaleAmount', () => {
     // 2 each × (3/4) = 1.5 → should ceil to 2
     const result = scaleAmount(2, 4, 3, 'each', true);
     expect(result.amount).toBe(2);
+  });
+
+  it('returns original when targetServings is 0', () => {
+    const result = scaleAmount(2, 4, 0, 'cup', true);
+    expect(result.amount).toBe(2);
+    expect(result.originalDisplay).toBe('');
+  });
+
+  it('caps scale factor at MAX_SCALE_FACTOR', () => {
+    // 1 cup × (1000/1) = 1000x but capped at 25x → 25 cups → 6.25 quarts
+    const result = scaleAmount(1, 1, 1000, 'cup', true);
+    expect(result.amount).toBeLessThanOrEqual(MAX_SCALE_FACTOR);
+  });
+
+  it('avoids floating-point accumulation in sequential conversions', () => {
+    // 48 tsp should convert directly to cup (not tsp→tbsp→cup sequentially)
+    const result = scaleAmount(24, 4, 8, 'tsp', true);
+    // 48 tsp = 1 cup exactly (48/48)
+    expect(result.unit).toBe('cup');
+    expect(result.amount).toBe(1);
   });
 });
 
@@ -155,6 +176,14 @@ describe('getScaleFactor', () => {
 
   it('returns 1 when originalServings is 0', () => {
     expect(getScaleFactor(0, 8)).toBe(1);
+  });
+
+  it('returns 1 when targetServings is 0', () => {
+    expect(getScaleFactor(4, 0)).toBe(1);
+  });
+
+  it('caps at MAX_SCALE_FACTOR', () => {
+    expect(getScaleFactor(1, 100)).toBe(MAX_SCALE_FACTOR);
   });
 });
 

@@ -19,6 +19,8 @@ export interface ScaleResult {
   originalDisplay: string;
 }
 
+export const MAX_SCALE_FACTOR = 25;
+
 export function scaleAmount(
   originalAmount: number,
   originalServings: number,
@@ -26,7 +28,7 @@ export function scaleAmount(
   unit: string,
   isScalable: boolean
 ): ScaleResult {
-  if (!isScalable || originalServings <= 0) {
+  if (!isScalable || originalServings <= 0 || targetServings <= 0) {
     return {
       amount: originalAmount,
       unit,
@@ -35,7 +37,8 @@ export function scaleAmount(
     };
   }
 
-  let scaledAmount = originalAmount * (targetServings / originalServings);
+  const scaleFactor = Math.min(targetServings / originalServings, MAX_SCALE_FACTOR);
+  let scaledAmount = originalAmount * scaleFactor;
   let finalUnit = unit;
 
   const converted = applySmartConversion(scaledAmount, unit);
@@ -71,30 +74,39 @@ function applySmartConversion(amount: number, unit: string): { amount: number; u
     { from: 'tbsp', to: 'tsp', threshold: 1, factor: 3 },
   ];
 
-  let currentAmount = amount;
-  let currentUnit = unit;
+  // Find the best target unit in a single pass to avoid compounding
+  // floating-point errors from sequential conversions (e.g. tsp→tbsp→cup).
+  // Pick the conversion with the highest threshold that still applies.
+  let bestUnit = unit;
+  let bestAmount = amount;
+  let bestThreshold = 0;
 
   for (const conv of conversions) {
-    if (currentUnit === conv.from && currentAmount >= conv.threshold) {
-      const converted = convertUnit(currentAmount, conv.from, conv.to);
+    if (unit === conv.from && amount >= conv.threshold && conv.threshold > bestThreshold) {
+      const converted = convertUnit(amount, unit, conv.to);
       if (converted !== null) {
-        currentAmount = converted;
-        currentUnit = conv.to;
+        bestAmount = converted;
+        bestUnit = conv.to;
+        bestThreshold = conv.threshold;
       }
     }
   }
 
-  for (const conv of downConversions) {
-    if (currentUnit === conv.from && currentAmount < conv.threshold && currentAmount > 0) {
-      const converted = convertUnit(currentAmount, conv.from, conv.to);
-      if (converted !== null) {
-        currentAmount = converted;
-        currentUnit = conv.to;
+  // Only apply down-conversions if no up-conversion was found
+  if (bestUnit === unit) {
+    for (const conv of downConversions) {
+      if (unit === conv.from && amount < conv.threshold && amount > 0) {
+        const converted = convertUnit(amount, unit, conv.to);
+        if (converted !== null) {
+          bestAmount = converted;
+          bestUnit = conv.to;
+          break;
+        }
       }
     }
   }
 
-  return { amount: currentAmount, unit: currentUnit };
+  return { amount: bestAmount, unit: bestUnit };
 }
 
 function roundForUnit(amount: number, unit: string): number {
@@ -169,8 +181,8 @@ export function formatQuantity(value: number): string {
 }
 
 export function getScaleFactor(originalServings: number, targetServings: number): number {
-  if (originalServings <= 0) return 1;
-  return targetServings / originalServings;
+  if (originalServings <= 0 || targetServings <= 0) return 1;
+  return Math.min(targetServings / originalServings, MAX_SCALE_FACTOR);
 }
 
 export function getUnitAbbreviation(unit: string): string {
