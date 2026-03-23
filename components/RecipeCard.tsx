@@ -95,6 +95,16 @@ export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardP
         style={styles.overlay}
       />
 
+      {/* Variation badge */}
+      {recipe.parentRecipeId ? (
+        <View style={styles.variationBadge}>
+          <Ionicons name="git-branch-outline" size={12} color="#D97706" />
+          <Text style={styles.variationBadgeText}>
+            {recipe.variationLabel || 'Variation'}
+          </Text>
+        </View>
+      ) : null}
+
       {/* Bottom content */}
       <View style={styles.bottomContent}>
         <Text style={styles.name} numberOfLines={1}>
@@ -232,5 +242,23 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  variationBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(217,119,6,0.2)',
+    borderRadius: 9999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    zIndex: 10,
+  },
+  variationBadgeText: {
+    fontSize: 10,
+    color: '#D97706',
+    fontFamily: 'Inter_600SemiBold',
   },
 });
