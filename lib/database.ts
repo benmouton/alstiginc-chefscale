@@ -117,6 +117,12 @@ export async function initDatabase(): Promise<void> {
         updatedAt TEXT DEFAULT (datetime('now'))
       );
 
+      CREATE INDEX IF NOT EXISTS idx_ingredients_recipeId ON ingredients(recipeId);
+      CREATE INDEX IF NOT EXISTS idx_instructions_recipeId ON instructions(recipeId);
+      CREATE INDEX IF NOT EXISTS idx_recipe_photos_recipeId ON recipe_photos(recipeId);
+      CREATE INDEX IF NOT EXISTS idx_recipes_parentRecipeId ON recipes(parentRecipeId);
+      CREATE INDEX IF NOT EXISTS idx_recipes_category ON recipes(category);
+
       PRAGMA user_version = ${DB_VERSION};
     `);
   } else if (currentVersion < DB_VERSION) {
@@ -134,6 +140,12 @@ export async function initDatabase(): Promise<void> {
       ALTER TABLE ingredients ADD COLUMN subrecipeId TEXT DEFAULT '';
 
       ALTER TABLE recipe_photos ADD COLUMN photoType TEXT DEFAULT 'general';
+
+      CREATE INDEX IF NOT EXISTS idx_ingredients_recipeId ON ingredients(recipeId);
+      CREATE INDEX IF NOT EXISTS idx_instructions_recipeId ON instructions(recipeId);
+      CREATE INDEX IF NOT EXISTS idx_recipe_photos_recipeId ON recipe_photos(recipeId);
+      CREATE INDEX IF NOT EXISTS idx_recipes_parentRecipeId ON recipes(parentRecipeId);
+      CREATE INDEX IF NOT EXISTS idx_recipes_category ON recipes(category);
 
       PRAGMA user_version = ${DB_VERSION};
     `);
