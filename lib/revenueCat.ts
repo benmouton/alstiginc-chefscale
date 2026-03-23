@@ -15,7 +15,7 @@ export async function initializePurchases(userId?: string) {
     return;
   }
   try {
-    Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+    Purchases.setLogLevel(LOG_LEVEL.INFO);
     if (userId) {
       await Purchases.configure({ apiKey: REVENUECAT_API_KEY, appUserID: userId });
     } else {

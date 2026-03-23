@@ -6,8 +6,7 @@ import OpenAI from "openai";
 const apiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
 const baseURL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
 
-console.log("[OpenAI] API key present:", !!apiKey, apiKey ? `(starts with: ${apiKey.substring(0, 8)}...)` : "");
-console.log("[OpenAI] Base URL:", baseURL || "NOT SET");
+// API key and base URL are configured via environment variables
 
 const openai = new OpenAI({
   apiKey,
@@ -17,21 +16,12 @@ const openai = new OpenAI({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ocr-recipe", async (req, res) => {
-    const startTime = Date.now();
-    console.log("[OCR] === OCR REQUEST RECEIVED ===");
-    console.log("[OCR] Body size:", JSON.stringify(req.body || {}).length, "bytes");
     try {
       const { imageBase64, imagesBase64 } = req.body;
       const images: string[] = imagesBase64 || (imageBase64 ? [imageBase64] : []);
       if (images.length === 0) {
-        console.log("[OCR] ERROR: Missing imageBase64 or imagesBase64 in request body");
         return res.status(400).json({ error: "imageBase64 or imagesBase64 is required" });
       }
-      console.log("[OCR] Processing", images.length, "image(s)");
-      images.forEach((img, i) => {
-        console.log(`[OCR] Image ${i + 1} base64 length:`, img.length, "chars (~" + Math.round(img.length * 0.75 / 1024) + "KB)");
-      });
-      console.log("[OCR] Sending to OpenAI (model: gpt-4o, timeout: 60s)...");
 
       const imageContent = images.map((img, i) => [
         {
@@ -89,41 +79,27 @@ If you cannot determine a value, use reasonable defaults. Extract as much as pos
         max_completion_tokens: 4096,
       });
 
-      const elapsed = Date.now() - startTime;
-      console.log("[OCR] OpenAI responded in", elapsed + "ms");
       const content = response.choices[0]?.message?.content || "";
-      console.log("[OCR] Response content length:", content.length, "chars");
 
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        console.log("[OCR] ERROR: No JSON found in response. Content:", content.substring(0, 200));
         return res.status(422).json({ error: "Could not extract recipe from image" });
       }
 
       const recipe = JSON.parse(jsonMatch[0]);
-      console.log("[OCR] SUCCESS: Extracted recipe:", recipe.name || "unnamed");
       res.json(recipe);
     } catch (error: any) {
-      const elapsed = Date.now() - startTime;
-      console.error("[OCR] FAILED after", elapsed + "ms");
-      console.error("[OCR] Error name:", error?.name);
-      console.error("[OCR] Error message:", error?.message);
-      console.error("[OCR] Error status:", error?.status);
-      console.error("[OCR] Full error:", JSON.stringify(error, null, 2));
+      console.error("[OCR] Failed:", error?.message);
       res.status(500).json({ error: error?.message || "Failed to process recipe image" });
     }
   });
 
   app.post("/api/parse-recipe-text", async (req, res) => {
-    const startTime = Date.now();
-    console.log("[OCR-Text] === TEXT PARSE REQUEST RECEIVED ===");
     try {
       const { extractedText } = req.body;
       if (!extractedText || extractedText.trim().length < 10) {
         return res.status(400).json({ error: "extractedText is required and must contain meaningful content" });
       }
-      console.log("[OCR-Text] Text length:", extractedText.length, "chars");
-      console.log("[OCR-Text] Sending to OpenAI for structuring...");
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -160,22 +136,17 @@ If you cannot determine a value, use reasonable defaults. Fix any obvious OCR er
         max_completion_tokens: 4096,
       });
 
-      const elapsed = Date.now() - startTime;
-      console.log("[OCR-Text] OpenAI responded in", elapsed + "ms");
       const content = response.choices[0]?.message?.content || "";
 
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        console.log("[OCR-Text] ERROR: No JSON found in response");
         return res.status(422).json({ error: "Could not parse recipe from text" });
       }
 
       const recipe = JSON.parse(jsonMatch[0]);
-      console.log("[OCR-Text] SUCCESS: Parsed recipe:", recipe.name || "unnamed");
       res.json(recipe);
     } catch (error: any) {
-      const elapsed = Date.now() - startTime;
-      console.error("[OCR-Text] FAILED after", elapsed + "ms:", error?.message);
+      console.error("[OCR-Text] Failed:", error?.message);
       res.status(500).json({ error: error?.message || "Failed to parse recipe text" });
     }
   });
