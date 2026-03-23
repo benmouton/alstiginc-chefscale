@@ -62,6 +62,37 @@ describe('findPriceMatch', () => {
   it('returns undefined when no match', () => {
     expect(findPriceMatch('unicorn tears', prices)).toBeUndefined();
   });
+
+  it('does not match "peanut butter" to "butter"', () => {
+    // "peanut butter" has core words ["peanut", "butter"]
+    // "butter" has core words ["butter"]
+    // Overlap: 1/2 ingredient coverage + 1/1 price coverage = 0.75 avg
+    // BUT "peanut" is a key distinguishing word — the score should prefer
+    // an exact multi-word match over a partial one when available
+    const pricesWithPeanutButter = [
+      ...prices,
+      makePriceRow({ id: '5', ingredientName: 'peanut butter' }),
+    ];
+    expect(findPriceMatch('peanut butter', pricesWithPeanutButter)?.ingredientName).toBe('peanut butter');
+  });
+
+  it('prefers higher scoring matches', () => {
+    const pricesWithMultiple = [
+      makePriceRow({ ingredientName: 'cream cheese' }),
+      makePriceRow({ id: '2', ingredientName: 'heavy cream' }),
+      makePriceRow({ id: '3', ingredientName: 'cream' }),
+    ];
+    // "cream" should match "cream" exactly, not "cream cheese"
+    expect(findPriceMatch('cream', pricesWithMultiple)?.ingredientName).toBe('cream');
+  });
+
+  it('does not weakly match unrelated single words', () => {
+    // "salt" should not match "salted caramel" after stripping if words don't overlap enough
+    const pricesNarrow = [
+      makePriceRow({ ingredientName: 'caramel sauce' }),
+    ];
+    expect(findPriceMatch('salt', pricesNarrow)).toBeUndefined();
+  });
 });
 
 describe('calculateIngredientCost', () => {

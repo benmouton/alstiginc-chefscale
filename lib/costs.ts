@@ -87,23 +87,36 @@ function extractCoreWords(name: string): string[] {
   return stripPrefixes(name).split(/\s+/).filter(Boolean);
 }
 
+function scoreMatch(ingredientWords: string[], priceWords: string[]): number {
+  if (ingredientWords.length === 0 || priceWords.length === 0) return 0;
+  const overlap = ingredientWords.filter((w) => priceWords.includes(w));
+  if (overlap.length === 0) return 0;
+  // Score: fraction of words matched in both directions, averaged
+  const ingredientCoverage = overlap.length / ingredientWords.length;
+  const priceCoverage = overlap.length / priceWords.length;
+  return (ingredientCoverage + priceCoverage) / 2;
+}
+
 export function findPriceMatch(
   ingredientName: string,
   prices: IngredientPriceRow[]
 ): IngredientPriceRow | undefined {
   const normalized = normalizeIngredientName(ingredientName);
 
+  // Tier 1: exact match
   const exact = prices.find(
     (p) => normalizeIngredientName(p.ingredientName) === normalized
   );
   if (exact) return exact;
 
+  // Tier 2: match after stripping prefixes (e.g. "unsalted butter" → "butter")
   const stripped = stripPrefixes(normalized);
   const strippedMatch = prices.find(
     (p) => stripPrefixes(normalizeIngredientName(p.ingredientName)) === stripped
   );
   if (strippedMatch) return strippedMatch;
 
+  // Tier 3: comma-flipped match (e.g. "flour, all-purpose" → "all-purpose flour")
   const flipped = normalized.split(',').map((s) => s.trim()).filter(Boolean).reverse().join(' ');
   if (flipped !== normalized) {
     const flippedStripped = stripPrefixes(flipped);
@@ -113,13 +126,21 @@ export function findPriceMatch(
     if (flippedMatch) return flippedMatch;
   }
 
-  const coreWords = extractCoreWords(normalized);
-  if (coreWords.length > 0) {
-    const coreMatch = prices.find((p) => {
-      const pCore = extractCoreWords(normalizeIngredientName(p.ingredientName));
-      return pCore.length > 0 && coreWords.some((w) => pCore.includes(w));
-    });
-    if (coreMatch) return coreMatch;
+  // Tier 4: weighted word overlap scoring (prevents "butter" matching "peanut butter")
+  const ingredientWords = extractCoreWords(normalized);
+  if (ingredientWords.length > 0) {
+    let bestScore = 0;
+    let bestMatch: IngredientPriceRow | undefined;
+    for (const p of prices) {
+      const pWords = extractCoreWords(normalizeIngredientName(p.ingredientName));
+      const score = scoreMatch(ingredientWords, pWords);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = p;
+      }
+    }
+    // Require at least 50% bidirectional overlap to prevent weak matches
+    if (bestMatch && bestScore >= 0.5) return bestMatch;
   }
 
   return undefined;
