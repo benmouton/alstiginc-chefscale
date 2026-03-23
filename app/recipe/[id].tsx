@@ -17,12 +17,11 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
-import type { RecipeWithDetails } from "@/lib/database";
-import { scaleAmount, formatQuantity, getUnitAbbreviation } from "@/lib/scaling";
-import { calculateRecipeCost, formatCurrency } from "@/lib/costs";
+import type { RecipeWithDetails, RecipeRow } from "@/lib/database";
+import { scaleAmount } from "@/lib/scaling";
+import { calculateRecipeCost } from "@/lib/costs";
 import { detectAllergens } from "@/lib/allergens";
 import { DIETARY_FLAGS } from "@/constants/allergens";
-import type { RecipeRow } from "@/lib/database";
 import ScalingControls from "@/components/ScalingControls";
 import IngredientRow from "@/components/IngredientRow";
 import InstructionStep from "@/components/InstructionStep";
@@ -142,6 +141,7 @@ export default function RecipeDetailScreen() {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const isScaled = recipe ? currentServings !== recipe.baseServings : false;
@@ -605,7 +605,7 @@ export default function RecipeDetailScreen() {
               >
                 <View style={styles.sectionHeader}>
                   <Ionicons name="document-text-outline" size={20} color={Colors.textSecondary} />
-                  <Text style={styles.sectionTitle}>Chef's Notes</Text>
+                  <Text style={styles.sectionTitle}>Chef&apos;s Notes</Text>
                   <View style={{ flex: 1 }} />
                   <Ionicons
                     name={notesExpanded ? "chevron-up" : "chevron-down"}

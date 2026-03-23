@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   Modal,
   Switch,
-  FlatList,
   Linking,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
@@ -196,6 +195,7 @@ export default function EditRecipeScreen() {
         }
       })();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const ensureCameraPermission = async (): Promise<boolean> => {
@@ -926,7 +926,7 @@ export default function EditRecipeScreen() {
       } else {
         router.replace({ pathname: "/recipe/[id]", params: { id: recipeId } });
       }
-    } catch (e) {
+    } catch {
       Alert.alert("Error", "Failed to save recipe. Please try again.");
     } finally {
       setSaving(false);
@@ -1487,7 +1487,7 @@ export default function EditRecipeScreen() {
         ) : null}
 
         <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl, marginBottom: Spacing.md }]}>
-          Chef's Notes
+          Chef&apos;s Notes
         </Text>
         <TextInput
           style={[styles.input, styles.multiline, { minHeight: 100 }]}

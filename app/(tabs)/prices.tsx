@@ -94,6 +94,7 @@ export default function PricesScreen() {
 
   useEffect(() => {
     loadPrices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredPrices = useMemo(() => {
@@ -426,7 +427,7 @@ export default function PricesScreen() {
                   <Text style={styles.autoCalcTitle}>Auto-Calculate from Purchase</Text>
                 </View>
                 <Text style={styles.autoCalcHint}>
-                  Enter cost and unit (e.g. "5lb bag") to auto-fill cost per unit
+                  Enter cost and unit (e.g. &quot;5lb bag&quot;) to auto-fill cost per unit
                 </Text>
               </View>
 

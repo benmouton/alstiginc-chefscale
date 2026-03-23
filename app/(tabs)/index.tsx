@@ -26,18 +26,20 @@ const CATEGORIES = ["All", "Entr\u00e9e", "Appetizer", "Sauce", "Dessert", "Prep
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { recipes, isLoading, loadRecipes, removeRecipe } = useRecipeStore();
-  const { tier, recipeCount, maxFreeRecipes, setRecipeCount } = useSubscriptionStore();
+  const { recipes, loadRecipes, removeRecipe } = useRecipeStore();
+  const { tier, maxFreeRecipes, setRecipeCount } = useSubscriptionStore();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStation, setSelectedStation] = useState("All");
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadRecipes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setRecipeCount(recipes.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipes.length]);
 
   const onRefresh = useCallback(async () => {

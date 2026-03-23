@@ -8,7 +8,6 @@ import {
   Image,
   Alert,
   Dimensions,
-  Animated,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,13 +15,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
-import { scaleAmount, formatQuantity, getUnitAbbreviation } from "@/lib/scaling";
+import { scaleAmount } from "@/lib/scaling";
 import type { RecipeWithDetails } from "@/lib/database";
 
 // Gracefully handle expo-keep-awake
 let activateKeepAwakeAsync: (() => Promise<void>) | null = null;
 let deactivateKeepAwake: (() => void) | null = null;
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const keepAwake = require("expo-keep-awake");
   activateKeepAwakeAsync = keepAwake.activateKeepAwakeAsync;
   deactivateKeepAwake = keepAwake.deactivateKeepAwake;
@@ -59,6 +59,7 @@ export default function CookModeScreen() {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Keep screen awake
@@ -96,6 +97,7 @@ export default function CookModeScreen() {
         timerRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerActive, timerStepIndex]);
 
   // Scaled ingredients

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import type { RecipeRow } from '@/lib/database';
 
 interface RecipeCardProps {

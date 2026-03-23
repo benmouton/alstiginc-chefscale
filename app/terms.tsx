@@ -25,9 +25,9 @@ export default function TermsOfService() {
         <Text style={styles.meta}>Last Updated: {EFFECTIVE_DATE}</Text>
 
         <Section title="1. Agreement to Terms">
-          By downloading, installing, or using {APP_NAME} ("the App"), you agree to be bound by
-          these Terms of Service ("Terms"). These Terms constitute a legally binding agreement between
-          you and {COMPANY_NAME} ("we," "our," or "us"). If you do not agree to these Terms, do
+          By downloading, installing, or using {APP_NAME} (&quot;the App&quot;), you agree to be bound by
+          these Terms of Service (&quot;Terms&quot;). These Terms constitute a legally binding agreement between
+          you and {COMPANY_NAME} (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). If you do not agree to these Terms, do
           not use the App.
         </Section>
 
@@ -54,7 +54,7 @@ export default function TermsOfService() {
 
         <Section title="4. Subscriptions and Payments">
           <Text style={styles.body}>
-            The App offers optional auto-renewable subscription plans managed through Apple's App
+            The App offers optional auto-renewable subscription plans managed through Apple&apos;s App
             Store.
           </Text>
 
@@ -76,16 +76,16 @@ export default function TermsOfService() {
           <Text style={styles.subhead}>Refunds</Text>
           <Text style={styles.body}>
             All purchases are final. Refund requests must be submitted directly to Apple in accordance
-            with Apple's refund policy.
+            with Apple&apos;s refund policy.
           </Text>
         </Section>
 
         <Section title="5. User Content and Data">
           <Text style={styles.body}>
             You retain ownership of all recipe data, ingredient pricing, scaling settings, and other
-            content you create or input into the App ("User Content"). By using the App, you grant us
+            content you create or input into the App (&quot;User Content&quot;). By using the App, you grant us
             a limited, non-exclusive license to process your User Content solely for the purpose of
-            providing the App's services.
+            providing the App&apos;s services.
           </Text>
           <Text style={styles.body}>
             Recipe images sent for OCR scanning are processed by OpenAI. We do not sell, share, or
@@ -115,7 +115,7 @@ export default function TermsOfService() {
         </Section>
 
         <Section title="9. Disclaimer of Warranties">
-          THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER
+          THE APP IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER
           EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY,
           FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE APP
           WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS. WE
@@ -138,7 +138,7 @@ export default function TermsOfService() {
 
         <Section title="12. Changes to Terms">
           We may update these Terms from time to time. We will notify you of any material changes by
-          updating the "Last Updated" date at the top of this page. Your continued use of the App after
+          updating the &quot;Last Updated&quot; date at the top of this page. Your continued use of the App after
           any changes constitutes your acceptance of the new Terms.
         </Section>
 

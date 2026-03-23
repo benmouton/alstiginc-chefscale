@@ -3,9 +3,8 @@ import { Tabs, router } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform, StyleSheet, View, Pressable } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import React from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Colors } from "@/constants/theme";
 
@@ -33,7 +32,6 @@ function NativeTabLayout() {
 }
 
 function ClassicTabLayout() {
-  const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
   const isIOS = Platform.OS === "ios";
 

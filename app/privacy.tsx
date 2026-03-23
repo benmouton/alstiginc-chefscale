@@ -25,7 +25,7 @@ export default function PrivacyPolicy() {
         <Text style={styles.meta}>Last Updated: {EFFECTIVE_DATE}</Text>
 
         <Section title="1. Overview">
-          {COMPANY_NAME} ("we," "our," or "us") built {APP_NAME} (the "App") as a recipe scaling,
+          {COMPANY_NAME} (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) built {APP_NAME} (the &quot;App&quot;) as a recipe scaling,
           costing, and kitchen management tool for restaurant professionals. This Privacy Policy
           explains how we handle information in connection with your use of the App. We are committed
           to protecting your privacy and being transparent about our practices.
@@ -49,12 +49,12 @@ export default function PrivacyPolicy() {
             {APP_NAME} uses AI to enhance recipe management:
           </Text>
           <Text style={styles.bullet}>• <Text style={styles.bold}>Recipe OCR</Text> — when you scan a
-            recipe image, the photo may be sent to OpenAI's servers (GPT-4o) for text extraction and
+            recipe image, the photo may be sent to OpenAI&apos;s servers (GPT-4o) for text extraction and
             structured data parsing</Text>
           <Text style={styles.bullet}>• <Text style={styles.bold}>AI recipe validation</Text> — recipe
             content may be reviewed by AI for quality and completeness</Text>
           <Text style={styles.body}>
-            When using AI features, recipe images or text are sent to OpenAI's servers for processing.
+            When using AI features, recipe images or text are sent to OpenAI&apos;s servers for processing.
             OpenAI processes this data in accordance with their API data usage policies. We do not use
             your data to train AI models. The App may also attempt on-device text recognition first
             before falling back to server-based processing.
@@ -81,10 +81,10 @@ export default function PrivacyPolicy() {
         </Section>
 
         <Section title="6. Subscription and Payment Information">
-          {APP_NAME} offers optional auto-renewable subscriptions processed entirely through Apple's
+          {APP_NAME} offers optional auto-renewable subscriptions processed entirely through Apple&apos;s
           App Store. We do not collect or have access to your payment information. All billing is
           handled by Apple in accordance with their privacy policy and terms of service. For
-          information about how Apple handles your payment data, please refer to Apple's Privacy
+          information about how Apple handles your payment data, please refer to Apple&apos;s Privacy
           Policy at{' '}
           <Text
             style={styles.link}
@@ -121,7 +121,7 @@ export default function PrivacyPolicy() {
 
         <Section title="9. Data Security">
           We take reasonable measures to protect the information processed through the App. Local
-          data is protected by your device's built-in security features. Data transmitted to
+          data is protected by your device&apos;s built-in security features. Data transmitted to
           third-party services (OpenAI, RevenueCat) is sent over encrypted connections. We recommend
           using a strong passcode or biometric lock on your device.
         </Section>
@@ -150,7 +150,7 @@ export default function PrivacyPolicy() {
 
         <Section title="11. Changes to This Privacy Policy">
           We may update this Privacy Policy from time to time. We will notify you of any material
-          changes by updating the "Last Updated" date at the top of this page. Your continued use
+          changes by updating the &quot;Last Updated&quot; date at the top of this page. Your continued use
           of the App after any changes constitutes your acceptance of the updated Privacy Policy.
         </Section>
 

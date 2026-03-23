@@ -8,7 +8,6 @@ import {
   TextInput,
   Share,
   ActivityIndicator,
-  Platform,
   Alert,
 } from "react-native";
 import { router } from "expo-router";
@@ -17,7 +16,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
-import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import { getRecipeWithDetails } from "@/lib/database";
 import {
   buildPrepSheet,
@@ -43,6 +41,7 @@ export default function PrepSheetScreen() {
 
   useEffect(() => {
     loadRecipes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleRecipe = (recipeId: string) => {
@@ -108,7 +107,7 @@ export default function PrepSheetScreen() {
       const aggregated = buildPrepSheet(prepSelections);
       setResults(aggregated);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e) {
+    } catch {
       Alert.alert('Error', 'Failed to generate prep sheet.');
     } finally {
       setIsGenerating(false);

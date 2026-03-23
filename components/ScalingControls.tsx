@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet, Modal, FlatList, Animated } from 'react-native';
+import { View, Text, Pressable, TextInput, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -41,11 +41,13 @@ export default function ScalingControls({
         useNativeDriver: true,
       }),
     ]).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentServings]);
 
   const [customInput, setCustomInput] = useState('');
   const [yieldMode, setYieldMode] = useState(false);
   const [yieldInput, setYieldInput] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [yieldTargetUnit, setYieldTargetUnit] = useState(baseYieldUnit || yieldUnit);
   const checkAccess = useSubscriptionStore((s) => s.checkAccess);
   const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);

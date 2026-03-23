@@ -45,7 +45,7 @@ const COMPARISON: ComparisonRow[] = [
 ];
 
 export default function PaywallScreen() {
-  const { feature, headline } = useLocalSearchParams<{ feature?: string; headline?: string }>();
+  const { headline } = useLocalSearchParams<{ feature?: string; headline?: string }>();
   const insets = useSafeAreaInsets();
   const webTopInset = Platform.OS === 'web' ? 67 : 0;
   const { startTrial, isTrialing, trialEndsAt, tier, setPremium, syncWithRevenueCat } = useSubscriptionStore();
