@@ -28,6 +28,11 @@ const makeIngredientRow = (overrides: Partial<IngredientRow> = {}): IngredientRo
   costUnit: null,
   fdcId: null,
   isOptional: 0,
+  isScalable: 1,
+  prepNote: '',
+  sortOrder: 0,
+  yieldPercent: 100,
+  subrecipeId: '',
   ...overrides,
 });
 

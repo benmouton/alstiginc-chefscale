@@ -17,5 +17,13 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "android",
+    "ios",
+    ".expo",
+    "server/replit_integrations",
+    ".replit_integration_files"
   ]
 }
