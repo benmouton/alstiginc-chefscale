@@ -12,6 +12,7 @@ export interface AggregatedIngredient {
   unit: string;
   display: string;
   sources: string[]; // recipe names
+  hasUnitConflict: boolean; // true when same ingredient appears with incompatible units
 }
 
 export function buildPrepSheet(selections: PrepSheetRecipe[]): AggregatedIngredient[] {
@@ -21,6 +22,7 @@ export function buildPrepSheet(selections: PrepSheetRecipe[]): AggregatedIngredi
   // Return sorted alphabetically
 
   const map = new Map<string, { amount: number; unit: string; sources: Set<string> }>();
+  const conflictedNames = new Set<string>(); // ingredient names with incompatible units
 
   for (const { recipe, multiplier } of selections) {
     const targetServings = recipe.baseServings * multiplier;
@@ -47,6 +49,7 @@ export function buildPrepSheet(selections: PrepSheetRecipe[]): AggregatedIngredi
             existing.amount += converted;
           } else {
             // Can't convert — create separate entry with unit suffix
+            conflictedNames.add(key);
             const altKey = `${key}__${scaled.unit}`;
             const altExisting = map.get(altKey);
             if (altExisting) {
@@ -66,13 +69,17 @@ export function buildPrepSheet(selections: PrepSheetRecipe[]): AggregatedIngredi
   }
 
   return Array.from(map.entries())
-    .map(([key, val]) => ({
-      name: key.replace(/__.*$/, '').replace(/\b\w/g, (c) => c.toUpperCase()),
-      amount: Math.round(val.amount * 100) / 100,
-      unit: val.unit,
-      display: `${formatQuantity(val.amount)} ${getUnitAbbreviation(val.unit)}`,
-      sources: Array.from(val.sources),
-    }))
+    .map(([key, val]) => {
+      const baseName = key.replace(/__.*$/, '');
+      return {
+        name: baseName.replace(/\b\w/g, (c) => c.toUpperCase()),
+        amount: Math.round(val.amount * 100) / 100,
+        unit: val.unit,
+        display: `${formatQuantity(val.amount)} ${getUnitAbbreviation(val.unit)}`,
+        sources: Array.from(val.sources),
+        hasUnitConflict: conflictedNames.has(baseName),
+      };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 

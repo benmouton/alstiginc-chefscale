@@ -144,6 +144,7 @@ export default function PrepSheetScreen() {
   };
 
   const selectedCount = selections.size;
+  const conflictCount = results?.filter((r) => r.hasUnitConflict).length ?? 0;
 
   // Results view
   if (results) {
@@ -178,17 +179,31 @@ export default function PrepSheetScreen() {
           {results.length} ingredient{results.length !== 1 ? 's' : ''} from {selectedCount} recipe{selectedCount !== 1 ? 's' : ''}
         </Text>
 
+        {conflictCount > 0 && (
+          <View style={styles.conflictBanner}>
+            <Ionicons name="warning-outline" size={16} color={Colors.warning} />
+            <Text style={styles.conflictBannerText}>
+              {conflictCount} ingredient{conflictCount !== 1 ? 's' : ''} listed separately due to incompatible units
+            </Text>
+          </View>
+        )}
+
         <FlatList
           data={results}
           keyExtractor={(item, index) => `${item.name}-${item.unit}-${index}`}
           contentContainerStyle={styles.resultsList}
           renderItem={({ item }) => (
-            <View style={styles.resultRow}>
+            <View style={[styles.resultRow, item.hasUnitConflict && styles.resultRowConflict]}>
               <View style={styles.resultAmountCol}>
                 <Text style={styles.resultAmount}>{item.display}</Text>
               </View>
               <View style={styles.resultNameCol}>
                 <Text style={styles.resultName}>{item.name}</Text>
+                {item.hasUnitConflict && (
+                  <Text style={styles.conflictLabel}>
+                    Different unit — check recipes
+                  </Text>
+                )}
                 {item.sources.length > 1 && (
                   <Text style={styles.resultSources}>
                     {item.sources.join(', ')}
@@ -534,6 +549,34 @@ const styles = StyleSheet.create({
   resultSources: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 2,
+  },
+  resultRowConflict: {
+    borderBottomColor: Colors.warning,
+  },
+  conflictBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  conflictBannerText: {
+    fontSize: FontSize.xs,
+    color: Colors.warning,
+    fontFamily: 'Inter_400Regular',
+    flex: 1,
+  },
+  conflictLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.warning,
     fontFamily: 'Inter_400Regular',
     marginTop: 2,
   },
