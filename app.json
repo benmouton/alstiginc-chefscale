@@ -2,7 +2,7 @@
   "expo": {
     "name": "Chef Scale",
     "slug": "chefscale",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "description": "Scale recipes and manage ingredient costs. Offline-first, with cloud sync capabilities.",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,7 +17,11 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.alstiginc.chefscale",
-      "buildNumber": "10",
+      "buildNumber": "11",
+      "appleTeamId": "M2989SGWJA",
+      "entitlements": {
+        "com.apple.developer.applesignin": ["Default"]
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "ChefScale uses your camera to scan and photograph recipes, ingredient lists, and nutrition labels so you can quickly import them into the app for scaling and cost tracking.",
         "NSPhotoLibraryUsageDescription": "ChefScale accesses your photo library so you can import photos of recipes, ingredient lists, and nutrition labels for scanning and recipe entry.",
