@@ -279,11 +279,11 @@ export default function PaywallScreen() {
           </Pressable>
 
           <View style={styles.legalLinks}>
-            <Pressable onPress={() => Linking.openURL('https://restaurantai.consulting/privacy')}>
+            <Pressable onPress={() => router.push('/privacy')}>
               <Text style={styles.legalLinkText}>Privacy Policy</Text>
             </Pressable>
             <Text style={styles.legalSeparator}>|</Text>
-            <Pressable onPress={() => Linking.openURL('https://restaurantai.consulting/terms')}>
+            <Pressable onPress={() => router.push('/terms')}>
               <Text style={styles.legalLinkText}>Terms of Service</Text>
             </Pressable>
           </View>

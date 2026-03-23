@@ -70,6 +70,18 @@ function RootLayoutNav() {
         }}
       />
       <Stack.Screen
+        name="privacy"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="terms"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="prep-sheet"
         options={{
           headerShown: false,

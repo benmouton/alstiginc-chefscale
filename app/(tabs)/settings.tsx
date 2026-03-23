@@ -245,12 +245,12 @@ export default function SettingsScreen() {
 
   const handlePrivacyPolicy = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL("https://restaurantai.consulting/privacy");
+    router.push('/privacy');
   };
 
   const handleTermsOfService = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL("https://restaurantai.consulting/terms");
+    router.push('/terms');
   };
 
   const handleUpgrade = () => {
