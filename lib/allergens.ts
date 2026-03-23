@@ -1,22 +1,41 @@
-import { ALLERGENS, type AllergenInfo } from '@/constants/allergens';
+import { ALLERGENS, type AllergenInfo, type AllergenConfidence } from '@/constants/allergens';
 
-export function detectAllergens(ingredientNames: string[]): AllergenInfo[] {
-  const detected = new Set<string>();
+export interface DetectedAllergen {
+  allergen: AllergenInfo;
+  confidence: AllergenConfidence;
+  matchedKeyword: string;
+}
+
+export function detectAllergensWithConfidence(ingredientNames: string[]): DetectedAllergen[] {
+  const detected = new Map<string, DetectedAllergen>();
 
   for (const name of ingredientNames) {
     const lower = name.toLowerCase().trim();
     for (const allergen of ALLERGENS) {
-      if (detected.has(allergen.id)) continue;
       for (const keyword of allergen.keywords) {
-        if (lower.includes(keyword)) {
-          detected.add(allergen.id);
-          break;
+        if (!lower.includes(keyword)) continue;
+
+        // Determine confidence from classifiedKeywords
+        let confidence: AllergenConfidence = 'major'; // default if not classified
+        const classified = allergen.classifiedKeywords.find((ck) => lower.includes(ck.term));
+        if (classified) {
+          confidence = classified.confidence;
         }
+
+        const existing = detected.get(allergen.id);
+        if (!existing || (existing.confidence === 'trace' && confidence === 'major')) {
+          detected.set(allergen.id, { allergen, confidence, matchedKeyword: keyword });
+        }
+        break;
       }
     }
   }
 
-  return ALLERGENS.filter((a) => detected.has(a.id));
+  return Array.from(detected.values());
+}
+
+export function detectAllergens(ingredientNames: string[]): AllergenInfo[] {
+  return detectAllergensWithConfidence(ingredientNames).map((d) => d.allergen);
 }
 
 export function getAllergenById(id: string): AllergenInfo | undefined {

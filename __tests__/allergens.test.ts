@@ -1,4 +1,4 @@
-import { detectAllergens, getAllergenById } from '../lib/allergens';
+import { detectAllergens, detectAllergensWithConfidence, getAllergenById } from '../lib/allergens';
 
 describe('detectAllergens', () => {
   it('detects dairy allergen', () => {
@@ -56,6 +56,50 @@ describe('detectAllergens', () => {
 
   it('handles empty input', () => {
     expect(detectAllergens([])).toHaveLength(0);
+  });
+});
+
+describe('detectAllergensWithConfidence', () => {
+  it('classifies whole fish as major', () => {
+    const result = detectAllergensWithConfidence(['salmon fillet']);
+    const fish = result.find((r) => r.allergen.id === 'fish');
+    expect(fish).toBeDefined();
+    expect(fish!.confidence).toBe('major');
+  });
+
+  it('classifies fish sauce as trace', () => {
+    const result = detectAllergensWithConfidence(['fish sauce']);
+    const fish = result.find((r) => r.allergen.id === 'fish');
+    expect(fish).toBeDefined();
+    expect(fish!.confidence).toBe('trace');
+  });
+
+  it('classifies soy lecithin as trace', () => {
+    const result = detectAllergensWithConfidence(['soy lecithin']);
+    const soy = result.find((r) => r.allergen.id === 'soy');
+    expect(soy).toBeDefined();
+    expect(soy!.confidence).toBe('trace');
+  });
+
+  it('classifies tofu as major soy', () => {
+    const result = detectAllergensWithConfidence(['tofu']);
+    const soy = result.find((r) => r.allergen.id === 'soy');
+    expect(soy).toBeDefined();
+    expect(soy!.confidence).toBe('major');
+  });
+
+  it('upgrades trace to major when both present', () => {
+    const result = detectAllergensWithConfidence(['fish sauce', 'salmon']);
+    const fish = result.find((r) => r.allergen.id === 'fish');
+    expect(fish).toBeDefined();
+    expect(fish!.confidence).toBe('major');
+  });
+
+  it('classifies worcestershire as trace fish', () => {
+    const result = detectAllergensWithConfidence(['worcestershire']);
+    const fish = result.find((r) => r.allergen.id === 'fish');
+    expect(fish).toBeDefined();
+    expect(fish!.confidence).toBe('trace');
   });
 });
 

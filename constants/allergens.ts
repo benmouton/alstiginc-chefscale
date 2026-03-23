@@ -1,9 +1,17 @@
+export type AllergenConfidence = 'major' | 'trace';
+
+export interface AllergenKeyword {
+  term: string;
+  confidence: AllergenConfidence;
+}
+
 export interface AllergenInfo {
   id: string;
   name: string;
   icon: string;
   color: string;
   keywords: string[];
+  classifiedKeywords: AllergenKeyword[];
 }
 
 export const ALLERGENS: AllergenInfo[] = [
@@ -20,6 +28,15 @@ export const ALLERGENS: AllergenInfo[] = [
       'cream cheese', 'half and half', 'evaporated milk', 'condensed milk',
       'buttermilk', 'kefir', 'paneer', 'queso',
     ],
+    classifiedKeywords: [
+      { term: 'milk', confidence: 'major' }, { term: 'cream', confidence: 'major' },
+      { term: 'cheese', confidence: 'major' }, { term: 'butter', confidence: 'major' },
+      { term: 'yogurt', confidence: 'major' }, { term: 'ice cream', confidence: 'major' },
+      { term: 'sour cream', confidence: 'major' }, { term: 'cream cheese', confidence: 'major' },
+      { term: 'paneer', confidence: 'major' }, { term: 'kefir', confidence: 'major' },
+      { term: 'whey', confidence: 'trace' }, { term: 'casein', confidence: 'trace' },
+      { term: 'lactose', confidence: 'trace' }, { term: 'ghee', confidence: 'trace' },
+    ],
   },
   {
     id: 'gluten',
@@ -33,6 +50,14 @@ export const ALLERGENS: AllergenInfo[] = [
       'croissant', 'baguette', 'breadcrumb', 'panko', 'soy sauce',
       'teriyaki', 'seitan',
     ],
+    classifiedKeywords: [
+      { term: 'flour', confidence: 'major' }, { term: 'bread', confidence: 'major' },
+      { term: 'pasta', confidence: 'major' }, { term: 'noodle', confidence: 'major' },
+      { term: 'wheat', confidence: 'major' }, { term: 'seitan', confidence: 'major' },
+      { term: 'couscous', confidence: 'major' }, { term: 'tortilla', confidence: 'major' },
+      { term: 'soy sauce', confidence: 'trace' }, { term: 'teriyaki', confidence: 'trace' },
+      { term: 'breadcrumb', confidence: 'trace' }, { term: 'panko', confidence: 'trace' },
+    ],
   },
   {
     id: 'nuts',
@@ -45,6 +70,14 @@ export const ALLERGENS: AllergenInfo[] = [
       'marzipan', 'nougat', 'nut butter', 'nut milk', 'almond milk',
       'almond flour', 'coconut',
     ],
+    classifiedKeywords: [
+      { term: 'almond', confidence: 'major' }, { term: 'walnut', confidence: 'major' },
+      { term: 'pecan', confidence: 'major' }, { term: 'cashew', confidence: 'major' },
+      { term: 'pistachio', confidence: 'major' }, { term: 'coconut', confidence: 'major' },
+      { term: 'almond flour', confidence: 'major' }, { term: 'nut butter', confidence: 'major' },
+      { term: 'pine nut', confidence: 'trace' }, { term: 'nut milk', confidence: 'trace' },
+      { term: 'almond milk', confidence: 'trace' }, { term: 'marzipan', confidence: 'trace' },
+    ],
   },
   {
     id: 'peanuts',
@@ -54,6 +87,10 @@ export const ALLERGENS: AllergenInfo[] = [
     keywords: [
       'peanut', 'peanut butter', 'peanut oil', 'groundnut', 'goober',
       'arachis', 'monkey nut',
+    ],
+    classifiedKeywords: [
+      { term: 'peanut', confidence: 'major' }, { term: 'peanut butter', confidence: 'major' },
+      { term: 'peanut oil', confidence: 'trace' },
     ],
   },
   {
@@ -66,6 +103,13 @@ export const ALLERGENS: AllergenInfo[] = [
       'aioli', 'hollandaise', 'custard', 'quiche', 'frittata', 'omelet',
       'albumin', 'lysozyme', 'lecithin',
     ],
+    classifiedKeywords: [
+      { term: 'egg', confidence: 'major' }, { term: 'eggs', confidence: 'major' },
+      { term: 'omelet', confidence: 'major' }, { term: 'frittata', confidence: 'major' },
+      { term: 'quiche', confidence: 'major' },
+      { term: 'lecithin', confidence: 'trace' }, { term: 'lysozyme', confidence: 'trace' },
+      { term: 'albumin', confidence: 'trace' }, { term: 'mayonnaise', confidence: 'trace' },
+    ],
   },
   {
     id: 'soy',
@@ -76,6 +120,12 @@ export const ALLERGENS: AllergenInfo[] = [
       'soy', 'soya', 'soybean', 'tofu', 'tempeh', 'edamame', 'miso',
       'soy sauce', 'soy milk', 'soy protein', 'soy lecithin', 'tamari',
       'natto', 'soy flour',
+    ],
+    classifiedKeywords: [
+      { term: 'tofu', confidence: 'major' }, { term: 'tempeh', confidence: 'major' },
+      { term: 'edamame', confidence: 'major' }, { term: 'soy milk', confidence: 'major' },
+      { term: 'soy sauce', confidence: 'trace' }, { term: 'soy lecithin', confidence: 'trace' },
+      { term: 'tamari', confidence: 'trace' }, { term: 'miso', confidence: 'trace' },
     ],
   },
   {
@@ -89,6 +139,13 @@ export const ALLERGENS: AllergenInfo[] = [
       'mahi', 'snapper', 'grouper', 'sole', 'flounder', 'haddock',
       'fish sauce', 'worcestershire',
     ],
+    classifiedKeywords: [
+      { term: 'salmon', confidence: 'major' }, { term: 'tuna', confidence: 'major' },
+      { term: 'cod', confidence: 'major' }, { term: 'halibut', confidence: 'major' },
+      { term: 'trout', confidence: 'major' }, { term: 'snapper', confidence: 'major' },
+      { term: 'fish sauce', confidence: 'trace' }, { term: 'worcestershire', confidence: 'trace' },
+      { term: 'anchovy', confidence: 'trace' },
+    ],
   },
   {
     id: 'shellfish',
@@ -100,6 +157,13 @@ export const ALLERGENS: AllergenInfo[] = [
       'clam', 'mussel', 'oyster', 'scallop', 'squid', 'calamari',
       'octopus', 'snail', 'escargot', 'abalone',
     ],
+    classifiedKeywords: [
+      { term: 'shrimp', confidence: 'major' }, { term: 'crab', confidence: 'major' },
+      { term: 'lobster', confidence: 'major' }, { term: 'scallop', confidence: 'major' },
+      { term: 'clam', confidence: 'major' }, { term: 'mussel', confidence: 'major' },
+      { term: 'oyster', confidence: 'major' }, { term: 'squid', confidence: 'major' },
+      { term: 'calamari', confidence: 'major' },
+    ],
   },
   {
     id: 'sesame',
@@ -109,6 +173,10 @@ export const ALLERGENS: AllergenInfo[] = [
     keywords: [
       'sesame', 'sesame seed', 'sesame oil', 'tahini', 'halvah',
       'hummus', 'sesame paste', 'gomashio',
+    ],
+    classifiedKeywords: [
+      { term: 'sesame seed', confidence: 'major' }, { term: 'tahini', confidence: 'major' },
+      { term: 'sesame oil', confidence: 'trace' }, { term: 'hummus', confidence: 'trace' },
     ],
   },
 ];
