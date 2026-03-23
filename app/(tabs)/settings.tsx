@@ -21,6 +21,9 @@ import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import MyCookbookPromo from "@/components/MyCookbookPromo";
+import { buildRecipeCSV, buildPriceCSV, shareCSV } from "@/lib/csvExport";
+import { getAllPrices, getIngredientsByRecipeId } from "@/lib/database";
+import type { IngredientRow } from "@/lib/database";
 
 interface SettingsRowProps {
   icon: string;
@@ -173,6 +176,41 @@ export default function SettingsScreen() {
     } catch (e) {
       if ((e as any)?.message?.includes("User did not share")) return;
       Alert.alert("Export Failed", "Could not export recipes. Please try again.");
+    }
+  };
+
+  const handleExportCSV = async () => {
+    if (!checkAccess('export')) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      router.push({ pathname: '/paywall', params: { feature: 'export', headline: getPaywallHeadline('export') } });
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (recipes.length === 0) {
+      Alert.alert("No Data", "There are no recipes to export.");
+      return;
+    }
+
+    try {
+      // Load ingredients for each recipe
+      const ingredientCache = new Map<string, IngredientRow[]>();
+      for (const recipe of recipes) {
+        ingredientCache.set(recipe.id, await getIngredientsByRecipeId(recipe.id));
+      }
+
+      const prices = await getAllPrices();
+
+      const recipeCSV = buildRecipeCSV(recipes, (id) => ingredientCache.get(id) ?? []);
+      const priceCSV = buildPriceCSV(prices);
+      const combined = recipeCSV + '\n\n--- Ingredient Prices ---\n\n' + priceCSV;
+
+      await shareCSV(combined, 'chefscale-export');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (e) {
+      if ((e as any)?.message?.includes("User did not share")) return;
+      Alert.alert("Export Failed", "Could not export data. Please try again.");
     }
   };
 
@@ -352,6 +390,13 @@ export default function SettingsScreen() {
               subtitle={`Save ${recipes.length} recipe(s) to file`}
               color="#3B82F6"
               onPress={handleExportRecipes}
+            />
+            <SettingsRow
+              icon="document-text-outline"
+              label="Export as CSV"
+              subtitle="Recipes and prices for spreadsheets"
+              color="#10B981"
+              onPress={handleExportCSV}
             />
             <SettingsRow
               icon="cloud-download-outline"
