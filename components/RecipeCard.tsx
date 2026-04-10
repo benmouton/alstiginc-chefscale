@@ -201,12 +201,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#F5F5F4',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   description: {
     fontSize: 13,
     color: 'rgba(255,255,255,0.7)',
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     fontStyle: 'italic',
     marginTop: 2,
   },
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   pillText: {
     fontSize: 11,
     color: 'rgba(255,255,255,0.8)',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   stationPill: {
     backgroundColor: 'rgba(217,119,6,0.25)',
@@ -259,6 +259,6 @@ const styles = StyleSheet.create({
   variationBadgeText: {
     fontSize: 10,
     color: '#D97706',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
 });

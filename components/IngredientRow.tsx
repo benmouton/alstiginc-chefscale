@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   amountScaled: {
     color: Colors.accent,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   originalAmount: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     fontStyle: 'italic',
   },
   fixedBadge: {
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   fixedBadgeText: {
     fontSize: 10,
     color: Colors.textMuted,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -128,25 +128,25 @@ const styles = StyleSheet.create({
   name: {
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   prepNote: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     fontStyle: 'italic',
   },
   cost: {
     fontSize: FontSize.sm,
     color: Colors.accent,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     marginTop: 2,
   },
   asPurchased: {
     fontSize: FontSize.xs,
     color: Colors.warning,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     fontStyle: 'italic',
     marginTop: 1,
   },

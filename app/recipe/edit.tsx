@@ -1806,7 +1806,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: "600",
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   saveButton: {
     width: 44,
@@ -1844,7 +1844,7 @@ const styles = StyleSheet.create({
   photoPlaceholderText: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
 
   scanButton: {
@@ -1863,13 +1863,13 @@ const styles = StyleSheet.create({
   scanButtonText: {
     fontSize: FontSize.md,
     color: Colors.accent,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   inputLabel: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     marginBottom: Spacing.xs,
     marginTop: Spacing.lg,
   },
@@ -1879,14 +1879,14 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     borderWidth: 1,
     borderColor: Colors.border,
     minHeight: TouchTarget.min,
   },
   nameInput: {
     fontSize: FontSize.xl,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     fontWeight: "700",
   },
   inputError: {
@@ -1899,7 +1899,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: FontSize.xs,
     color: Colors.error,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: Spacing.xs,
   },
 
@@ -1925,7 +1925,7 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   chipTextActive: {
     color: Colors.textPrimary,
@@ -1955,14 +1955,14 @@ const styles = StyleSheet.create({
   tagChipText: {
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   tagInput: {
     flex: 1,
     minWidth: 80,
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     padding: 4,
   },
 
@@ -1984,7 +1984,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   addButton: {
     flexDirection: "row",
@@ -1998,7 +1998,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   ingredientCard: {
@@ -2054,7 +2054,7 @@ const styles = StyleSheet.create({
   unitSelectorText: {
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   ingredientNameInput: {
     flex: 1,
@@ -2077,7 +2077,7 @@ const styles = StyleSheet.create({
   scalableLabel: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
 
   addRowButton: {
@@ -2091,7 +2091,7 @@ const styles = StyleSheet.create({
   addRowText: {
     fontSize: FontSize.md,
     color: Colors.primary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   instructionCard: {
@@ -2120,7 +2120,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   instructionTextInput: {
     minHeight: 70,
@@ -2159,7 +2159,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: "700",
     color: Colors.primary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   skipSaveButton: {
     alignItems: "center",
@@ -2169,7 +2169,7 @@ const styles = StyleSheet.create({
   skipSaveText: {
     fontSize: FontSize.md,
     color: Colors.textMuted,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     textDecorationLine: "underline",
   },
   cancelButton: {
@@ -2180,7 +2180,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: FontSize.md,
     color: Colors.textMuted,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   modalOverlay: {
@@ -2208,7 +2208,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     textAlign: "center",
     marginBottom: Spacing.md,
   },
@@ -2230,13 +2230,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: "700",
     color: Colors.primary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     width: 50,
   },
   unitOptionName: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
 
   reviewModalContent: {
@@ -2257,13 +2257,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     textAlign: "center",
   },
   reviewSubtitle: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     textAlign: "center",
     marginTop: Spacing.xs,
   },
@@ -2284,12 +2284,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   reviewSectionDescription: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginBottom: Spacing.sm,
   },
   warningRow: {
@@ -2305,7 +2305,7 @@ const styles = StyleSheet.create({
   warningText: {
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     flex: 1,
   },
   suggestedStepCard: {
@@ -2327,20 +2327,20 @@ const styles = StyleSheet.create({
   suggestedStepText: {
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     marginBottom: Spacing.xs,
   },
   suggestedStepReason: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     fontStyle: "italic",
     marginBottom: Spacing.xs,
   },
   suggestedStepInsert: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginBottom: Spacing.sm,
   },
   suggestedStepActions: {
@@ -2362,7 +2362,7 @@ const styles = StyleSheet.create({
   suggestActionText: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   tipRow: {
     flexDirection: "row",
@@ -2377,7 +2377,7 @@ const styles = StyleSheet.create({
   tipText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     flex: 1,
   },
   reviewActions: {
@@ -2399,7 +2399,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   reviewSkipBtn: {
     alignItems: "center",
@@ -2408,7 +2408,7 @@ const styles = StyleSheet.create({
   reviewSkipBtnText: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     textDecorationLine: "underline",
   },
   reviewEditBtn: {
@@ -2418,7 +2418,7 @@ const styles = StyleSheet.create({
   reviewEditBtnText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   scanningOverlay: {
@@ -2445,7 +2445,7 @@ const styles = StyleSheet.create({
   scanCancelText: {
     fontSize: FontSize.sm,
     color: Colors.error,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   stepPhotoBtn: {
@@ -2478,7 +2478,7 @@ const styles = StyleSheet.create({
   galleryHint: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginBottom: Spacing.md,
   },
   galleryScroll: {
@@ -2512,7 +2512,7 @@ const styles = StyleSheet.create({
   galleryCaption: {
     fontSize: FontSize.xs,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     paddingHorizontal: Spacing.sm,
     paddingVertical: 6,
     borderTopWidth: StyleSheet.hairlineWidth,
@@ -2533,6 +2533,6 @@ const styles = StyleSheet.create({
   galleryEmptyText: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
 });

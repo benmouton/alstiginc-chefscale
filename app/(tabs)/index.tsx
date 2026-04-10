@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     fontSize: 34,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     textShadowColor: 'rgba(217,119,6,0.2)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 12,
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: 2,
   },
   headerBtns: {
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   categoryTextActive: {
     color: Colors.textPrimary,
@@ -388,14 +388,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#F5F5F4',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyTagline: {
     fontSize: 15,
     color: 'rgba(255,255,255,0.5)',
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     textAlign: 'center',
     fontStyle: 'italic',
     marginBottom: 32,
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#FFF',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   nudgeBanner: {
     flexDirection: 'row',
@@ -440,11 +440,11 @@ const styles = StyleSheet.create({
   nudgeText: {
     fontSize: FontSize.sm,
     color: Colors.accent,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     flex: 1,
   },
   nudgeLink: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     textDecorationLine: 'underline' as const,
   },
 });

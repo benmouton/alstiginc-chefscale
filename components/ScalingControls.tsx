@@ -276,13 +276,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     letterSpacing: 1.5,
   },
   resetText: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     textDecorationLine: 'underline',
   },
   scaleDisplay: {
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     textShadowColor: 'rgba(217,119,6,0.3)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 16,
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   servingsText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     marginTop: Spacing.xs,
   },
   quickButtons: {
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '700',
     color: Colors.textSecondary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   quickBtnTextActive: {
     color: Colors.textPrimary,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     borderWidth: 1,
     borderColor: Colors.border,
     minHeight: TouchTarget.min,
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   yieldToggle: {
     flexDirection: 'row',
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   yieldToggleText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   yieldSection: {
     marginTop: Spacing.sm,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
   yieldLabel: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     marginBottom: Spacing.sm,
   },
   yieldUnitDisplay: {
@@ -416,6 +416,6 @@ const styles = StyleSheet.create({
   yieldUnitText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
 });

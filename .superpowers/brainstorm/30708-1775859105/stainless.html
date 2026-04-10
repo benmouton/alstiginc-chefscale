@@ -1,0 +1,234 @@
+<h2>ChefScale — Real Stainless Steel</h2>
+<p class="subtitle">Not another dark app. Actual metallic surfaces, brushed steel textures, industrial warmth.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="steel1" onclick="toggleSelect(this)">
+    <div class="card-image" style="height: 420px; overflow: hidden; border-radius: 12px;">
+      <!-- Brushed steel background -->
+      <div style="background: linear-gradient(180deg, #2a2d32 0%, #22252a 40%, #1e2126 100%); height: 100%; padding: 16px; display: flex; flex-direction: column; gap: 10px; font-family: -apple-system, sans-serif; position: relative;">
+        <!-- Subtle brushed metal texture -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px); pointer-events: none;"></div>
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 6px; height: 22px; background: #f97316; border-radius: 3px;"></div>
+            <span style="color: #e8eaed; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">ChefScale</span>
+          </div>
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(145deg, #3a3d42, #2a2d32); border: 1px solid #4a4d52; display: flex; align-items: center; justify-content: center; color: #f97316; font-size: 16px; font-weight: 300; box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);">+</div>
+        </div>
+        <!-- Stats bar - metallic cards -->
+        <div style="display: flex; gap: 8px; position: relative;">
+          <div style="flex: 1; background: linear-gradient(145deg, #32363b, #282b30); border-radius: 10px; padding: 10px; border: 1px solid #3a3d42; box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);">
+            <div style="color: #8a8d92; font-size: 8px; font-weight: 700; letter-spacing: 1.5px;">AVG FOOD COST</div>
+            <div style="color: #22c55e; font-size: 20px; font-weight: 700; font-family: 'SF Mono', monospace;">24.5%</div>
+          </div>
+          <div style="flex: 1; background: linear-gradient(145deg, #32363b, #282b30); border-radius: 10px; padding: 10px; border: 1px solid #3a3d42; box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);">
+            <div style="color: #8a8d92; font-size: 8px; font-weight: 700; letter-spacing: 1.5px;">AVG COST/SRV</div>
+            <div style="color: #e8eaed; font-size: 20px; font-weight: 700; font-family: 'SF Mono', monospace;">$3.08</div>
+          </div>
+        </div>
+        <!-- Segmented - stamped metal look -->
+        <div style="background: linear-gradient(145deg, #282b30, #22252a); border-radius: 8px; padding: 2px; display: flex; border: 1px solid #3a3d42; position: relative;">
+          <span style="flex: 1; text-align: center; padding: 6px; border-radius: 6px; background: #f97316; color: #000; font-size: 10px; font-weight: 700;">ALL</span>
+          <span style="flex: 1; text-align: center; padding: 6px; color: #6a6d72; font-size: 10px; font-weight: 600;">ENTRÉE</span>
+          <span style="flex: 1; text-align: center; padding: 6px; color: #6a6d72; font-size: 10px; font-weight: 600;">SAUCE</span>
+          <span style="flex: 1; text-align: center; padding: 6px; color: #6a6d72; font-size: 10px; font-weight: 600;">PREP</span>
+        </div>
+        <!-- Recipe cards - embossed steel panels -->
+        <div style="display: flex; flex-direction: column; gap: 6px; position: relative;">
+          <div style="background: linear-gradient(145deg, #32363b, #2a2d32); border: 1px solid #3a3d42; border-radius: 10px; padding: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <div>
+                <div style="color: #e8eaed; font-size: 15px; font-weight: 600;">Braised Short Ribs</div>
+                <div style="display: flex; gap: 8px; margin-top: 5px; align-items: center;">
+                  <span style="padding: 2px 7px; border-radius: 4px; background: #f9731620; color: #f97316; font-size: 9px; font-weight: 700; border: 1px solid #f9731630;">ENTRÉE</span>
+                  <span style="color: #6a6d72; font-size: 10px;">6 srv</span>
+                  <span style="color: #3a3d42;">|</span>
+                  <span style="color: #6a6d72; font-size: 10px;">3h 30m</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: #e8eaed; font-size: 16px; font-weight: 700; font-family: 'SF Mono', monospace;">$4.20</div>
+                <div style="color: #f97316; font-size: 9px; font-weight: 600;">28% FC</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 4px; margin-top: 6px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: #60a5fa; border: 1px solid #60a5fa40;"></span>
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: #fbbf24; border: 1px solid #fbbf2440;"></span>
+            </div>
+          </div>
+          <div style="background: linear-gradient(145deg, #32363b, #2a2d32); border: 1px solid #3a3d42; border-radius: 10px; padding: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <div>
+                <div style="color: #e8eaed; font-size: 15px; font-weight: 600;">Beurre Blanc</div>
+                <div style="display: flex; gap: 8px; margin-top: 5px; align-items: center;">
+                  <span style="padding: 2px 7px; border-radius: 4px; background: #22c55e20; color: #22c55e; font-size: 9px; font-weight: 700; border: 1px solid #22c55e30;">SAUCE</span>
+                  <span style="color: #6a6d72; font-size: 10px;">12 srv</span>
+                  <span style="color: #3a3d42;">|</span>
+                  <span style="color: #6a6d72; font-size: 10px;">25m</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: #e8eaed; font-size: 16px; font-weight: 700; font-family: 'SF Mono', monospace;">$1.80</div>
+                <div style="color: #22c55e; font-size: 9px; font-weight: 600;">22% FC</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Tab bar - riveted metal strip -->
+        <div style="margin-top: auto; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #3a3d42; background: linear-gradient(180deg, transparent, rgba(0,0,0,0.1)); position: relative;">
+          <div style="text-align: center;"><div style="color: #f97316; font-size: 9px; font-weight: 700; letter-spacing: 1px;">RECIPES</div></div>
+          <div style="text-align: center;"><div style="color: #52525b; font-size: 9px; font-weight: 600; letter-spacing: 1px;">PRICES</div></div>
+          <div style="text-align: center;"><div style="color: #52525b; font-size: 9px; font-weight: 600; letter-spacing: 1px;">CONVERT</div></div>
+          <div style="text-align: center;"><div style="color: #52525b; font-size: 9px; font-weight: 600; letter-spacing: 1px;">SETTINGS</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Brushed Steel</h3>
+      <p><strong>Blue-gray steel palette</strong> (#2a2d32 base, #32363b cards) instead of pure black. Subtle brushed texture gradient. Cards have <strong>embossed look</strong> — inner highlight top edge, drop shadow bottom. Metallic borders (#3a3d42). Orange stays as the operational signal color. <strong>Feels like touching stainless steel countertops in a commercial kitchen.</strong></p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="steel2" onclick="toggleSelect(this)">
+    <div class="card-image" style="height: 420px; overflow: hidden; border-radius: 12px;">
+      <!-- Warmer steel - like seasoned cast iron -->
+      <div style="background: linear-gradient(180deg, #1f1e1c 0%, #1a1918 40%, #161514 100%); height: 100%; padding: 16px; display: flex; flex-direction: column; gap: 10px; font-family: -apple-system, sans-serif;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: #d4cfc8; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">ChefScale</span>
+          </div>
+          <div style="width: 32px; height: 32px; border-radius: 8px; background: #f97316; display: flex; align-items: center; justify-content: center; color: #1a1918; font-size: 16px; font-weight: 700;">+</div>
+        </div>
+        <!-- Stats - burnished -->
+        <div style="display: flex; gap: 8px;">
+          <div style="flex: 1; background: #262422; border-radius: 10px; padding: 10px; border: 1px solid #3a3632;">
+            <div style="color: #7a756e; font-size: 8px; font-weight: 700; letter-spacing: 1.5px;">AVG FOOD COST</div>
+            <div style="color: #22c55e; font-size: 20px; font-weight: 700; font-family: 'SF Mono', monospace;">24.5%</div>
+          </div>
+          <div style="flex: 1; background: #262422; border-radius: 10px; padding: 10px; border: 1px solid #3a3632;">
+            <div style="color: #7a756e; font-size: 8px; font-weight: 700; letter-spacing: 1.5px;">AVG COST/SRV</div>
+            <div style="color: #d4cfc8; font-size: 20px; font-weight: 700; font-family: 'SF Mono', monospace;">$3.08</div>
+          </div>
+        </div>
+        <!-- Segmented -->
+        <div style="background: #262422; border-radius: 8px; padding: 2px; display: flex; border: 1px solid #3a3632;">
+          <span style="flex: 1; text-align: center; padding: 6px; border-radius: 6px; background: #f97316; color: #1a1918; font-size: 10px; font-weight: 700;">ALL</span>
+          <span style="flex: 1; text-align: center; padding: 6px; color: #7a756e; font-size: 10px; font-weight: 600;">ENTRÉE</span>
+          <span style="flex: 1; text-align: center; padding: 6px; color: #7a756e; font-size: 10px; font-weight: 600;">SAUCE</span>
+          <span style="flex: 1; text-align: center; padding: 6px; color: #7a756e; font-size: 10px; font-weight: 600;">PREP</span>
+        </div>
+        <!-- Recipe cards - cast iron -->
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="background: #262422; border: 1px solid #3a3632; border-left: 4px solid #f97316; border-radius: 10px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <div>
+                <div style="color: #d4cfc8; font-size: 15px; font-weight: 600;">Braised Short Ribs</div>
+                <div style="display: flex; gap: 8px; margin-top: 5px; align-items: center;">
+                  <span style="color: #f97316; font-size: 9px; font-weight: 700;">ENTRÉE</span>
+                  <span style="color: #5a554e;">|</span>
+                  <span style="color: #7a756e; font-size: 10px;">6 srv · 3h 30m</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: #d4cfc8; font-size: 16px; font-weight: 700; font-family: 'SF Mono', monospace;">$4.20</div>
+                <div style="color: #f97316; font-size: 9px; font-weight: 600;">28% FC</div>
+              </div>
+            </div>
+          </div>
+          <div style="background: #262422; border: 1px solid #3a3632; border-left: 4px solid #22c55e; border-radius: 10px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <div>
+                <div style="color: #d4cfc8; font-size: 15px; font-weight: 600;">Beurre Blanc</div>
+                <div style="display: flex; gap: 8px; margin-top: 5px; align-items: center;">
+                  <span style="color: #22c55e; font-size: 9px; font-weight: 700;">SAUCE</span>
+                  <span style="color: #5a554e;">|</span>
+                  <span style="color: #7a756e; font-size: 10px;">12 srv · 25m</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: #d4cfc8; font-size: 16px; font-weight: 700; font-family: 'SF Mono', monospace;">$1.80</div>
+                <div style="color: #22c55e; font-size: 9px; font-weight: 600;">22% FC</div>
+              </div>
+            </div>
+          </div>
+          <div style="background: #262422; border: 1px solid #3a3632; border-left: 4px solid #ec4899; border-radius: 10px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+              <div>
+                <div style="color: #d4cfc8; font-size: 15px; font-weight: 600;">Crème Brûlée</div>
+                <div style="display: flex; gap: 8px; margin-top: 5px; align-items: center;">
+                  <span style="color: #ec4899; font-size: 9px; font-weight: 700;">DESSERT</span>
+                  <span style="color: #5a554e;">|</span>
+                  <span style="color: #7a756e; font-size: 10px;">8 srv · 1h 15m</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: #d4cfc8; font-size: 16px; font-weight: 700; font-family: 'SF Mono', monospace;">$2.10</div>
+                <div style="color: #ec4899; font-size: 9px; font-weight: 600;">18% FC</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Tab bar -->
+        <div style="margin-top: auto; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #3a3632;">
+          <div style="text-align: center;"><div style="color: #f97316; font-size: 9px; font-weight: 700; letter-spacing: 1px;">RECIPES</div></div>
+          <div style="text-align: center;"><div style="color: #5a554e; font-size: 9px; font-weight: 600; letter-spacing: 1px;">PRICES</div></div>
+          <div style="text-align: center;"><div style="color: #5a554e; font-size: 9px; font-weight: 600; letter-spacing: 1px;">CONVERT</div></div>
+          <div style="text-align: center;"><div style="color: #5a554e; font-size: 9px; font-weight: 600; letter-spacing: 1px;">SETTINGS</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Cast Iron</h3>
+      <p><strong>Warm dark iron</strong> (#1f1e1c base, #262422 cards) — like seasoned cast iron cookware. Warm gray text (#d4cfc8) instead of cool white. Ticket rail accent stripes with category colors. Same data density. <strong>Feels like a well-seasoned kitchen — warm, industrial, used by professionals who care about their tools.</strong></p>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top: 16px;">
+  <h3>Color Comparison</h3>
+  <div style="display: flex; gap: 12px; margin-top: 10px;">
+    <div style="flex: 1;">
+      <div style="color: #888; font-size: 11px; margin-bottom: 6px; text-align: center;">Brushed Steel (cool)</div>
+      <div style="display: flex; gap: 3px;">
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #2a2d32;"></div>
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #32363b;"></div>
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #3a3d42;"></div>
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #6a6d72;"></div>
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #e8eaed;"></div>
+      </div>
+    </div>
+    <div style="flex: 1;">
+      <div style="color: #888; font-size: 11px; margin-bottom: 6px; text-align: center;">Cast Iron (warm)</div>
+      <div style="display: flex; gap: 3px;">
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #1f1e1c;"></div>
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #262422;"></div>
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #3a3632;"></div>
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #7a756e;"></div>
+        <div style="flex: 1; height: 40px; border-radius: 6px; background: #d4cfc8;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 16px;">
+  <div class="options">
+    <div class="option" data-choice="steel1" onclick="toggleSelect(this)">
+      <div class="letter">1</div>
+      <div class="content">
+        <h3>Brushed Steel</h3>
+        <p>Cool blue-gray, embossed cards, commercial stainless</p>
+      </div>
+    </div>
+    <div class="option" data-choice="steel2" onclick="toggleSelect(this)">
+      <div class="letter">2</div>
+      <div class="content">
+        <h3>Cast Iron</h3>
+        <p>Warm dark iron, seasoned cookware, ticket rail stripes</p>
+      </div>
+    </div>
+  </div>
+</div>

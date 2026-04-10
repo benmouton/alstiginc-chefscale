@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '600',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   row: {
     flexDirection: 'row',
@@ -180,19 +180,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   value: {
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   valueAccent: {
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.accent,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   foodCostRow: {
     flexDirection: 'row',
@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
   foodCostPct: {
     fontSize: FontSize.lg,
     fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   foodCostLabel: {
     fontSize: FontSize.xs,
     fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   coverageRow: {
     flexDirection: 'row',
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   coverageText: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   missingContainer: {
     marginTop: Spacing.sm,
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.textMuted,
     fontStyle: 'italic',
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   menuPricingToggle: {
     flexDirection: 'row',
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   menuPricingToggleText: {
     fontSize: FontSize.sm,
     color: Colors.accent,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   menuPricingSection: {
     marginTop: Spacing.sm,
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   menuPricingLabel: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     marginBottom: Spacing.sm,
   },
   pctInputRow: {
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   pctChipText: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   pctChipTextActive: {
     color: '#000',
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     borderWidth: 1,
     borderColor: Colors.border,
     textAlign: 'center',
@@ -331,19 +331,19 @@ const styles = StyleSheet.create({
   menuPricingResultLabel: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     marginBottom: 4,
   },
   menuPricingResultValue: {
     fontSize: FontSize.xxxl,
     fontWeight: '700',
     color: Colors.accent,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   menuPricingResultNote: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     marginTop: 4,
   },
   editPricesLink: {
@@ -359,6 +359,6 @@ const styles = StyleSheet.create({
   editPricesText: {
     fontSize: FontSize.sm,
     color: Colors.primary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
 });

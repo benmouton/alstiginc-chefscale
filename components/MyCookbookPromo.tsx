@@ -123,18 +123,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FontSize.md,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     color: Colors.textPrimary,
   },
   appLabel: {
     fontSize: FontSize.xs,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     color: Colors.textMuted,
     marginTop: 1,
   },
   body: {
     fontSize: FontSize.sm,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     color: Colors.textSecondary,
     lineHeight: 18,
     marginBottom: Spacing.md,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: FontSize.sm,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     color: "#fff",
   },
   compactContainer: {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   compactText: {
     flex: 1,
     fontSize: FontSize.sm,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "DMSans_500Medium",
     color: "#C2703E",
   },
 });

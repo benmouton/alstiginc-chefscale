@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xxxl,
     fontWeight: "700" as const,
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   addButton: {
     width: 52,
@@ -521,12 +521,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: "700" as const,
     color: Colors.accent,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   statLabel: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: 2,
   },
   statDivider: {
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     paddingVertical: Spacing.sm,
   },
   sortButton: {
@@ -600,18 +600,18 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: "600" as const,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   priceDetail: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: 2,
   },
   priceStore: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: 2,
   },
   unitPriceContainer: {
@@ -621,12 +621,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: "700" as const,
     color: Colors.accent,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   unitPriceLabel: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   emptyContainer: {
     flex: 1,
@@ -639,20 +639,20 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: "600" as const,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   emptySubtitle: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
     textAlign: "center",
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     fontStyle: "italic" as const,
   },
   emptyText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
     textAlign: "center",
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     paddingHorizontal: Spacing.xxxl,
   },
   emptyAddButton: {
@@ -669,12 +669,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: "600" as const,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   emptyHint: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: Spacing.sm,
   },
   modalOverlay: {
@@ -699,7 +699,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: "700" as const,
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   labelRow: {
     flexDirection: "row",
@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     marginBottom: Spacing.xs,
     marginTop: Spacing.md,
   },
@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     borderWidth: 1,
     borderColor: Colors.border,
     minHeight: TouchTarget.min,
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
   calcBadgeText: {
     fontSize: 10,
     color: Colors.primary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   row: {
     flexDirection: "row",
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
   unitDisplayText: {
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   unitGrid: {
     flexDirection: "row",
@@ -784,7 +784,7 @@ const styles = StyleSheet.create({
   unitChipText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   unitChipTextActive: {
     color: Colors.textPrimary,
@@ -806,12 +806,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: "600" as const,
     color: Colors.accent,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   autoCalcHint: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: Spacing.xs,
   },
   saveButton: {
@@ -827,6 +827,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: "700" as const,
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
 });

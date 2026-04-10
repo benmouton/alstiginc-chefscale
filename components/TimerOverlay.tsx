@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   stepLabel: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   timerCircle: {
     width: 200,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     zIndex: 1,
   },
   timeDone: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   doneLabel: {
     fontSize: FontSize.lg,
     color: Colors.accent,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     marginTop: Spacing.xs,
     zIndex: 1,
   },

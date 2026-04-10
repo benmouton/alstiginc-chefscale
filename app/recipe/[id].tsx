@@ -88,7 +88,7 @@ const cookModeStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#FFF',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
 });
 
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
   notFoundText: {
     fontSize: FontSize.lg,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   backLink: {
     marginTop: Spacing.md,
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
   backLinkText: {
     fontSize: FontSize.md,
     color: Colors.primary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   hero: {
@@ -744,7 +744,7 @@ const styles = StyleSheet.create({
     fontSize: 34,
     fontWeight: "700",
     color: '#FFFFFF',
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     textShadowColor: 'rgba(0,0,0,0.5)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
@@ -774,19 +774,19 @@ const styles = StyleSheet.create({
   infoPillText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   description: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     lineHeight: 22,
     marginBottom: Spacing.md,
   },
   baseYield: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     marginBottom: Spacing.lg,
   },
 
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: "600",
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   categoryDivider: {
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
   categoryLabel: {
     fontSize: FontSize.xs,
     color: Colors.primary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
@@ -836,13 +836,13 @@ const styles = StyleSheet.create({
   notesText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     lineHeight: 22,
   },
   notesPreview: {
     fontSize: FontSize.md,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     lineHeight: 22,
   },
 
@@ -866,7 +866,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   actionBtnOutline: {
     borderWidth: 1,
@@ -876,7 +876,7 @@ const styles = StyleSheet.create({
   actionBtnOutlineText: {
     fontSize: FontSize.md,
     color: Colors.primary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   actionBtnDanger: {
     borderWidth: 1,
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
   actionBtnDangerText: {
     fontSize: FontSize.md,
     color: Colors.error,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   variationRow: {
@@ -899,12 +899,12 @@ const styles = StyleSheet.create({
   variationName: {
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   variationLabel: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     marginTop: 2,
   },
   galleryScrollContent: {
@@ -925,7 +925,7 @@ const styles = StyleSheet.create({
   galleryPhotoCaption: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
   },

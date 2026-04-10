@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xxxl,
     fontWeight: "700" as const,
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   scrollContent: {
     paddingBottom: Spacing.lg,
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700" as const,
     color: '#D97706',
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     textTransform: "uppercase",
     letterSpacing: 1.5,
     marginBottom: 8,
@@ -567,12 +567,12 @@ const styles = StyleSheet.create({
   settingsLabel: {
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   settingsSubtitle: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: 1,
   },
   brandingContainer: {
@@ -594,13 +594,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xxl,
     fontWeight: "700" as const,
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     marginBottom: Spacing.xs,
   },
   tagline: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   upgradeBanner: {
     borderRadius: 16,
@@ -630,12 +630,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: "700" as const,
     color: '#D97706',
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   upgradeSubtitle: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: 2,
   },
   subscriptionStatusRow: {
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     fontWeight: "600" as const,
     color: Colors.success,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   dangerCard: {
     backgroundColor: 'rgba(239,68,68,0.08)',
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   consultantFooter: {
     flexDirection: "row",
@@ -706,13 +706,13 @@ const styles = StyleSheet.create({
   consultantText: {
     fontSize: FontSize.sm,
     color: Colors.primary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   versionFooter: {
     textAlign: 'center',
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: Spacing.xs,
   },
 });

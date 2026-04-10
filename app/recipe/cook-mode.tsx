@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: Colors.textPrimary,
     fontSize: FontSize.lg,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     textAlign: "center",
     marginTop: 100,
   },
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   emptyText: {
     color: Colors.textSecondary,
     fontSize: FontSize.lg,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
 
   // Top Bar
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   stepCounter: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   ingredientsBtn: {
     flexDirection: "row",
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   ingredientsBtnText: {
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   // Main Content
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   stepNumber: {
     fontSize: FontSize.lg,
     color: Colors.primary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     textTransform: "uppercase",
     letterSpacing: 2,
     marginBottom: Spacing.lg,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   instructionText: {
     fontSize: 26,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     textAlign: "center",
     lineHeight: 38,
     marginBottom: Spacing.xl,
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
   temperatureText: {
     fontSize: FontSize.lg,
     color: Colors.accent,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
 
   // Timer
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
   timerBtnText: {
     fontSize: FontSize.lg,
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   timerActiveContainer: {
     alignItems: "center",
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
   timerCountdown: {
     fontSize: 64,
     color: Colors.primary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     marginBottom: Spacing.md,
   },
   timerCancelBtn: {
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   timerCancelText: {
     fontSize: FontSize.md,
     color: Colors.error,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   persistentTimer: {
     flexDirection: "row",
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   persistentTimerText: {
     fontSize: FontSize.sm,
     color: Colors.accent,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 
   // Bottom Bar
@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
   navBtnText: {
     fontSize: FontSize.lg,
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   navBtnTextDisabled: {
     color: Colors.textMuted,
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
   drawerTitle: {
     fontSize: FontSize.xl,
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   drawerCloseBtn: {
     width: 36,
@@ -653,7 +653,7 @@ const styles = StyleSheet.create({
   drawerServings: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     marginBottom: Spacing.md,
   },
   drawerScroll: {
@@ -669,13 +669,13 @@ const styles = StyleSheet.create({
   drawerIngAmount: {
     fontSize: FontSize.md,
     color: Colors.primary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     minWidth: 80,
   },
   drawerIngName: {
     flex: 1,
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
 });

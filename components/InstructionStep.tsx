@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   content: {
     flex: 1,
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.textPrimary,
     lineHeight: 22,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   stepPhoto: {
     width: '100%',
@@ -116,11 +116,11 @@ const styles = StyleSheet.create({
   timerText: {
     fontSize: FontSize.xs,
     color: Colors.primary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   tempText: {
     fontSize: FontSize.xs,
     color: Colors.accent,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
 });

@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   headerBtn: {
     width: 40,
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   instructions: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
   },
@@ -411,12 +411,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: '600',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   recipeCategory: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     marginTop: 2,
   },
   multiplierRow: {
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
   multiplierLabel: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   multiplierChip: {
     paddingHorizontal: Spacing.md,
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   multiplierChipText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   multiplierChipTextActive: {
     color: Colors.textPrimary,
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     color: Colors.textPrimary,
     fontSize: FontSize.sm,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     textAlign: 'center',
     paddingVertical: 0,
   },
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: '600',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   generateBtnTextDisabled: {
     color: Colors.textMuted,
@@ -505,14 +505,14 @@ const styles = StyleSheet.create({
   dateStamp: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.xs,
   },
   resultsSummary: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
   },
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '600',
     color: Colors.primary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   resultNameCol: {
     flex: 1,
@@ -543,12 +543,12 @@ const styles = StyleSheet.create({
   resultName: {
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   resultSources: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     marginTop: 2,
   },
   resultRowConflict: {
@@ -570,13 +570,13 @@ const styles = StyleSheet.create({
   conflictBannerText: {
     fontSize: FontSize.xs,
     color: Colors.warning,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     flex: 1,
   },
   conflictLabel: {
     fontSize: FontSize.xs,
     color: Colors.warning,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     marginTop: 2,
   },
   emptyContainer: {
@@ -588,6 +588,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
 });

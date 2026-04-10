@@ -327,12 +327,12 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xxxl,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
   },
   subtitle: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
     marginTop: 2,
   },
   categoriesContainer: {
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   categoryTextActive: {
     color: Colors.textPrimary,
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   presetLabel: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   scrollContent: {
     flex: 1,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: Spacing.sm,
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.display,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     padding: 0,
     minHeight: TouchTarget.min,
   },
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   unitName: {
     fontSize: FontSize.lg,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     textTransform: "capitalize",
   },
   unitRight: {
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   unitAbbr: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   swapContainer: {
     alignItems: "center",
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     fontSize: 42,
     fontWeight: "700",
     color: '#D97706',
-    fontFamily: "Inter_700Bold",
+    fontFamily: "DMSans_700Bold",
     textShadowColor: '#D97706',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 12,
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   resultPlaceholder: {
     fontSize: FontSize.xl,
     color: Colors.textMuted,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   errorContainer: {
     flexDirection: "row",
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: FontSize.md,
     color: Colors.error,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   // Picker styles
   pickerOverlay: {
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
   pickerTitle: {
     fontSize: FontSize.lg,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   pickerClose: {
     width: 44,
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
   pickerItemName: {
     fontSize: FontSize.md,
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
     textTransform: "capitalize",
   },
   pickerItemNameSelected: {
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
   pickerItemAbbr: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "DMSans_400Regular",
   },
   pickerItemAbbrSelected: {
     color: Colors.primaryLight,

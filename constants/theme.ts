@@ -1,3 +1,6 @@
+import { Platform } from "react-native";
+export const MONO_FONT = Platform.OS === 'ios' ? 'SF Mono' : 'monospace';
+
 export const Colors = {
   // Primary — warm copper/saffron culinary accent
   primary: '#D97706',        // warm copper (was teal #0D9488)

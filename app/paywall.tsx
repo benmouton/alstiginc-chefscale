@@ -352,13 +352,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xxl,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   premiumLabel: {
     fontSize: FontSize.xs,
     fontWeight: '700',
     color: Colors.accent,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     letterSpacing: 3,
     marginTop: Spacing.xs,
   },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xxl,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     textAlign: 'center',
     marginBottom: Spacing.xxl,
     lineHeight: 32,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   trialBannerText: {
     fontSize: FontSize.sm,
     color: Colors.accent,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
   },
   comparisonCard: {
     backgroundColor: Colors.backgroundCard,
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     fontWeight: '700',
     color: Colors.textMuted,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
     letterSpacing: 1,
   },
   comparisonRow: {
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   comparisonValues: {
     flexDirection: 'row',
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   comparisonValueText: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     textAlign: 'center',
   },
   comparisonDash: {
@@ -474,18 +474,18 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     color: '#000',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   annualPrice: {
     fontSize: FontSize.xl,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   annualSubtext: {
     fontSize: FontSize.sm,
     color: Colors.textPrimary + 'CC',
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     marginTop: 2,
   },
   monthlyBtn: {
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'DMSans_700Bold',
   },
   trialLink: {
     paddingVertical: Spacing.md,
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   trialLinkText: {
     fontSize: FontSize.md,
     color: Colors.accent,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     textDecorationLine: 'underline',
   },
   legalLinks: {
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
   legalLinkText: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     textDecorationLine: 'underline' as const,
   },
   legalSeparator: {
@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
   renewalDisclosure: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     textAlign: 'center',
     lineHeight: 16,
     paddingHorizontal: Spacing.sm,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   restoreLinkText: {
     fontSize: FontSize.sm,
     color: Colors.textMuted,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   purchasingOverlay: {
     alignItems: 'center',
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   purchasingText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
   },
   consultantSection: {
     backgroundColor: Colors.backgroundCard + '80',
@@ -577,13 +577,13 @@ const styles = StyleSheet.create({
   consultantTitle: {
     fontSize: FontSize.sm,
     color: Colors.textPrimary,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'DMSans_600SemiBold',
     flex: 1,
   },
   consultantLink: {
     fontSize: FontSize.sm,
     color: Colors.primary,
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'DMSans_400Regular',
     textDecorationLine: 'underline',
     marginLeft: 26,
   },

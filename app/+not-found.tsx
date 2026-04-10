@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: "bold",
     color: Colors.textPrimary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
   link: {
     marginTop: Spacing.lg,
@@ -37,6 +37,6 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: FontSize.md,
     color: Colors.primary,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "DMSans_600SemiBold",
   },
 });
