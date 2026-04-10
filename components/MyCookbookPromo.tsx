@@ -60,11 +60,11 @@ export default function MyCookbookPromo({ trigger, compact = false }: MyCookbook
   if (compact) {
     return (
       <Pressable onPress={handlePress} style={styles.compactContainer}>
-        <Ionicons name={msg.icon} size={16} color="#C2703E" />
+        <Ionicons name={msg.icon} size={16} color={Colors.primary} />
         <Text style={styles.compactText} numberOfLines={1}>
           {msg.title} — Try MyCookbook
         </Text>
-        <Ionicons name="open-outline" size={14} color="#C2703E" />
+        <Ionicons name="open-outline" size={14} color={Colors.primary} />
       </Pressable>
     );
   }
@@ -73,7 +73,7 @@ export default function MyCookbookPromo({ trigger, compact = false }: MyCookbook
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.iconCircle}>
-          <Ionicons name={msg.icon} size={20} color="#C2703E" />
+          <Ionicons name={msg.icon} size={20} color={Colors.primary} />
         </View>
         <View style={styles.headerText}>
           <Text style={styles.title}>{msg.title}</Text>
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#C2703E20",
+    backgroundColor: Colors.primary + "20",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    backgroundColor: "#C2703E",
+    backgroundColor: Colors.primary,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
@@ -161,15 +161,15 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: "#C2703E30",
-    backgroundColor: "#C2703E10",
+    borderColor: Colors.primary + "30",
+    backgroundColor: Colors.primary + "10",
     marginHorizontal: Spacing.lg,
     marginVertical: Spacing.xs,
   },
   compactText: {
     flex: 1,
     fontSize: FontSize.sm,
-    fontFamily: "DMSans_500Medium",
-    color: "#C2703E",
+    fontFamily: "DMSans_600SemiBold",
+    color: Colors.primary,
   },
 });

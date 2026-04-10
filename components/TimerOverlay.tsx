@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Colors, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { Colors, BorderRadius, Spacing, FontSize, MONO_FONT } from '@/constants/theme';
 
 interface TimerOverlayProps {
   visible: boolean;
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
     zIndex: 1,
   },
   timeDone: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   doneLabel: {
     fontSize: FontSize.lg,
     color: Colors.accent,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
     marginTop: Spacing.xs,
     zIndex: 1,
   },

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { Colors, BorderRadius, Spacing, FontSize, MONO_FONT } from '@/constants/theme';
 
 export interface NutritionData {
   calories?: number;
@@ -99,6 +99,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '600',
     color: Colors.textPrimary,
-    fontFamily: 'DMSans_600SemiBold',
+    fontFamily: MONO_FONT,
   },
 });

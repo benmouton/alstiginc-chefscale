@@ -27,7 +27,7 @@ export function LockedCard({ title, description, feature }: LockedCardProps) {
     >
       <View style={styles.lockedOverlay}>
         <View style={styles.lockIconCircle}>
-          <Ionicons name="lock-closed" size={24} color={Colors.accent} />
+          <Ionicons name="lock-closed" size={24} color={Colors.primary} />
         </View>
         <Text style={styles.lockedTitle}>{title}</Text>
         <Text style={styles.lockedDescription}>{description}</Text>
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: Colors.accent + '15',
+    backgroundColor: Colors.primary + '20',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
   },
   proBadge: {
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.primary,
     borderRadius: 4,
     paddingHorizontal: 5,
     paddingVertical: 1,
