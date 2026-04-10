@@ -289,21 +289,7 @@ export default function PaywallScreen() {
           </View>
         </View>
 
-        <View style={styles.consultantSection}>
-          <View style={styles.consultantDivider} />
-          <View style={styles.consultantContent}>
-            <View style={styles.consultantRow}>
-              <Ionicons name="restaurant" size={18} color={Colors.primary} />
-              <Text style={styles.consultantTitle}>Restaurant Consultant subscribers get Premium free</Text>
-            </View>
-            <Pressable onPress={handleConsultantVerify}>
-              <Text style={styles.consultantLink}>Already a subscriber? Verify here</Text>
-            </Pressable>
-            <Pressable onPress={handleConsultantLearn}>
-              <Text style={styles.consultantLink}>Learn about The Restaurant Consultant</Text>
-            </Pressable>
-          </View>
-        </View>
+        {/* TRC cross-subscription promo removed — needs shared RevenueCat project or API proxy to verify */}
 
         {purchasing ? (
           <View style={styles.purchasingOverlay}>
