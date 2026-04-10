@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Colors } from '@/constants/theme';
 
 const EFFECTIVE_DATE = 'March 22, 2026';
 const COMPANY_NAME = 'ALSTIG INC';
@@ -14,7 +15,7 @@ export default function PrivacyPolicy() {
     <View style={styles.container}>
       <View style={styles.topBar}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="#F5A623" />
+          <Ionicons name="chevron-back" size={24} color={Colors.primary} />
           <Text style={styles.backText}>Back</Text>
         </Pressable>
       </View>
@@ -191,15 +192,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: Colors.backgroundDeep,
   },
   topBar: {
     paddingTop: 60,
     paddingHorizontal: 16,
     paddingBottom: 8,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: Colors.backgroundDeep,
     borderBottomWidth: 1,
-    borderBottomColor: '#1A1A1A',
+    borderBottomColor: Colors.border,
   },
   backButton: {
     flexDirection: 'row',
@@ -207,8 +208,9 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 16,
-    color: '#F5A623',
+    color: Colors.primary,
     marginLeft: 4,
+    fontFamily: 'DMSans_600SemiBold',
   },
   content: {
     padding: 24,
@@ -217,19 +219,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#ffffff',
+    color: Colors.textPrimary,
     marginBottom: 4,
+    fontFamily: 'DMSans_700Bold',
   },
   appName: {
     fontSize: 16,
-    color: '#F5A623',
+    color: Colors.primary,
     fontWeight: '600',
     marginBottom: 8,
+    fontFamily: 'DMSans_600SemiBold',
   },
   meta: {
     fontSize: 13,
-    color: '#888',
+    color: Colors.textMuted,
     marginBottom: 2,
+    fontFamily: 'DMSans_400Regular',
   },
   section: {
     marginTop: 28,
@@ -237,40 +242,46 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#ffffff',
+    color: Colors.textPrimary,
     marginBottom: 10,
+    fontFamily: 'DMSans_700Bold',
   },
   body: {
     fontSize: 15,
-    color: '#aaaaaa',
+    color: Colors.textSecondary,
     lineHeight: 23,
     marginBottom: 8,
+    fontFamily: 'DMSans_400Regular',
   },
   bullet: {
     fontSize: 15,
-    color: '#aaaaaa',
+    color: Colors.textSecondary,
     lineHeight: 23,
     paddingLeft: 8,
     marginBottom: 4,
+    fontFamily: 'DMSans_400Regular',
   },
   bold: {
     fontWeight: '600',
-    color: '#cccccc',
+    color: Colors.textPrimary,
+    fontFamily: 'DMSans_600SemiBold',
   },
   link: {
     fontSize: 15,
-    color: '#F5A623',
+    color: Colors.primary,
     textDecorationLine: 'underline',
+    fontFamily: 'DMSans_400Regular',
   },
   footer: {
     marginTop: 48,
     paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor: '#1A1A1A',
+    borderTopColor: Colors.border,
   },
   footerText: {
     fontSize: 13,
-    color: '#555',
+    color: Colors.textMuted,
     textAlign: 'center',
+    fontFamily: 'DMSans_400Regular',
   },
 });

@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from '@/constants/theme';
+import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from '@/constants/theme';
 import { useSubscriptionStore } from '@/store/useSubscriptionStore';
 import {
   getOfferings,
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
   },
   annualSubtext: {
     fontSize: FontSize.sm,
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
   },
   trialLink: {
     paddingVertical: Spacing.md,

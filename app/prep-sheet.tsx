@@ -14,7 +14,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
+import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { getRecipeWithDetails } from "@/lib/database";
 import {
@@ -368,6 +368,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textPrimary,
     fontFamily: 'DMSans_700Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   headerBtn: {
     width: 40,
@@ -534,7 +536,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '600',
     color: Colors.primary,
-    fontFamily: 'DMSans_600SemiBold',
+    fontFamily: MONO_FONT,
   },
   resultNameCol: {
     flex: 1,
