@@ -150,8 +150,8 @@ describe('formatQuantity', () => {
     expect(formatQuantity(0.25)).toBe('¼');
     expect(formatQuantity(0.75)).toBe('¾');
     expect(formatQuantity(0.333)).toBe('⅓');
-    // 0.667 is within tolerance of ⅝ (0.625) which appears first in FRACTION_MAP
-    expect(formatQuantity(0.667)).toBe('⅝');
+    // 0.667 is closest to ⅔ (0.667) — closest-match logic picks the right fraction
+    expect(formatQuantity(0.667)).toBe('⅔');
   });
 
   it('formats mixed numbers with fractions', () => {

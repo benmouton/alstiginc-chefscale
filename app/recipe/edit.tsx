@@ -905,7 +905,10 @@ export default function EditRecipeScreen() {
         ],
       });
 
-      useSubscriptionStore.getState().incrementRecipeCount();
+      // Only increment recipe count for new recipes, not edits
+      if (!isEditing) {
+        useSubscriptionStore.getState().incrementRecipeCount();
+      }
       useSubscriptionStore.getState().incrementSaveCount();
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

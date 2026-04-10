@@ -171,11 +171,16 @@ export function formatQuantity(value: number): string {
     return whole.toString();
   }
 
+  let bestMatch: string | null = null;
+  let bestDist = Infinity;
   for (const [frac, label] of FRACTION_MAP) {
-    if (Math.abs(decimal - frac) < 0.05) {
-      return whole > 0 ? `${whole}${label}` : label;
+    const dist = Math.abs(decimal - frac);
+    if (dist < 0.05 && dist < bestDist) {
+      bestDist = dist;
+      bestMatch = label;
     }
   }
+  if (bestMatch) return whole > 0 ? `${whole}${bestMatch}` : bestMatch;
 
   return value % 1 === 0 ? value.toString() : value.toFixed(2);
 }

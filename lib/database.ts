@@ -4,24 +4,26 @@ import { Platform } from 'react-native';
 const DB_NAME = 'chefscale.db';
 const DB_VERSION = 4;
 
-let db: SQLite.SQLiteDatabase | null = null;
-let dbInitRetries = 0;
-const MAX_RETRIES = 3;
+let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
-export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-  if (!db) {
+async function openDatabaseWithRetry(): Promise<SQLite.SQLiteDatabase> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      db = await SQLite.openDatabaseAsync(DB_NAME);
+      return await SQLite.openDatabaseAsync(DB_NAME);
     } catch (e) {
-      if (dbInitRetries < MAX_RETRIES) {
-        dbInitRetries++;
-        await new Promise((r) => setTimeout(r, 500 * dbInitRetries));
-        return getDatabase();
-      }
-      throw e;
+      lastError = e;
+      await new Promise((r) => setTimeout(r, 500 * attempt));
     }
   }
-  return db;
+  throw lastError;
+}
+
+export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
+  if (!dbPromise) {
+    dbPromise = openDatabaseWithRetry();
+  }
+  return dbPromise;
 }
 
 export async function initDatabase(): Promise<void> {
@@ -127,20 +129,31 @@ export async function initDatabase(): Promise<void> {
     `);
   } else if (currentVersion < DB_VERSION) {
     // Existing install: ALTER TABLE to add new columns
+    // Each ALTER is wrapped in try/catch to handle incremental upgrades
+    // where a column may already exist (e.g. upgrading from v2 → v4 skipping v3)
     await database.execAsync(`
       PRAGMA journal_mode = WAL;
       PRAGMA foreign_keys = ON;
+    `);
 
-      ALTER TABLE recipes ADD COLUMN station TEXT DEFAULT '';
-      ALTER TABLE recipes ADD COLUMN dietaryFlags TEXT DEFAULT '[]';
-      ALTER TABLE recipes ADD COLUMN parentRecipeId TEXT DEFAULT '';
-      ALTER TABLE recipes ADD COLUMN variationLabel TEXT DEFAULT '';
+    const alterStatements = [
+      `ALTER TABLE recipes ADD COLUMN station TEXT DEFAULT ''`,
+      `ALTER TABLE recipes ADD COLUMN dietaryFlags TEXT DEFAULT '[]'`,
+      `ALTER TABLE recipes ADD COLUMN parentRecipeId TEXT DEFAULT ''`,
+      `ALTER TABLE recipes ADD COLUMN variationLabel TEXT DEFAULT ''`,
+      `ALTER TABLE ingredients ADD COLUMN yieldPercent REAL DEFAULT 100`,
+      `ALTER TABLE ingredients ADD COLUMN subrecipeId TEXT DEFAULT ''`,
+      `ALTER TABLE recipe_photos ADD COLUMN photoType TEXT DEFAULT 'general'`,
+    ];
+    for (const sql of alterStatements) {
+      try {
+        await database.execAsync(sql);
+      } catch {
+        // Column already exists — safe to ignore on incremental upgrades
+      }
+    }
 
-      ALTER TABLE ingredients ADD COLUMN yieldPercent REAL DEFAULT 100;
-      ALTER TABLE ingredients ADD COLUMN subrecipeId TEXT DEFAULT '';
-
-      ALTER TABLE recipe_photos ADD COLUMN photoType TEXT DEFAULT 'general';
-
+    await database.execAsync(`
       CREATE INDEX IF NOT EXISTS idx_ingredients_recipeId ON ingredients(recipeId);
       CREATE INDEX IF NOT EXISTS idx_instructions_recipeId ON instructions(recipeId);
       CREATE INDEX IF NOT EXISTS idx_recipe_photos_recipeId ON recipe_photos(recipeId);

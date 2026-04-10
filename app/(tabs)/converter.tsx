@@ -27,7 +27,7 @@ const PRESETS = [
   { label: '1 cup', from: 'cup', to: 'ml', value: '1' },
   { label: '1 lb', from: 'lb', to: 'g', value: '1' },
   { label: '1 oz', from: 'oz', to: 'g', value: '1' },
-  { label: '°F→°C', from: 'cup', to: 'tbsp', value: '1' },
+  { label: '1 cup→tbsp', from: 'cup', to: 'tbsp', value: '1' },
 ];
 
 export default function ConverterScreen() {
