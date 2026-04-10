@@ -3,7 +3,7 @@ import { View, Text, Pressable, TextInput, StyleSheet, Animated } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Colors, BorderRadius, Spacing, FontSize, TouchTarget } from '@/constants/theme';
+import { Colors, BorderRadius, Spacing, FontSize, TouchTarget, MONO_FONT } from '@/constants/theme';
 import { useSubscriptionStore } from '@/store/useSubscriptionStore';
 
 interface ScalingControlsProps {
@@ -11,7 +11,6 @@ interface ScalingControlsProps {
   currentServings: number;
   onServingsChange: (servings: number) => void;
   yieldUnit?: string;
-  baseYieldUnit?: string;
 }
 
 const FREE_MULTIPLIERS = [1, 2, 5, 10];
@@ -22,7 +21,6 @@ export default function ScalingControls({
   currentServings,
   onServingsChange,
   yieldUnit = 'servings',
-  baseYieldUnit,
 }: ScalingControlsProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -47,8 +45,6 @@ export default function ScalingControls({
   const [customInput, setCustomInput] = useState('');
   const [yieldMode, setYieldMode] = useState(false);
   const [yieldInput, setYieldInput] = useState('');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [yieldTargetUnit, setYieldTargetUnit] = useState(baseYieldUnit || yieldUnit);
   const checkAccess = useSubscriptionStore((s) => s.checkAccess);
   const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);
   const hasPremiumScaling = checkAccess('custom_scaling');
@@ -260,11 +256,11 @@ export default function ScalingControls({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: Colors.backgroundCard,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.3)',
+    borderColor: Colors.primary + '4D',
   },
   headerRow: {
     flexDirection: 'row',
@@ -293,15 +289,15 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'DMSans_700Bold',
-    textShadowColor: 'rgba(217,119,6,0.3)',
+    fontFamily: MONO_FONT,
+    textShadowColor: Colors.primary + '4D',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 16,
   },
   servingsText: {
     fontSize: FontSize.md,
     color: Colors.textSecondary,
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: MONO_FONT,
     marginTop: Spacing.xs,
   },
   quickButtons: {
@@ -316,6 +312,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    backgroundColor: Colors.backgroundDeep,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: TouchTarget.min,
@@ -328,7 +325,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '700',
     color: Colors.textSecondary,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
   },
   quickBtnTextActive: {
     color: Colors.textPrimary,

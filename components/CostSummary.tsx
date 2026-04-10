@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Colors, BorderRadius, Spacing, FontSize } from '@/constants/theme';
+import { Colors, BorderRadius, Spacing, FontSize, MONO_FONT } from '@/constants/theme';
 import { formatCurrency, type RecipeCostSummary } from '@/lib/costs';
 
 interface CostSummaryProps {
@@ -11,14 +11,14 @@ interface CostSummaryProps {
 }
 
 function getFoodCostColor(percentage: number): string {
-  if (percentage < 25) return '#22C55E';
-  if (percentage <= 30) return Colors.accent;
+  if (percentage < 30) return Colors.success;
+  if (percentage <= 35) return Colors.warning;
   return Colors.error;
 }
 
 function getFoodCostLabel(percentage: number): string {
-  if (percentage < 25) return 'Excellent';
-  if (percentage <= 30) return 'Acceptable';
+  if (percentage < 30) return 'Good';
+  if (percentage <= 35) return 'Watch';
   return 'High';
 }
 
@@ -153,11 +153,11 @@ export default function CostSummary({ summary, menuPrice }: CostSummaryProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: Colors.backgroundCard,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
+    borderColor: Colors.border,
   },
   header: {
     flexDirection: 'row',
@@ -186,13 +186,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.textPrimary,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
   },
   valueAccent: {
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.accent,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
   },
   foodCostRow: {
     flexDirection: 'row',
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   foodCostPct: {
     fontSize: FontSize.lg,
     fontWeight: '700',
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
   },
   foodCostLabel: {
     fontSize: FontSize.xs,
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xxxl,
     fontWeight: '700',
     color: Colors.accent,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
   },
   menuPricingResultNote: {
     fontSize: FontSize.xs,

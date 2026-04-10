@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSize, BorderRadius } from '@/constants/theme';
+import { Colors, Spacing, FontSize, BorderRadius, MONO_FONT } from '@/constants/theme';
 import { formatQuantity, getUnitAbbreviation, type ScaleResult } from '@/lib/scaling';
 
 interface IngredientRowProps {
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: Spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
+    borderBottomColor: Colors.border,
   },
   left: {
     flex: 1,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.primary,
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: MONO_FONT,
   },
   amountScaled: {
     color: Colors.accent,
@@ -140,13 +140,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: Colors.accent,
     fontWeight: '600',
-    fontFamily: 'DMSans_600SemiBold',
+    fontFamily: MONO_FONT,
     marginTop: 2,
   },
   asPurchased: {
     fontSize: FontSize.xs,
     color: Colors.warning,
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: MONO_FONT,
     fontStyle: 'italic',
     marginTop: 1,
   },
