@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,10 +11,9 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
+import { Colors, Spacing, FontSize, BorderRadius, MONO_FONT } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import type { RecipeRow } from "@/lib/database";
@@ -26,7 +25,7 @@ const CATEGORIES = ["All", "Entr\u00e9e", "Appetizer", "Sauce", "Dessert", "Prep
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { recipes, loadRecipes, removeRecipe } = useRecipeStore();
+  const { recipes, loadRecipes, removeRecipe, prices, loadPrices } = useRecipeStore();
   const { tier, maxFreeRecipes, setRecipeCount } = useSubscriptionStore();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStation, setSelectedStation] = useState("All");
@@ -34,6 +33,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadRecipes();
+    loadPrices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -47,6 +47,27 @@ export default function HomeScreen() {
     await loadRecipes();
     setRefreshing(false);
   }, [loadRecipes]);
+
+  // Stats dashboard — computed from recipes that have price-bearing ingredients
+  const stats = useMemo(() => {
+    // We only have RecipeRow here (no ingredient detail), so we use prices count
+    // as a proxy for whether cost data is available
+    const hasPrices = prices.length > 0;
+    if (!hasPrices || recipes.length === 0) return null;
+
+    // Build a simple average from any recipes with calculable costs
+    // using ingredient-level costPerUnit stored on RecipeRow's ingredients
+    // Since we don't have full ingredient detail here, show price library stats
+    const avgCostPerServing = prices.length > 0
+      ? prices.reduce((sum, p) => sum + (p.costPerUnit ?? 0), 0) / prices.length
+      : 0;
+
+    return {
+      recipeCount: recipes.length,
+      priceCount: prices.length,
+      avgCostPerServing,
+    };
+  }, [recipes, prices]);
 
   const filteredRecipes = recipes.filter((r) => {
     if (selectedCategory !== "All" && r.category !== selectedCategory) return false;
@@ -106,15 +127,25 @@ export default function HomeScreen() {
             }}
             style={({ pressed }) => [styles.addButton, pressed && { opacity: 0.7 }]}
           >
-            <LinearGradient
-              colors={['#D97706', '#B45309']}
-              style={styles.addButtonGradient}
-            >
-              <Ionicons name="add" size={24} color="#FFF" />
-            </LinearGradient>
+            <Ionicons name="add" size={24} color="#FFF" />
           </Pressable>
         </View>
       </View>
+
+      {/* STATS DASHBOARD */}
+      {stats && (
+        <View style={styles.statsRow}>
+          <View style={styles.statTile}>
+            <Text style={styles.statLabel}>RECIPES</Text>
+            <Text style={styles.statValue}>{stats.recipeCount}</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statTile}>
+            <Text style={styles.statLabel}>PRICES TRACKED</Text>
+            <Text style={styles.statValue}>{stats.priceCount}</Text>
+          </View>
+        </View>
+      )}
 
       <View style={styles.categoriesContainer}>
         <FlatList
@@ -228,12 +259,9 @@ export default function HomeScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <LinearGradient
-              colors={['#0A0A0A', '#1A1008', '#0A0A0A']}
-              style={styles.emptyGradient}
-            >
+            <View style={styles.emptyGradient}>
               <View style={styles.emptyIconRing}>
-                <Ionicons name="restaurant" size={48} color="#D97706" />
+                <Ionicons name="restaurant" size={48} color={Colors.primary} />
               </View>
               <Text style={styles.emptyTitle}>Your Kitchen Awaits</Text>
               <Text style={styles.emptyTagline}>
@@ -243,17 +271,10 @@ export default function HomeScreen() {
                 onPress={() => router.push("/recipe/edit")}
                 style={({ pressed }) => [styles.emptyButton, pressed && { opacity: 0.8 }]}
               >
-                <LinearGradient
-                  colors={['#D97706', '#B45309']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.emptyButtonGradient}
-                >
-                  <Ionicons name="add" size={20} color="#FFF" />
-                  <Text style={styles.emptyButtonText}>Add Your First Recipe</Text>
-                </LinearGradient>
+                <Ionicons name="add" size={20} color="#FFF" />
+                <Text style={styles.emptyButtonText}>Add Your First Recipe</Text>
               </Pressable>
-            </LinearGradient>
+            </View>
           </View>
         }
       />
@@ -264,7 +285,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: Colors.backgroundDeep,
   },
   header: {
     flexDirection: "row",
@@ -304,19 +325,50 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   addButton: {
+    width: 52,
+    height: 52,
     borderRadius: 26,
-    shadowColor: '#D97706',
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
   },
-  addButtonGradient: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  statsRow: {
+    flexDirection: 'row',
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  statTile: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: 9,
+    color: Colors.textSecondary,
+    fontFamily: 'DMSans_700Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: FontSize.xl,
+    color: Colors.textPrimary,
+    fontFamily: MONO_FONT,
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: Colors.border,
   },
   categoriesContainer: {
     marginBottom: Spacing.md,
@@ -337,12 +389,12 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.10)',
   },
   categoryChipActive: {
-    backgroundColor: '#D97706',
-    borderColor: '#D97706',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   stationChipActive: {
-    backgroundColor: '#0D9488',
-    borderColor: '#0D9488',
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
   },
   categoryText: {
     fontSize: FontSize.sm,
@@ -372,14 +424,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 24,
     marginHorizontal: 20,
+    backgroundColor: Colors.backgroundCard,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   emptyIconRing: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: 'rgba(217,119,6,0.12)',
+    backgroundColor: Colors.primary + '1A',
     borderWidth: 2,
-    borderColor: 'rgba(217,119,6,0.25)',
+    borderColor: Colors.primary + '40',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -402,21 +457,18 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   emptyButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#D97706',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  emptyButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingVertical: 16,
     paddingHorizontal: 28,
     borderRadius: 16,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   emptyButtonText: {
     fontSize: 17,
