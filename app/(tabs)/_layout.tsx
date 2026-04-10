@@ -1,7 +1,6 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs, router } from "expo-router";
 import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
-import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { Platform, StyleSheet, View } from "react-native";
 import React from "react";
@@ -42,25 +41,18 @@ function ClassicTabLayout() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {
-          position: "absolute",
-          backgroundColor: isIOS ? "transparent" : Colors.backgroundDark,
-          borderTopWidth: isWeb ? 1 : StyleSheet.hairlineWidth,
-          borderTopColor: 'rgba(255,255,255,0.08)',
+          backgroundColor: Colors.backgroundDeep,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: Colors.border,
           elevation: 0,
           ...(isWeb ? { height: 84 } : {}),
         },
         tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={60}
-              tint="systemChromeMaterialDark"
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
+          isWeb ? (
             <View
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: Colors.backgroundDark },
+                { backgroundColor: Colors.backgroundDeep },
               ]}
             />
           ) : null,
