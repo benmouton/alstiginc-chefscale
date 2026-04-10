@@ -1874,7 +1874,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
   },
   input: {
-    backgroundColor: Colors.backgroundCard,
+    backgroundColor: Colors.inputBackground,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     fontSize: FontSize.md,
@@ -1981,10 +1981,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   sectionLabel: {
-    fontSize: FontSize.lg,
+    fontSize: 9,
     fontWeight: "700",
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
     fontFamily: "DMSans_700Bold",
+    textTransform: "uppercase",
+    letterSpacing: 2,
   },
   addButton: {
     flexDirection: "row",

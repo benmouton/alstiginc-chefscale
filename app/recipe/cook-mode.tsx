@@ -13,7 +13,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
+import { Colors, Spacing, FontSize, BorderRadius, MONO_FONT } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { scaleAmount } from "@/lib/scaling";
 import type { RecipeWithDetails } from "@/lib/database";
@@ -396,7 +396,7 @@ export default function CookModeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.backgroundDark,
+    backgroundColor: Colors.backgroundDeep,
   },
   loadingText: {
     color: Colors.textPrimary,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   instructionText: {
     fontSize: 26,
     color: Colors.textPrimary,
-    fontFamily: "DMSans_400Regular",
+    fontFamily: "DMSans_700Bold",
     textAlign: "center",
     lineHeight: 38,
     marginBottom: Spacing.xl,
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
   timerCountdown: {
     fontSize: 64,
     color: Colors.primary,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: MONO_FONT,
     marginBottom: Spacing.md,
   },
   timerCancelBtn: {
