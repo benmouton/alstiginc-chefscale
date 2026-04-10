@@ -2,10 +2,10 @@ import { Platform } from "react-native";
 export const MONO_FONT = Platform.OS === 'ios' ? 'SF Mono' : 'monospace';
 
 export const Colors = {
-  // Primary — warm copper/saffron culinary accent
-  primary: '#D97706',        // warm copper (was teal #0D9488)
-  primaryLight: '#F59E0B',   // amber glow
-  primaryDark: '#B45309',    // deep saffron
+  // Primary — orange accent (Brushed Steel)
+  primary: '#f97316',        // vibrant orange
+  primaryLight: '#fb923c',   // lighter orange
+  primaryDark: '#ea580c',    // deep orange
 
   // Accent — herb/teal for secondary highlights
   accent: '#0D9488',         // teal (swapped from primary)
@@ -13,31 +13,33 @@ export const Colors = {
 
   // Status
   error: '#EF4444',
-  warning: '#F59E0B',
-  success: '#22C55E',
+  warning: '#f59e0b',
+  success: '#22c55e',
 
-  // Backgrounds — dark charcoal, not pure black
-  backgroundDark: '#0A0A0A',     // true rich black
-  backgroundCard: '#141414',     // darker card
-  backgroundElevated: '#1E1E1E', // higher elevation
+  // Backgrounds — Brushed Steel blue-gray
+  backgroundDark: '#2a2d32',     // base steel surface
+  backgroundDeep: '#22252a',     // deep background
+  backgroundCard: '#32363b',     // elevated card surface
+  backgroundElevated: '#32363b', // higher elevation
+  inputBackground: '#282b30',    // input field background
 
-  // Glass effect base
-  glass: 'rgba(255,255,255,0.08)',
-  glassBorder: 'rgba(255,255,255,0.12)',
-  glassHighlight: 'rgba(255,255,255,0.05)',
+  // Glass effect base — replaced with solid steel tones
+  glass: '#32363b',
+  glassBorder: '#3a3d42',
+  glassHighlight: '#32363b',
 
   // Text
-  textPrimary: '#F5F5F4',    // warm white (was blue-white #F8FAFC)
-  textSecondary: '#A8A29E',  // warm gray (was #94A3B8)
-  textMuted: '#6B7280',      // muted (was #64748B)
+  textPrimary: '#e8eaed',    // cool white
+  textSecondary: '#8a8d92',  // steel gray
+  textMuted: '#52525b',      // muted steel
 
   // Borders
-  border: '#2A2D35',         // subtle (was #334155)
-  borderLight: '#3A3D45',    // lighter
+  border: '#3a3d42',         // steel border
+  borderLight: '#3a3d42',    // lighter border
 
   // Tab bar
-  tabBar: '#0A0A0A',
-  tabBarBorder: '#141414',
+  tabBar: '#2a2d32',
+  tabBarBorder: '#32363b',
 };
 
 export const Spacing = {
