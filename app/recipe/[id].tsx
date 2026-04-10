@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
+import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import type { RecipeWithDetails, RecipeRow } from "@/lib/database";
 import { scaleAmount } from "@/lib/scaling";
@@ -52,37 +52,27 @@ function CookModeButton({ recipeId, currentServings }: { recipeId: string; curre
       style={({ pressed }) => [cookModeStyles.cookModeBtnOuter, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
       testID="cook-mode-btn"
     >
-      <LinearGradient
-        colors={['#D97706', '#B45309']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={cookModeStyles.cookModeGradient}
-      >
-        <Ionicons name="flame" size={22} color="#FFF" />
-        <Text style={cookModeStyles.cookModeText}>Cook Mode</Text>
-        {!hasCookMode ? <Ionicons name="lock-closed" size={14} color="rgba(255,255,255,0.6)" /> : null}
-      </LinearGradient>
+      <Ionicons name="flame" size={22} color="#FFF" />
+      <Text style={cookModeStyles.cookModeText}>Cook Mode</Text>
+      {!hasCookMode ? <Ionicons name="lock-closed" size={14} color="rgba(255,255,255,0.6)" /> : null}
     </Pressable>
   );
 }
 
 const cookModeStyles = StyleSheet.create({
   cookModeBtnOuter: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#D97706',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  cookModeGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 18,
     borderRadius: 16,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   cookModeText: {
     fontSize: 18,
@@ -313,14 +303,14 @@ export default function RecipeDetailScreen() {
             <Image source={{ uri: recipe.imageUri }} style={styles.heroImage} />
           ) : (
             <LinearGradient
-              colors={['#D97706', '#B45309', '#0F1115']}
+              colors={[Colors.primary, Colors.primaryDark, Colors.backgroundDeep]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.heroGradient}
             />
           )}
           <LinearGradient
-            colors={['rgba(10,10,10,0.5)', 'transparent', 'rgba(10,10,10,0.95)']}
+            colors={[Colors.backgroundDeep + '80', 'transparent', Colors.backgroundDeep + 'F2']}
             locations={[0, 0.35, 1]}
             style={styles.heroOverlay}
           />
@@ -675,11 +665,11 @@ export default function RecipeDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: Colors.backgroundDeep,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: Colors.backgroundDeep,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -794,11 +784,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   sectionCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: Colors.backgroundCard,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
+    borderColor: Colors.border,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -807,10 +797,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   sectionTitle: {
-    fontSize: FontSize.md,
-    fontWeight: "600",
-    color: Colors.textPrimary,
-    fontFamily: "DMSans_600SemiBold",
+    fontSize: 9,
+    fontWeight: "700",
+    color: Colors.textSecondary,
+    fontFamily: "DMSans_700Bold",
+    textTransform: "uppercase",
+    letterSpacing: 2,
   },
 
   categoryDivider: {
