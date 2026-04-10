@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
+import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from "@/constants/theme";
 import { UNITS, UNIT_CATEGORIES, type UnitCategory } from "@/constants/units";
 import { convertUnit, formatQuantity, getUnitAbbreviation } from "@/lib/scaling";
 
@@ -351,8 +351,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.10)',
   },
   categoryChipActive: {
-    backgroundColor: '#D97706',
-    borderColor: '#D97706',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   categoryText: {
     fontSize: FontSize.sm,
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.display,
     fontWeight: "700",
     color: Colors.textPrimary,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: MONO_FONT,
     padding: 0,
     minHeight: TouchTarget.min,
   },
@@ -440,10 +440,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#D97706',
+    backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: '#D97706',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -454,9 +454,9 @@ const styles = StyleSheet.create({
   resultValue: {
     fontSize: 42,
     fontWeight: "700",
-    color: '#D97706',
-    fontFamily: "DMSans_700Bold",
-    textShadowColor: '#D97706',
+    color: Colors.primary,
+    fontFamily: MONO_FONT,
+    textShadowColor: Colors.primary,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 12,
   },
@@ -515,8 +515,8 @@ const styles = StyleSheet.create({
     minHeight: TouchTarget.min,
   },
   pickerItemSelected: {
-    backgroundColor: '#D97706' + '20',
-    borderColor: '#D97706',
+    backgroundColor: Colors.primary + '20',
+    borderColor: Colors.primary,
   },
   pickerItemName: {
     fontSize: FontSize.md,

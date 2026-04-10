@@ -13,11 +13,10 @@ import {
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as Crypto from "expo-crypto";
-import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
+import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
 import type { IngredientPriceRow } from "@/lib/database";
@@ -324,8 +323,7 @@ export default function PricesScreen() {
           </Pressable>
         )}
         ListEmptyComponent={
-          <LinearGradient
-            colors={['#0F1115', '#1A1008', '#0F1115']}
+          <View
             style={styles.emptyContainer}
           >
             <Ionicons name="pricetag-outline" size={80} color={Colors.textMuted} />
@@ -350,7 +348,7 @@ export default function PricesScreen() {
                 <Text style={styles.emptyHint}>Long press any item to delete it</Text>
               </>
             )}
-          </LinearGradient>
+          </View>
         }
       />
 
@@ -493,10 +491,10 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#D97706',
+    backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: '#D97706',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -553,7 +551,7 @@ const styles = StyleSheet.create({
     minHeight: TouchTarget.min,
   },
   searchContainerFocused: {
-    borderColor: 'rgba(255,255,255,0.20)',
+    borderColor: Colors.primary,
   },
   searchIcon: {
     marginRight: Spacing.sm,
@@ -621,7 +619,7 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xl,
     fontWeight: "700" as const,
     color: Colors.accent,
-    fontFamily: "DMSans_700Bold",
+    fontFamily: MONO_FONT,
   },
   unitPriceLabel: {
     fontSize: FontSize.xs,
@@ -634,6 +632,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 80,
     gap: Spacing.md,
+    backgroundColor: Colors.backgroundDeep,
   },
   emptyTitle: {
     fontSize: FontSize.xl,

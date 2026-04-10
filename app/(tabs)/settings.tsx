@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
+import Constants from "expo-constants";
 import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
@@ -342,21 +342,18 @@ export default function SettingsScreen() {
               onPress={handleUpgrade}
               style={({ pressed }) => [pressed && { opacity: 0.85 }]}
             >
-              <LinearGradient
-                colors={['#1A1008', '#251A0A']}
-                style={styles.upgradeBanner}
-              >
+              <View style={styles.upgradeBanner}>
                 <View style={styles.upgradeBannerContent}>
                   <View style={styles.upgradeIconCircle}>
-                    <Ionicons name="star" size={24} color="#D97706" />
+                    <Ionicons name="star" size={24} color={Colors.primary} />
                   </View>
                   <View style={styles.upgradeBannerText}>
                     <Text style={styles.upgradeTitle}>Upgrade to Premium</Text>
                     <Text style={styles.upgradeSubtitle}>Unlock export, import, nutrition, and more</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#D97706" />
+                  <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
                 </View>
-              </LinearGradient>
+              </View>
             </Pressable>
           ) : (
             <View style={styles.sectionCard}>
@@ -431,7 +428,7 @@ export default function SettingsScreen() {
             <SettingsRow
               icon="information-circle-outline"
               label="Version"
-              subtitle="1.0.0 (Phase 7)"
+              subtitle={Constants.expoConfig?.version || '1.0.0'}
               color={Colors.textSecondary}
               showChevron={false}
             />
@@ -495,7 +492,7 @@ export default function SettingsScreen() {
           <Text style={styles.consultantText}>Powered by The Restaurant Consultant</Text>
         </Pressable>
 
-        <Text style={styles.versionFooter}>ChefScale v1.0.0</Text>
+        <Text style={styles.versionFooter}>ChefScale v{Constants.expoConfig?.version || '1.0.0'}</Text>
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -525,12 +522,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: "700" as const,
-    color: '#D97706',
+    color: Colors.textSecondary,
     fontFamily: "DMSans_700Bold",
     textTransform: "uppercase",
-    letterSpacing: 1.5,
+    letterSpacing: 2,
     marginBottom: 8,
     marginTop: 4,
     paddingHorizontal: Spacing.lg,
@@ -585,7 +582,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#D97706',
+    backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: Spacing.md,
@@ -605,9 +602,10 @@ const styles = StyleSheet.create({
   upgradeBanner: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.3)',
+    borderColor: Colors.primary + '4D',
     overflow: "hidden",
     marginHorizontal: 16,
+    backgroundColor: Colors.backgroundCard,
   },
   upgradeBannerContent: {
     flexDirection: "row",
@@ -618,7 +616,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(217,119,6,0.15)',
+    backgroundColor: Colors.primary + '26',
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.md,
@@ -629,7 +627,7 @@ const styles = StyleSheet.create({
   upgradeTitle: {
     fontSize: FontSize.md,
     fontWeight: "700" as const,
-    color: '#D97706',
+    color: Colors.primary,
     fontFamily: "DMSans_700Bold",
   },
   upgradeSubtitle: {
