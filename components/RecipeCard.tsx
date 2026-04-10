@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/constants/theme';
+import * as Haptics from 'expo-haptics';
+import { Colors, MONO_FONT } from '@/constants/theme';
 import type { RecipeRow } from '@/lib/database';
 
 interface RecipeCardProps {
@@ -10,6 +11,18 @@ interface RecipeCardProps {
   onPress: () => void;
   onLongPress?: () => void;
 }
+
+const CATEGORY_ACCENT: Record<string, string> = {
+  'Entrée': '#f97316',
+  'Appetizer': '#ef4444',
+  'Sauce': '#f97316',
+  'Dessert': '#ec4899',
+  'Prep': '#0d9488',
+  'Side': '#22c55e',
+  'Beverage': '#7c3aed',
+};
+
+const DEFAULT_ACCENT = '#f97316';
 
 const CATEGORY_ICONS: Record<string, string> = {
   'Entrée': 'restaurant-outline',
@@ -20,18 +33,6 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Side': 'layers-outline',
   'Beverage': 'wine-outline',
 };
-
-const CATEGORY_GRADIENTS: Record<string, [string, string, string]> = {
-  'Entrée': ['#D97706', '#92400E', '#0A0A0A'],
-  'Appetizer': ['#DC2626', '#991B1B', '#0A0A0A'],
-  'Sauce': ['#D97706', '#78350F', '#0A0A0A'],
-  'Dessert': ['#DB2777', '#831843', '#0A0A0A'],
-  'Prep': ['#0D9488', '#134E4A', '#0A0A0A'],
-  'Side': ['#16A34A', '#14532D', '#0A0A0A'],
-  'Beverage': ['#7C3AED', '#4C1D95', '#0A0A0A'],
-};
-
-const DEFAULT_GRADIENT: [string, string, string] = ['#D97706', '#B45309', '#0A0A0A'];
 
 const DIETARY_COLORS: Record<string, string> = {
   'vegan': '#22C55E',
@@ -44,9 +45,23 @@ const DIETARY_COLORS: Record<string, string> = {
 };
 
 export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardProps) {
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withTiming(0.98, { duration: 100 });
+  };
+
+  const handlePressOut = () => {
+    scale.value = withTiming(1, { duration: 100 });
+  };
+
+  const accentColor = CATEGORY_ACCENT[recipe.category] || DEFAULT_ACCENT;
   const iconName = CATEGORY_ICONS[recipe.category] || 'grid-outline';
   const totalTime = recipe.prepTime + recipe.cookTime;
-  const gradientColors = CATEGORY_GRADIENTS[recipe.category] || DEFAULT_GRADIENT;
 
   let dietaryFlags: string[] = [];
   if (recipe.dietaryFlags) {
@@ -63,202 +78,231 @@ export default function RecipeCard({ recipe, onPress, onLongPress }: RecipeCardP
     }
   }
 
+  // Cost data is not stored on RecipeRow directly — omit per-card cost display
+  const foodCostDisplay: string | null = null;
+
   return (
-    <Pressable
-      onPress={onPress}
-      onLongPress={onLongPress}
-      style={({ pressed }) => [
-        styles.card,
-        pressed && styles.cardPressed,
-      ]}
-      testID={`recipe-card-${recipe.id}`}
-    >
-      {/* Background: image or gradient */}
-      {recipe.imageUri ? (
-        <Image source={{ uri: recipe.imageUri }} style={styles.backgroundImage} />
-      ) : (
-        <LinearGradient
-          colors={gradientColors}
-          style={styles.fallbackGradient}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-        >
-          <Ionicons name={iconName as any} size={64} color="rgba(255,255,255,0.2)" />
-        </LinearGradient>
-      )}
+    <Animated.View style={[animatedStyle]} testID={`recipe-card-${recipe.id}`}>
+      <Pressable
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          onPress();
+        }}
+        onLongPress={onLongPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={styles.card}
+      >
+        {/* Left accent stripe */}
+        <View style={[styles.accentStripe, { backgroundColor: accentColor }]} />
 
-      {/* Dark overlay gradient at bottom */}
-      <LinearGradient
-        colors={['transparent', 'rgba(10,10,10,0.85)']}
-        start={{ x: 0, y: 0.4 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.overlay}
-      />
-
-      {/* Variation badge */}
-      {recipe.parentRecipeId ? (
-        <View style={styles.variationBadge}>
-          <Ionicons name="git-branch-outline" size={12} color="#D97706" />
-          <Text style={styles.variationBadgeText}>
-            {recipe.variationLabel || 'Variation'}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Bottom content */}
-      <View style={styles.bottomContent}>
-        <Text style={styles.name} numberOfLines={1}>
-          {recipe.name}
-        </Text>
-
-        {recipe.description ? (
-          <Text style={styles.description} numberOfLines={1}>
-            {recipe.description}
-          </Text>
-        ) : null}
-
-        <View style={styles.metaRow}>
-          <View style={styles.pill}>
-            <Text style={styles.pillText}>{recipe.baseServings} servings</Text>
+        {/* Main content */}
+        <View style={styles.body}>
+          {/* Name row */}
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>
+              {recipe.name}
+            </Text>
+            {foodCostDisplay ? (
+              <Text style={styles.foodCost}>{foodCostDisplay}</Text>
+            ) : null}
           </View>
-          {totalTime > 0 ? (
-            <View style={styles.pill}>
-              <Text style={styles.pillText}>{totalTime}m</Text>
-            </View>
+
+          {/* Description */}
+          {recipe.description ? (
+            <Text style={styles.description} numberOfLines={1}>
+              {recipe.description}
+            </Text>
           ) : null}
-          <View style={styles.pill}>
-            <Text style={styles.pillText}>{recipe.category}</Text>
-          </View>
-          {recipe.station ? (
-            <View style={[styles.pill, styles.stationPill]}>
-              <Text style={[styles.pillText, styles.stationPillText]}>
-                {recipe.station}
+
+          {/* Metadata row */}
+          <View style={styles.metaRow}>
+            {/* Category badge */}
+            <View style={[styles.categoryBadge, { borderColor: accentColor + '60' }]}>
+              <Ionicons name={iconName as any} size={11} color={accentColor} />
+              <Text style={[styles.categoryText, { color: accentColor }]}>
+                {recipe.category}
               </Text>
             </View>
+
+            <View style={styles.metaPill}>
+              <Ionicons name="people-outline" size={11} color={Colors.textMuted} />
+              <Text style={styles.metaText}>{recipe.baseServings}</Text>
+            </View>
+
+            {totalTime > 0 ? (
+              <View style={styles.metaPill}>
+                <Ionicons name="time-outline" size={11} color={Colors.textMuted} />
+                <Text style={styles.metaText}>{totalTime}m</Text>
+              </View>
+            ) : null}
+
+            {recipe.station ? (
+              <View style={[styles.metaPill, styles.stationPill]}>
+                <Text style={[styles.metaText, styles.stationText]}>{recipe.station}</Text>
+              </View>
+            ) : null}
+          </View>
+
+          {/* Allergen dots + variation badge */}
+          {(dietaryFlags.length > 0 || recipe.parentRecipeId) ? (
+            <View style={styles.bottomRow}>
+              {dietaryFlags.length > 0 ? (
+                <View style={styles.allergenRow}>
+                  {dietaryFlags.map((flag) => (
+                    <View
+                      key={flag}
+                      style={[
+                        styles.allergenDot,
+                        { backgroundColor: DIETARY_COLORS[flag.toLowerCase()] || Colors.accent },
+                      ]}
+                    />
+                  ))}
+                </View>
+              ) : null}
+              {recipe.parentRecipeId ? (
+                <View style={styles.variationBadge}>
+                  <Ionicons name="git-branch-outline" size={11} color={Colors.primary} />
+                  <Text style={styles.variationText}>
+                    {recipe.variationLabel || 'Variation'}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           ) : null}
         </View>
 
-        {dietaryFlags.length > 0 ? (
-          <View style={styles.dietaryRow}>
-            {dietaryFlags.map((flag) => (
-              <View
-                key={flag}
-                style={[
-                  styles.dietaryDot,
-                  {
-                    backgroundColor:
-                      DIETARY_COLORS[flag.toLowerCase()] || Colors.accent,
-                  },
-                ]}
-              />
-            ))}
-          </View>
-        ) : null}
-      </View>
-    </Pressable>
+        {/* Chevron */}
+        <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} style={styles.chevron} />
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    height: 200,
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: Colors.border,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  cardPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
+  accentStripe: {
+    width: 4,
+    alignSelf: 'stretch',
   },
-  backgroundImage: {
-    ...StyleSheet.absoluteFillObject,
-    resizeMode: 'cover',
+  body: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
-  fallbackGradient: {
-    ...StyleSheet.absoluteFillObject,
+  nameRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  bottomContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
+    justifyContent: 'space-between',
+    gap: 8,
   },
   name: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#F5F5F4',
-    fontFamily: 'DMSans_700Bold',
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'DMSans_600SemiBold',
+    color: Colors.textPrimary,
+  },
+  foodCost: {
+    fontSize: 13,
+    fontFamily: MONO_FONT,
+    color: Colors.textSecondary,
+    flexShrink: 0,
   },
   description: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
     fontFamily: 'DMSans_400Regular',
+    color: Colors.textSecondary,
     fontStyle: 'italic',
     marginTop: 2,
   },
   metaRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginTop: 8,
-    gap: 8,
     flexWrap: 'wrap',
   },
-  pill: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 9999,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  pillText: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.8)',
-    fontFamily: 'DMSans_600SemiBold',
-  },
-  stationPill: {
-    backgroundColor: 'rgba(217,119,6,0.25)',
-  },
-  stationPillText: {
-    color: '#D97706',
-  },
-  dietaryRow: {
-    flexDirection: 'row',
-    marginTop: 8,
-    gap: 6,
-  },
-  dietaryDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  variationBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
+  categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(217,119,6,0.2)',
-    borderRadius: 9999,
-    paddingHorizontal: 8,
+    paddingHorizontal: 7,
     paddingVertical: 3,
-    zIndex: 10,
+    borderRadius: 9999,
+    borderWidth: 1,
   },
-  variationBadgeText: {
-    fontSize: 10,
-    color: '#D97706',
+  categoryText: {
+    fontSize: 11,
     fontFamily: 'DMSans_600SemiBold',
+  },
+  metaPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 9999,
+    backgroundColor: Colors.backgroundDeep,
+  },
+  metaText: {
+    fontSize: 11,
+    fontFamily: MONO_FONT,
+    color: Colors.textMuted,
+  },
+  stationPill: {
+    backgroundColor: Colors.primary + '20',
+  },
+  stationText: {
+    color: Colors.primary,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  allergenRow: {
+    flexDirection: 'row',
+    gap: 5,
+    alignItems: 'center',
+  },
+  allergenDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  variationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 9999,
+    backgroundColor: Colors.primary + '15',
+  },
+  variationText: {
+    fontSize: 10,
+    fontFamily: 'DMSans_600SemiBold',
+    color: Colors.primary,
+  },
+  chevron: {
+    alignSelf: 'center',
+    marginRight: 10,
+    marginLeft: 4,
   },
 });
