@@ -23,6 +23,7 @@ import {
   clearAllData as dbClearAllData,
   getVariationsByParentId,
   getRecipeBasicById,
+  getDatabase,
   type RecipeRow,
   type IngredientRow,
   type InstructionRow,
@@ -121,6 +122,24 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
       if (recipe.photos) {
         for (const photo of recipe.photos) {
           await insertRecipePhoto(photo);
+        }
+      }
+
+      // Auto-populate ingredient_prices for new ingredients
+      const db = await getDatabase();
+      for (const ing of recipe.ingredients) {
+        const name = ing.name.trim();
+        if (name) {
+          const existing = await db.getFirstAsync(
+            'SELECT id FROM ingredient_prices WHERE LOWER(ingredientName) = LOWER(?)',
+            [name]
+          );
+          if (!existing) {
+            await db.runAsync(
+              'INSERT INTO ingredient_prices (id, ingredientName, costPerUnit, costUnit) VALUES (?, ?, NULL, ?)',
+              [Crypto.randomUUID(), name, ing.unit || '']
+            );
+          }
         }
       }
 

@@ -24,7 +24,8 @@ import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
-import { Colors, Spacing, FontSize, BorderRadius, TouchTarget } from "@/constants/theme";
+import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from "@/constants/theme";
+import { upsertPrice } from "@/lib/database";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
 import { extractTextOnDevice } from "@/lib/ocr";
@@ -50,6 +51,8 @@ interface EditableIngredient {
   isScalable: boolean;
   yieldPercent: string;
   subrecipeId: string;
+  purchaseCost?: string;
+  purchaseDesc?: string;
 }
 
 interface EditableInstruction {
@@ -905,6 +908,36 @@ export default function EditRecipeScreen() {
         ],
       });
 
+      // Save cost data to ingredient_prices for any ingredient with a purchase cost
+      for (const ing of validIngredients) {
+        if (ing.purchaseCost && parseFloat(ing.purchaseCost) > 0) {
+          const cost = parseFloat(ing.purchaseCost);
+          const match = ing.purchaseDesc?.match(/^([\d.]+)\s*(\w+)/);
+          if (match) {
+            const purchaseQty = parseFloat(match[1]);
+            const purchaseUnit = match[2];
+            const costPerUnit = cost / purchaseQty;
+            await upsertPrice({
+              id: Crypto.randomUUID(),
+              ingredientName: ing.name.trim(),
+              costPerUnit,
+              costUnit: purchaseUnit,
+              purchaseUnit: ing.purchaseDesc || '',
+              purchaseCost: cost,
+            });
+          } else {
+            await upsertPrice({
+              id: Crypto.randomUUID(),
+              ingredientName: ing.name.trim(),
+              costPerUnit: cost,
+              costUnit: ing.unit || '',
+              purchaseUnit: ing.purchaseDesc || '',
+              purchaseCost: cost,
+            });
+          }
+        }
+      }
+
       // Only increment recipe count for new recipes, not edits
       if (!isEditing) {
         useSubscriptionStore.getState().incrementRecipeCount();
@@ -1268,6 +1301,27 @@ export default function EditRecipeScreen() {
                   keyboardType="number-pad"
                 />
               </View>
+            </View>
+            {/* Cost input */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <Text style={{ color: Colors.textSecondary, fontSize: 12 }}>Cost:</Text>
+              <Text style={{ color: Colors.textSecondary, fontSize: 14 }}>$</Text>
+              <TextInput
+                style={[styles.input, { width: 70, fontFamily: MONO_FONT, paddingVertical: 4 }]}
+                value={ing.purchaseCost || ''}
+                onChangeText={(v) => updateIngredient(ing.id, 'purchaseCost', v)}
+                placeholder="0.00"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="decimal-pad"
+              />
+              <Text style={{ color: Colors.textSecondary, fontSize: 12 }}>per</Text>
+              <TextInput
+                style={[styles.input, { flex: 1, paddingVertical: 4 }]}
+                value={ing.purchaseDesc || ''}
+                onChangeText={(v) => updateIngredient(ing.id, 'purchaseDesc', v)}
+                placeholder="30 lb sack"
+                placeholderTextColor={Colors.textMuted}
+              />
             </View>
           </View>
         ))}
