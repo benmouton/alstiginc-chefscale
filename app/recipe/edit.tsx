@@ -28,6 +28,8 @@ import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from 
 import { upsertPrice } from "@/lib/database";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
+import { PriceEditorSheet, type PriceEditorValues } from "@/components/PriceEditorSheet";
+import { formatCurrency } from "@/lib/priceSentence";
 import { extractTextOnDevice } from "@/lib/ocr";
 import { STATIONS } from "@/constants/stations";
 import { DIETARY_FLAGS } from "@/constants/allergens";
@@ -51,8 +53,14 @@ interface EditableIngredient {
   isScalable: boolean;
   yieldPercent: string;
   subrecipeId: string;
+  /** Total dollars paid. */
   purchaseCost?: string;
-  purchaseDesc?: string;
+  /** How much was purchased in `purchaseBaseUnit`. */
+  purchaseAmount?: string;
+  /** Base unit for the purchase (e.g. "lb"). */
+  purchaseBaseUnit?: string;
+  /** Optional freetext descriptor for the display summary, e.g. "50 lb sack". */
+  purchaseContainer?: string;
 }
 
 interface EditableInstruction {
@@ -536,6 +544,48 @@ export default function EditRecipeScreen() {
     );
   };
 
+  // Purchase cost editor — tapping an ingredient's cost row opens the
+  // PriceEditorSheet bound to that ingredient's id.
+  const [priceEditorIngredientId, setPriceEditorIngredientId] = useState<string | null>(null);
+  const openPriceEditor = (ingId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPriceEditorIngredientId(ingId);
+  };
+  const closePriceEditor = () => setPriceEditorIngredientId(null);
+  const savePriceEditor = (values: PriceEditorValues & { costPerUnit: number }) => {
+    if (!priceEditorIngredientId) return;
+    setIngredients((prev) =>
+      prev.map((i) =>
+        i.id === priceEditorIngredientId
+          ? {
+              ...i,
+              purchaseCost: values.purchaseCost,
+              purchaseAmount: values.amount,
+              purchaseBaseUnit: values.unit,
+              purchaseContainer: values.container,
+            }
+          : i
+      )
+    );
+    setPriceEditorIngredientId(null);
+  };
+
+  // Inline cost-row summary. Shows the rate + optional container hint,
+  // or a placeholder when no cost has been set yet.
+  const formatCostSummary = (ing: EditableIngredient): string => {
+    const cost = parseFloat(ing.purchaseCost || '');
+    const amount = parseFloat(ing.purchaseAmount || '');
+    const unit = (ing.purchaseBaseUnit || '').trim();
+    if (!(cost > 0) || !(amount > 0) || !unit) {
+      return 'Set purchase cost';
+    }
+    const rate = cost / amount;
+    const container = ing.purchaseContainer?.trim();
+    return container
+      ? `${formatCurrency(rate)} / ${unit} · ${container}`
+      : `${formatCurrency(rate)} / ${unit}`;
+  };
+
   const moveIngredient = (index: number, direction: -1 | 1) => {
     const newIndex = index + direction;
     if (newIndex < 0 || newIndex >= ingredients.length) return;
@@ -908,33 +958,23 @@ export default function EditRecipeScreen() {
         ],
       });
 
-      // Save cost data to ingredient_prices for any ingredient with a purchase cost
+      // Save cost data to ingredient_prices for any ingredient with a
+      // complete purchase cost entry (cost, amount, and unit all set).
+      // Comes from PriceEditorSheet — no more freetext regex parsing.
       for (const ing of validIngredients) {
-        if (ing.purchaseCost && parseFloat(ing.purchaseCost) > 0) {
-          const cost = parseFloat(ing.purchaseCost);
-          const match = ing.purchaseDesc?.match(/^([\d.]+)\s*(\w+)/);
-          if (match) {
-            const purchaseQty = parseFloat(match[1]);
-            const purchaseUnit = match[2];
-            const costPerUnit = cost / purchaseQty;
-            await upsertPrice({
-              id: Crypto.randomUUID(),
-              ingredientName: ing.name.trim(),
-              costPerUnit,
-              costUnit: purchaseUnit,
-              purchaseUnit: ing.purchaseDesc || '',
-              purchaseCost: cost,
-            });
-          } else {
-            await upsertPrice({
-              id: Crypto.randomUUID(),
-              ingredientName: ing.name.trim(),
-              costPerUnit: cost,
-              costUnit: ing.unit || '',
-              purchaseUnit: ing.purchaseDesc || '',
-              purchaseCost: cost,
-            });
-          }
+        const cost = parseFloat(ing.purchaseCost || '');
+        const amount = parseFloat(ing.purchaseAmount || '');
+        const unit = (ing.purchaseBaseUnit || '').trim();
+        if (cost > 0 && amount > 0 && unit) {
+          const costPerUnit = cost / amount;
+          await upsertPrice({
+            id: Crypto.randomUUID(),
+            ingredientName: ing.name.trim(),
+            costPerUnit,
+            costUnit: unit,
+            purchaseUnit: ing.purchaseContainer?.trim() || '',
+            purchaseCost: cost,
+          });
         }
       }
 
@@ -1302,27 +1342,21 @@ export default function EditRecipeScreen() {
                 />
               </View>
             </View>
-            {/* Cost input */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
-              <Text style={{ color: Colors.textSecondary, fontSize: 12 }}>Cost:</Text>
-              <Text style={{ color: Colors.textSecondary, fontSize: 14 }}>$</Text>
-              <TextInput
-                style={[styles.input, { width: 70, fontFamily: MONO_FONT, paddingVertical: 4 }]}
-                value={ing.purchaseCost || ''}
-                onChangeText={(v) => updateIngredient(ing.id, 'purchaseCost', v)}
-                placeholder="0.00"
-                placeholderTextColor={Colors.textMuted}
-                keyboardType="decimal-pad"
+            {/* Purchase cost — tap to open sheet */}
+            <Pressable
+              onPress={() => openPriceEditor(ing.id)}
+              style={({ pressed }) => [styles.costRow, pressed && { opacity: 0.7 }]}
+            >
+              <Ionicons
+                name={ing.purchaseCost ? 'pricetag' : 'pricetag-outline'}
+                size={14}
+                color={ing.purchaseCost ? Colors.primary : Colors.textSecondary}
               />
-              <Text style={{ color: Colors.textSecondary, fontSize: 12 }}>per</Text>
-              <TextInput
-                style={[styles.input, { flex: 1, paddingVertical: 4 }]}
-                value={ing.purchaseDesc || ''}
-                onChangeText={(v) => updateIngredient(ing.id, 'purchaseDesc', v)}
-                placeholder="30 lb sack"
-                placeholderTextColor={Colors.textMuted}
-              />
-            </View>
+              <Text style={styles.costRowText} numberOfLines={1}>
+                {formatCostSummary(ing)}
+              </Text>
+              <Ionicons name="chevron-forward" size={14} color={Colors.textMuted} />
+            </Pressable>
           </View>
         ))}
 
@@ -1833,6 +1867,26 @@ export default function EditRecipeScreen() {
           </View>
         </View>
       </Modal>
+
+      {priceEditorIngredientId && (() => {
+        const ing = ingredients.find((i) => i.id === priceEditorIngredientId);
+        if (!ing) return null;
+        return (
+          <PriceEditorSheet
+            visible
+            ingredientName={ing.name || 'Ingredient'}
+            initial={{
+              purchaseCost: ing.purchaseCost || '',
+              amount: ing.purchaseAmount || '',
+              unit: ing.purchaseBaseUnit || '',
+              container: ing.purchaseContainer || '',
+            }}
+            onSave={savePriceEditor}
+            onClose={closePriceEditor}
+            apiBase={API_BASE}
+          />
+        );
+      })()}
     </View>
   );
 }
@@ -2134,6 +2188,24 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     color: Colors.textMuted,
     fontFamily: "DMSans_400Regular",
+  },
+  costRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    backgroundColor: Colors.backgroundDeep,
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginTop: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  costRowText: {
+    flex: 1,
+    fontSize: FontSize.sm,
+    color: Colors.textPrimary,
+    fontFamily: "DMSans_500Medium",
   },
 
   addRowButton: {
