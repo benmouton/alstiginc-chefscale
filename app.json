@@ -2,7 +2,7 @@
   "expo": {
     "name": "Chef Scale",
     "slug": "chefscale",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Scale recipes and manage ingredient costs. Offline-first, with cloud sync capabilities.",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.alstiginc.chefscale",
-      "buildNumber": "12",
+      "buildNumber": "13",
       "appleTeamId": "M2989SGWJA",
       "entitlements": {
         "com.apple.developer.applesignin": ["Default"]
