@@ -125,21 +125,17 @@ export const useRecipeStore = create<RecipeStore>((set, get) => ({
         }
       }
 
-      // Auto-populate ingredient_prices for new ingredients
+      // Auto-populate ingredient_prices stubs for new ingredients so they
+      // appear in the Prices tab. ingredientName is UNIQUE COLLATE NOCASE so
+      // INSERT OR IGNORE dedupes case-variants automatically.
       const db = await getDatabase();
       for (const ing of recipe.ingredients) {
         const name = ing.name.trim();
         if (name) {
-          const existing = await db.getFirstAsync(
-            'SELECT id FROM ingredient_prices WHERE LOWER(ingredientName) = LOWER(?)',
-            [name]
+          await db.runAsync(
+            'INSERT OR IGNORE INTO ingredient_prices (id, ingredientName, costPerUnit, costUnit) VALUES (?, ?, NULL, ?)',
+            [Crypto.randomUUID(), name, ing.unit || '']
           );
-          if (!existing) {
-            await db.runAsync(
-              'INSERT INTO ingredient_prices (id, ingredientName, costPerUnit, costUnit) VALUES (?, ?, NULL, ?)',
-              [Crypto.randomUUID(), name, ing.unit || '']
-            );
-          }
         }
       }
 

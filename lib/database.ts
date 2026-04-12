@@ -2,7 +2,7 @@ import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
 
 const DB_NAME = 'chefscale.db';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
@@ -111,7 +111,7 @@ export async function initDatabase(): Promise<void> {
 
       CREATE TABLE IF NOT EXISTS ingredient_prices (
         id TEXT PRIMARY KEY,
-        ingredientName TEXT NOT NULL UNIQUE,
+        ingredientName TEXT NOT NULL UNIQUE COLLATE NOCASE,
         costPerUnit REAL,
         costUnit TEXT DEFAULT '',
         purchaseUnit TEXT DEFAULT '',
@@ -150,6 +150,50 @@ export async function initDatabase(): Promise<void> {
         await database.execAsync(sql);
       } catch {
         // Column already exists — safe to ignore on incremental upgrades
+      }
+    }
+
+    // v5: rebuild ingredient_prices with COLLATE NOCASE on ingredientName.
+    // SQLite cannot ALTER a column's collation, so copy-rename. If the table
+    // doesn't exist yet (e.g. user jumped from v<4 without going through v4's
+    // ingredient_prices create), create it fresh.
+    if (currentVersion < 5) {
+      const existing = await database.getFirstAsync<{ name: string }>(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='ingredient_prices'"
+      );
+      if (existing) {
+        // INSERT OR IGNORE + ORDER BY updatedAt DESC keeps the most recently
+        // updated row when two case-variants collide (e.g. "Flour" + "flour").
+        await database.execAsync(`
+          CREATE TABLE ingredient_prices_new (
+            id TEXT PRIMARY KEY,
+            ingredientName TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            costPerUnit REAL,
+            costUnit TEXT DEFAULT '',
+            purchaseUnit TEXT DEFAULT '',
+            purchaseCost REAL,
+            updatedAt TEXT DEFAULT (datetime('now'))
+          );
+          INSERT OR IGNORE INTO ingredient_prices_new
+            (id, ingredientName, costPerUnit, costUnit, purchaseUnit, purchaseCost, updatedAt)
+            SELECT id, ingredientName, costPerUnit, costUnit, purchaseUnit, purchaseCost, updatedAt
+            FROM ingredient_prices
+            ORDER BY updatedAt DESC;
+          DROP TABLE ingredient_prices;
+          ALTER TABLE ingredient_prices_new RENAME TO ingredient_prices;
+        `);
+      } else {
+        await database.execAsync(`
+          CREATE TABLE ingredient_prices (
+            id TEXT PRIMARY KEY,
+            ingredientName TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            costPerUnit REAL,
+            costUnit TEXT DEFAULT '',
+            purchaseUnit TEXT DEFAULT '',
+            purchaseCost REAL,
+            updatedAt TEXT DEFAULT (datetime('now'))
+          );
+        `);
       }
     }
 
@@ -459,7 +503,9 @@ export async function getAllPrices(): Promise<IngredientPriceRow[]> {
 
 export async function upsertPrice(price: Omit<IngredientPriceRow, 'updatedAt'>): Promise<void> {
   const database = await getDatabase();
-  const normalizedName = price.ingredientName.toLowerCase().trim();
+  // Preserve display case. The ingredientName column uses COLLATE NOCASE so
+  // ON CONFLICT / UNIQUE treats "Flour" and "flour" as the same row.
+  const name = price.ingredientName.trim();
   await database.runAsync(
     `INSERT INTO ingredient_prices (id, ingredientName, costPerUnit, costUnit, purchaseUnit, purchaseCost)
      VALUES (?, ?, ?, ?, ?, ?)
@@ -467,7 +513,7 @@ export async function upsertPrice(price: Omit<IngredientPriceRow, 'updatedAt'>):
        costPerUnit = ?, costUnit = ?, purchaseUnit = ?, purchaseCost = ?,
        updatedAt = datetime('now')`,
     [
-      price.id, normalizedName,
+      price.id, name,
       price.costPerUnit, price.costUnit, price.purchaseUnit, price.purchaseCost,
       price.costPerUnit, price.costUnit, price.purchaseUnit, price.purchaseCost,
     ]
