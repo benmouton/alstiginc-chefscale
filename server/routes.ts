@@ -216,6 +216,82 @@ Rules:
     }
   });
 
+  // Natural-language purchase cost parser. Client sends a freetext
+  // description like "30 bucks for a 50 lb sack" and gets back structured
+  // fields the PriceEditorSheet can populate. Cheap model, low tokens.
+  app.post("/api/parse-price", async (req, res) => {
+    try {
+      const { description, ingredientName } = req.body;
+      if (!description || typeof description !== "string" || description.trim().length < 3) {
+        return res.status(400).json({ error: "description is required" });
+      }
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You parse a restaurant purchase description into structured cost data.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "purchaseCost": number,     // dollars paid, e.g. 30.00
+  "amount": number,            // how much was purchased in "unit", e.g. 50
+  "unit": string,              // one of: tsp, tbsp, cup, fl_oz, oz, lb, g, kg, ml, l, pint, quart, gallon, each, dozen, clove, bunch, head, stalk, sprig, slice, can, bottle, package, stick
+  "container": string | null   // optional free-text purchase-context descriptor, e.g. "50 lb sack", "case of 6", "#10 can", "gallon jug". Use null if not mentioned.
+}
+
+Rules:
+- "amount" × cost-per-unit must equal purchaseCost. The user tells you the total paid and the total amount — do NOT split into pack/size sub-tiers, store the total.
+- Map synonyms to the canonical unit list: "pound/pounds/lbs" → "lb", "ounce/ounces" → "oz", "gallon/gal" → "gallon", "kilogram/kg/kilo" → "kg", "grams/gram" → "g", "liters/litre/l" → "l", "milliliter/ml" → "ml", "dozen/dz" → "dozen", "each/ea/piece/pc/count/ct" → "each".
+- If description says "a case of 6 at $X" with no individual size, set amount=6, unit="each", container="case of 6".
+- If description says "case of 6 10-lb bags for $Y", the TOTAL is 60 lb, so amount=60, unit="lb", container="case of 6 10 lb bags".
+- Dollar amounts: extract from "$X", "X dollars", "X bucks".
+- If anything is ambiguous or missing, return your best guess — never null for purchaseCost, amount, or unit.
+- Do NOT wrap in markdown. Return raw JSON only.`,
+          },
+          {
+            role: "user",
+            content: ingredientName
+              ? `Ingredient: ${ingredientName}\nDescription: ${description}`
+              : description,
+          },
+        ],
+        max_completion_tokens: 256,
+        response_format: { type: "json_object" },
+      });
+
+      const content = response.choices[0]?.message?.content || "";
+      let parsed: any;
+      try {
+        parsed = JSON.parse(content);
+      } catch {
+        return res.status(422).json({ error: "Could not parse description" });
+      }
+
+      // Sanity check the shape before returning.
+      if (
+        typeof parsed.purchaseCost !== "number" ||
+        typeof parsed.amount !== "number" ||
+        typeof parsed.unit !== "string" ||
+        !(parsed.purchaseCost > 0) ||
+        !(parsed.amount > 0)
+      ) {
+        return res.status(422).json({ error: "Parsed data is incomplete", raw: parsed });
+      }
+
+      res.json({
+        purchaseCost: parsed.purchaseCost,
+        amount: parsed.amount,
+        unit: parsed.unit,
+        container: typeof parsed.container === "string" && parsed.container.trim() ? parsed.container.trim() : null,
+      });
+    } catch (error: any) {
+      console.error("[parse-price] Failed:", error?.message);
+      res.status(500).json({ error: error?.message || "Failed to parse price" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
