@@ -37,7 +37,7 @@ import { DIETARY_FLAGS } from "@/constants/allergens";
 const CATEGORIES = ["Entrée", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage", "Other"];
 
 const API_BASE = (() => {
-  const domain = process.env.EXPO_PUBLIC_DOMAIN || "chef-scale.replit.app";
+  const domain = process.env.EXPO_PUBLIC_DOMAIN || "restaurantai.consulting";
   if (Platform.OS === "web") return "";
   const url = new URL(`https://${domain}`);
   url.port = "";
