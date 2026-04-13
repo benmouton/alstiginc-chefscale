@@ -14,6 +14,7 @@ interface IngredientRowProps {
   yieldPercent?: number;
   subrecipeName?: string;
   onSubrecipePress?: () => void;
+  onPricePress?: () => void;
 }
 
 export default function IngredientRow({
@@ -26,6 +27,7 @@ export default function IngredientRow({
   yieldPercent,
   subrecipeName,
   onSubrecipePress,
+  onPricePress,
 }: IngredientRowProps) {
   const hasYieldLoss = yieldPercent != null && yieldPercent < 100 && yieldPercent > 0;
   const asPurchased = hasYieldLoss
@@ -65,7 +67,13 @@ export default function IngredientRow({
           {prepNote ? <Text style={styles.prepNote}>{prepNote}</Text> : null}
         </View>
       </View>
-      {cost !== undefined && cost !== null ? (
+      {onPricePress ? (
+        <Pressable onPress={onPricePress} hitSlop={8}>
+          <Text style={[styles.cost, cost == null && styles.costEmpty]}>
+            {cost != null ? `$${cost.toFixed(2)}` : '+ cost'}
+          </Text>
+        </Pressable>
+      ) : cost != null ? (
         <Text style={styles.cost}>${cost.toFixed(2)}</Text>
       ) : null}
     </View>
@@ -142,6 +150,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: MONO_FONT,
     marginTop: 2,
+  },
+  costEmpty: {
+    color: Colors.textMuted,
+    fontFamily: 'DMSans_400Regular',
+    fontStyle: 'italic',
   },
   asPurchased: {
     fontSize: FontSize.xs,

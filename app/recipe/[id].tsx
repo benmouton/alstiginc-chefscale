@@ -18,6 +18,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import type { RecipeWithDetails, RecipeRow } from "@/lib/database";
+import { upsertPrice } from "@/lib/database";
+import { PriceEditorSheet, type PriceEditorValues } from "@/components/PriceEditorSheet";
+import { formatCurrency } from "@/lib/priceSentence";
+import * as Crypto from "expo-crypto";
 import { scaleAmount } from "@/lib/scaling";
 import { calculateRecipeCost } from "@/lib/costs";
 import { detectAllergens } from "@/lib/allergens";
@@ -97,6 +101,34 @@ export default function RecipeDetailScreen() {
   });
   const [variations, setVariations] = useState<RecipeRow[]>([]);
   const [subrecipeNames, setSubrecipeNames] = useState<Record<string, string>>({});
+  const [priceEditIngredientIdx, setPriceEditIngredientIdx] = useState<number | null>(null);
+
+  const openPriceEditor = useCallback((idx: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPriceEditIngredientIdx(idx);
+  }, []);
+
+  const closePriceEditor = useCallback(() => setPriceEditIngredientIdx(null), []);
+
+  const savePriceFromDetail = useCallback(async (values: PriceEditorValues & { costPerUnit: number }) => {
+    if (priceEditIngredientIdx == null || !recipe) return;
+    const ing = recipe.ingredients[priceEditIngredientIdx];
+    const cost = parseFloat(values.purchaseCost || '0');
+    const amount = parseFloat(values.amount || '0');
+    const unit = (values.unit || '').trim();
+    if (cost > 0 && amount > 0 && unit) {
+      await upsertPrice({
+        id: Crypto.randomUUID(),
+        ingredientName: ing.name.trim(),
+        costPerUnit: values.costPerUnit,
+        costUnit: unit,
+        purchaseUnit: values.container?.trim() || '',
+        purchaseCost: cost,
+      });
+      await loadPrices();
+    }
+    setPriceEditIngredientIdx(null);
+  }, [priceEditIngredientIdx, recipe, loadPrices]);
 
   useEffect(() => {
     (async () => {
@@ -451,6 +483,7 @@ export default function RecipeDetailScreen() {
                           yieldPercent={ing.yieldPercent}
                           subrecipeName={ing.subrecipeId ? subrecipeNames[ing.subrecipeId] : undefined}
                           onSubrecipePress={ing.subrecipeId ? () => router.push({ pathname: '/recipe/[id]', params: { id: ing.subrecipeId } }) : undefined}
+                          onPricePress={() => openPriceEditor(idx)}
                         />
                       );
                     })}
@@ -658,6 +691,32 @@ export default function RecipeDetailScreen() {
         stepNumber={timerState.stepNumber}
         onClose={() => setTimerState({ visible: false, minutes: 0, stepNumber: 0 })}
       />
+
+      {priceEditIngredientIdx != null && recipe && (() => {
+        const ing = recipe.ingredients[priceEditIngredientIdx];
+        if (!ing) return null;
+        // Look up existing price data for this ingredient
+        const saved = prices.find(
+          (p) => p.ingredientName.toLowerCase() === ing.name.trim().toLowerCase()
+        );
+        const initialValues: PriceEditorValues = saved && saved.costPerUnit != null && saved.purchaseCost != null
+          ? {
+              purchaseCost: saved.purchaseCost.toString(),
+              amount: (saved.purchaseCost / saved.costPerUnit).toFixed(2),
+              unit: saved.costUnit || '',
+              container: saved.purchaseUnit || '',
+            }
+          : { purchaseCost: '', amount: '', unit: '', container: '' };
+        return (
+          <PriceEditorSheet
+            visible
+            ingredientName={ing.name || 'Ingredient'}
+            initial={initialValues}
+            onSave={savePriceFromDetail}
+            onClose={closePriceEditor}
+          />
+        );
+      })()}
     </View>
   );
 }

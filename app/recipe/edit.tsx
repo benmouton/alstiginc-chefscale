@@ -25,7 +25,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { Colors, Spacing, FontSize, BorderRadius, TouchTarget, MONO_FONT } from "@/constants/theme";
-import { upsertPrice } from "@/lib/database";
+import { upsertPrice, getAllPrices } from "@/lib/database";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { COMMON_UNITS, UNITS } from "@/constants/units";
 import { PriceEditorSheet, type PriceEditorValues } from "@/components/PriceEditorSheet";
@@ -169,17 +169,31 @@ export default function EditRecipeScreen() {
           setParentRecipeId(recipe.parentRecipeId || "");
           setVariationLabel(recipe.variationLabel || "");
           if (recipe.ingredients.length > 0) {
+            // Hydrate purchase cost data from ingredient_prices table
+            const allPrices = await getAllPrices();
+            const priceMap = new Map(
+              allPrices.map((p) => [p.ingredientName.toLowerCase(), p])
+            );
             setIngredients(
-              recipe.ingredients.map((i) => ({
-                id: i.id,
-                name: i.name,
-                amount: i.amount.toString(),
-                unit: i.unit,
-                prepNote: i.prepNote || "",
-                isScalable: i.isScalable !== 0,
-                yieldPercent: (i.yieldPercent ?? 100).toString(),
-                subrecipeId: i.subrecipeId || "",
-              }))
+              recipe.ingredients.map((i) => {
+                const saved = priceMap.get(i.name.trim().toLowerCase());
+                return {
+                  id: i.id,
+                  name: i.name,
+                  amount: i.amount.toString(),
+                  unit: i.unit,
+                  prepNote: i.prepNote || "",
+                  isScalable: i.isScalable !== 0,
+                  yieldPercent: (i.yieldPercent ?? 100).toString(),
+                  subrecipeId: i.subrecipeId || "",
+                  ...(saved && saved.costPerUnit != null && saved.purchaseCost != null ? {
+                    purchaseCost: saved.purchaseCost.toString(),
+                    purchaseAmount: (saved.purchaseCost / saved.costPerUnit).toFixed(2),
+                    purchaseBaseUnit: saved.costUnit || "",
+                    purchaseContainer: saved.purchaseUnit || "",
+                  } : {}),
+                };
+              })
             );
           }
           if (recipe.instructions.length > 0) {
