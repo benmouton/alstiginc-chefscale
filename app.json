@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.alstiginc.chefscale",
-      "buildNumber": "13",
+      "buildNumber": "16",
       "appleTeamId": "M2989SGWJA",
       "entitlements": {
         "com.apple.developer.applesignin": ["Default"]

@@ -37,11 +37,17 @@ import { DIETARY_FLAGS } from "@/constants/allergens";
 const CATEGORIES = ["Entrée", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage", "Other"];
 
 const API_BASE = (() => {
-  const domain = process.env.EXPO_PUBLIC_DOMAIN || "restaurantai.consulting";
+  const domain = process.env.EXPO_PUBLIC_DOMAIN || "chef-scale.replit.app";
   if (Platform.OS === "web") return "";
   const url = new URL(`https://${domain}`);
   url.port = "";
   return url.origin;
+})();
+
+// Price parse endpoint lives on the TRC server, not the ChefScale Replit.
+const PRICE_API_BASE = (() => {
+  if (Platform.OS === "web") return "";
+  return "https://restaurantai.consulting";
 })();
 
 interface EditableIngredient {
@@ -1883,7 +1889,7 @@ export default function EditRecipeScreen() {
             }}
             onSave={savePriceEditor}
             onClose={closePriceEditor}
-            apiBase={API_BASE}
+            apiBase={PRICE_API_BASE}
           />
         );
       })()}
