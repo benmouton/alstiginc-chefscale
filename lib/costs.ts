@@ -167,6 +167,16 @@ export function calculateIngredientCost(
     const converted = convertUnit(scaledAmount, ingredient.unit, priceEntry.costUnit);
     if (converted !== null) {
       convertedAmount = converted;
+    } else if (priceEntry.purchaseCost != null && priceEntry.purchaseCost > 0) {
+      // Unit can't be converted (e.g. "sack" → "lb") — use the total
+      // purchase cost per container, scaled by the number of containers
+      const cost = Math.round(priceEntry.purchaseCost * scaledAmount * 100) / 100;
+      return {
+        ingredientId: ingredient.id,
+        ingredientName: ingredient.name,
+        cost,
+        hasPriceData: true,
+      };
     }
   }
 

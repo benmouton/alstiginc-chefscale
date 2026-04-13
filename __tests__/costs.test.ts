@@ -125,12 +125,21 @@ describe('calculateIngredientCost', () => {
     expect(result.hasPriceData).toBe(true);
   });
 
-  it('uses original amount when unit conversion fails', () => {
+  it('uses purchaseCost when unit conversion fails and purchaseCost available', () => {
     const ingredient = makeIngredientRow({ amount: 2, unit: 'each' });
-    const prices = [makePriceRow({ costPerUnit: 1.5, costUnit: 'lb' })];
-    // Can't convert 'each' to 'lb', so uses scaledAmount directly
+    const prices = [makePriceRow({ costPerUnit: 1.5, costUnit: 'lb', purchaseCost: 5.99 })];
+    // Can't convert 'each' to 'lb' — falls back to purchaseCost × quantity
     const result = calculateIngredientCost(ingredient, 2, prices);
-    expect(result.cost).toBe(3);
+    expect(result.cost).toBe(11.98); // 5.99 × 2
+    expect(result.hasPriceData).toBe(true);
+  });
+
+  it('falls back to costPerUnit when conversion fails and no purchaseCost', () => {
+    const ingredient = makeIngredientRow({ amount: 2, unit: 'each' });
+    const prices = [makePriceRow({ costPerUnit: 1.5, costUnit: 'lb', purchaseCost: null })];
+    // Can't convert, no purchaseCost — falls through to costPerUnit × amount
+    const result = calculateIngredientCost(ingredient, 2, prices);
+    expect(result.cost).toBe(3); // 1.5 × 2
     expect(result.hasPriceData).toBe(true);
   });
 });
