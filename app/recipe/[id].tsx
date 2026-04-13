@@ -528,7 +528,19 @@ export default function RecipeDetailScreen() {
                 fallbackTitle="Cost Calculator"
                 fallbackDescription="See your exact food cost per plate"
               >
-                <CostSummary summary={costSummary} />
+                <CostSummary
+                  summary={costSummary}
+                  shareData={recipe ? {
+                    recipeName: recipe.name,
+                    servings: currentServings,
+                    scaleFactor: recipe.baseServings > 0 ? Math.round(currentServings / recipe.baseServings) : 1,
+                    ingredients: recipe.ingredients.map((ing, idx) => ({
+                      name: ing.name,
+                      display: scaledIngredients[idx]?.display || `${ing.amount} ${ing.unit}`,
+                      cost: costSummary.ingredientCosts[idx]?.cost ?? null,
+                    })),
+                  } : undefined}
+                />
               </PremiumGate>
             </View>
           ) : null}

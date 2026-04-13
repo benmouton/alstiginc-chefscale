@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
+import { View, Text, Pressable, TextInput, StyleSheet, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Colors, BorderRadius, Spacing, FontSize, MONO_FONT } from '@/constants/theme';
 import { formatCurrency, type RecipeCostSummary } from '@/lib/costs';
 
+export interface CostShareData {
+  recipeName: string;
+  servings: number;
+  scaleFactor: number;
+  ingredients: Array<{ name: string; display: string; cost: number | null }>;
+}
+
 interface CostSummaryProps {
   summary: RecipeCostSummary;
   menuPrice?: number;
+  shareData?: CostShareData;
 }
 
 function getFoodCostColor(percentage: number): string {
@@ -22,7 +30,7 @@ function getFoodCostLabel(percentage: number): string {
   return 'High';
 }
 
-export default function CostSummary({ summary, menuPrice }: CostSummaryProps) {
+export default function CostSummary({ summary, menuPrice, shareData }: CostSummaryProps) {
   const [showPricing, setShowPricing] = useState(false);
   const [targetFoodCostPct, setTargetFoodCostPct] = useState('30');
 
@@ -140,13 +148,49 @@ export default function CostSummary({ summary, menuPrice }: CostSummaryProps) {
         </View>
       ) : null}
 
-      <Pressable
-        onPress={() => router.push('/(tabs)/prices')}
-        style={({ pressed }) => [styles.editPricesLink, pressed && { opacity: 0.7 }]}
-      >
-        <Ionicons name="pencil-outline" size={14} color={Colors.primary} />
-        <Text style={styles.editPricesText}>Edit Prices</Text>
-      </Pressable>
+      <View style={styles.bottomActions}>
+        <Pressable
+          onPress={() => router.push('/(tabs)/prices')}
+          style={({ pressed }) => [styles.editPricesLink, pressed && { opacity: 0.7 }]}
+        >
+          <Ionicons name="pencil-outline" size={14} color={Colors.primary} />
+          <Text style={styles.editPricesText}>Edit Prices</Text>
+        </Pressable>
+
+        {shareData ? (
+          <Pressable
+            onPress={() => {
+              const d = shareData;
+              const scale = d.scaleFactor > 1 ? ` (x${d.scaleFactor})` : '';
+              const lines = [
+                `📋 ${d.recipeName}${scale}`,
+                `Makes ${d.servings} servings`,
+                '',
+                'INGREDIENTS & COSTS',
+                '─────────────────────',
+              ];
+              for (const ing of d.ingredients) {
+                const cost = ing.cost != null ? `  ${formatCurrency(ing.cost)}` : '';
+                lines.push(`${ing.display} ${ing.name}${cost}`);
+              }
+              lines.push('─────────────────────');
+              lines.push(`Total: ${formatCurrency(summary.totalCost)}`);
+              lines.push(`Per Serving: ${formatCurrency(summary.costPerServing)}`);
+              if (summary.coverage < 100) {
+                lines.push(`(${summary.coverage}% of ingredients priced)`);
+              }
+              lines.push('');
+              lines.push('— ChefScale by ALSTIG INC');
+
+              Share.share({ message: lines.join('\n') });
+            }}
+            style={({ pressed }) => [styles.shareLink, pressed && { opacity: 0.7 }]}
+          >
+            <Ionicons name="share-outline" size={14} color={Colors.accent} />
+            <Text style={styles.shareText}>Share Estimate</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -346,19 +390,35 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_400Regular',
     marginTop: 4,
   },
+  bottomActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.xl,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
   editPricesLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 6,
-    marginTop: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
   },
   editPricesText: {
     fontSize: FontSize.sm,
     color: Colors.primary,
+    fontFamily: 'DMSans_600SemiBold',
+  },
+  shareLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: Spacing.sm,
+  },
+  shareText: {
+    fontSize: FontSize.sm,
+    color: Colors.accent,
     fontFamily: 'DMSans_600SemiBold',
   },
 });
