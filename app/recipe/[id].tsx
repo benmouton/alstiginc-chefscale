@@ -185,10 +185,20 @@ export default function RecipeDetailScreen() {
     return scaledIngredients.map((s) => s.amount);
   }, [scaledIngredients]);
 
+  // Use raw scaled amounts for cost calculations (before smart unit conversion)
+  // so that 6 oz × 5 = 30 oz at $0.80/oz = $24.00, not 2 lb at $0.80/oz = $1.60
+  const rawScaledAmounts = useMemo(() => {
+    if (!recipe) return [];
+    const scaleFactor = recipe.baseServings > 0 ? currentServings / recipe.baseServings : 1;
+    return recipe.ingredients.map((ing) =>
+      ing.isScalable !== 0 ? ing.amount * scaleFactor : ing.amount
+    );
+  }, [recipe, currentServings]);
+
   const costSummary = useMemo(() => {
     if (!recipe) return null;
-    return calculateRecipeCost(recipe.ingredients, scaledAmounts, prices, currentServings);
-  }, [recipe, scaledAmounts, prices, currentServings]);
+    return calculateRecipeCost(recipe.ingredients, rawScaledAmounts, prices, currentServings);
+  }, [recipe, rawScaledAmounts, prices, currentServings]);
 
   const allergens = useMemo(() => {
     if (!recipe) return [];
