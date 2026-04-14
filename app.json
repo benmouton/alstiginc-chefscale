@@ -17,10 +17,12 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.alstiginc.chefscale",
-      "buildNumber": "16",
+      "buildNumber": "21",
       "appleTeamId": "M2989SGWJA",
       "entitlements": {
-        "com.apple.developer.applesignin": ["Default"]
+        "com.apple.developer.applesignin": [
+          "Default"
+        ]
       },
       "infoPlist": {
         "NSCameraUsageDescription": "ChefScale uses your camera to scan and photograph recipes, ingredient lists, and nutrition labels so you can quickly import them into the app for scaling and cost tracking.",
