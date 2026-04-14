@@ -21,7 +21,7 @@ import type { RecipeWithDetails, RecipeRow } from "@/lib/database";
 import { upsertPrice } from "@/lib/database";
 import { PriceEditorSheet, type PriceEditorValues } from "@/components/PriceEditorSheet";
 import { formatCurrency } from "@/lib/priceSentence";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { scaleAmount } from "@/lib/scaling";
 import { calculateRecipeCost } from "@/lib/costs";
