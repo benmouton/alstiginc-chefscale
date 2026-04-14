@@ -356,24 +356,33 @@ export default function SettingsScreen() {
               </View>
             </Pressable>
           ) : (
-            <View style={styles.sectionCard}>
-              <View style={styles.subscriptionStatusRow}>
-                <View style={styles.statusIconCircle}>
-                  <Ionicons name="checkmark-circle" size={24} color={Colors.success} />
-                </View>
-                <View style={styles.settingsContent}>
-                  <Text style={styles.settingsLabel}>
-                    {isTrialing ? 'Trial' : 'Premium'}
-                  </Text>
-                  <Text style={styles.settingsSubtitle}>
-                    {isTrialing ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left` : 'Active subscription'}
-                  </Text>
-                </View>
-                <View style={styles.activeBadge}>
-                  <Text style={styles.activeBadgeText}>Active</Text>
+            <Pressable
+              onPress={isTrialing ? handleUpgrade : undefined}
+              style={({ pressed }) => [pressed && isTrialing && { opacity: 0.85 }]}
+            >
+              <View style={styles.sectionCard}>
+                <View style={styles.subscriptionStatusRow}>
+                  <View style={styles.statusIconCircle}>
+                    <Ionicons name="checkmark-circle" size={24} color={Colors.success} />
+                  </View>
+                  <View style={styles.settingsContent}>
+                    <Text style={styles.settingsLabel}>
+                      {isTrialing ? 'Trial' : 'Premium'}
+                    </Text>
+                    <Text style={styles.settingsSubtitle}>
+                      {isTrialing ? `${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left — tap to subscribe` : 'Active subscription'}
+                    </Text>
+                  </View>
+                  {isTrialing ? (
+                    <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+                  ) : (
+                    <View style={styles.activeBadge}>
+                      <Text style={styles.activeBadgeText}>Active</Text>
+                    </View>
+                  )}
                 </View>
               </View>
-            </View>
+            </Pressable>
           )}
         </View>
 
