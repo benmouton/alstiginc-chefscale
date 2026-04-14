@@ -473,19 +473,6 @@ export default function SettingsScreen() {
 
         <Pressable
           onPress={handleConsultantLink}
-          style={({ pressed }) => [styles.consultantBanner, pressed && { opacity: 0.85 }]}
-        >
-          <View style={styles.consultantBannerContent}>
-            <Ionicons name="diamond-outline" size={20} color={Colors.accent} />
-            <Text style={styles.consultantBannerText}>
-              Get Premium free with a Restaurant Consultant subscription
-            </Text>
-            <Ionicons name="open-outline" size={16} color={Colors.textMuted} />
-          </View>
-        </Pressable>
-
-        <Pressable
-          onPress={handleConsultantLink}
           style={({ pressed }) => [styles.consultantFooter, pressed && { opacity: 0.7 }]}
         >
           <Ionicons name="restaurant" size={16} color={Colors.primary} />
