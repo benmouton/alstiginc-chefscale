@@ -21,6 +21,7 @@ import type { RecipeWithDetails, RecipeRow } from "@/lib/database";
 import { upsertPrice } from "@/lib/database";
 import { PriceEditorSheet, type PriceEditorValues } from "@/components/PriceEditorSheet";
 import { formatCurrency } from "@/lib/priceSentence";
+import { useFocusEffect } from "@react-navigation/native";
 import * as Crypto from "expo-crypto";
 import { scaleAmount } from "@/lib/scaling";
 import { calculateRecipeCost } from "@/lib/costs";
@@ -130,41 +131,42 @@ export default function RecipeDetailScreen() {
     setPriceEditIngredientIdx(null);
   }, [priceEditIngredientIdx, recipe, loadPrices]);
 
-  useEffect(() => {
-    (async () => {
-      if (id) {
-        await loadPrices();
-        const r = await loadRecipeDetail(id);
-        if (r) {
-          setRecipe(r);
-          setCurrentServings(r.baseServings);
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        if (id) {
+          await loadPrices();
+          const r = await loadRecipeDetail(id);
+          if (r) {
+            setRecipe(r);
+            setCurrentServings(r.baseServings);
 
-          // Load variations
-          try {
-            const { getVariationsByParentId, getRecipeBasicById } = await import('@/lib/database');
-            const parentId = r.parentRecipeId || r.id;
-            const vars = await getVariationsByParentId(parentId);
-            setVariations(vars.filter((v) => v.id !== r.id));
+            // Load variations
+            try {
+              const { getVariationsByParentId, getRecipeBasicById } = await import('@/lib/database');
+              const parentId = r.parentRecipeId || r.id;
+              const vars = await getVariationsByParentId(parentId);
+              setVariations(vars.filter((v) => v.id !== r.id));
 
-            // Load subrecipe names
-            const subIds = r.ingredients.filter((i) => i.subrecipeId).map((i) => i.subrecipeId);
-            if (subIds.length > 0) {
-              const names: Record<string, string> = {};
-              for (const subId of subIds) {
-                const basic = await getRecipeBasicById(subId);
-                if (basic) names[subId] = basic.name;
+              // Load subrecipe names
+              const subIds = r.ingredients.filter((i) => i.subrecipeId).map((i) => i.subrecipeId);
+              if (subIds.length > 0) {
+                const names: Record<string, string> = {};
+                for (const subId of subIds) {
+                  const basic = await getRecipeBasicById(subId);
+                  if (basic) names[subId] = basic.name;
+                }
+                setSubrecipeNames(names);
               }
-              setSubrecipeNames(names);
+            } catch (e) {
+              console.warn('Failed to load variations/subrecipes:', e);
             }
-          } catch (e) {
-            console.warn('Failed to load variations/subrecipes:', e);
           }
+          setLoading(false);
         }
-        setLoading(false);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+      })();
+    }, [id])
+  );
 
   const isScaled = recipe ? currentServings !== recipe.baseServings : false;
 
