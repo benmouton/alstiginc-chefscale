@@ -252,6 +252,8 @@ export default function PaywallScreen() {
             <View style={styles.saveBadge}>
               <Text style={styles.saveBadgeText}>SAVE 33%</Text>
             </View>
+            <Text style={styles.planTitle}>Premium Annual</Text>
+            <Text style={styles.planLength}>1 year subscription</Text>
             <Text style={styles.annualPrice}>{annualPrice}</Text>
             <Text style={styles.annualSubtext}>$3.33/mo — Best value</Text>
           </Pressable>
@@ -261,6 +263,8 @@ export default function PaywallScreen() {
             disabled={purchasing}
             style={({ pressed }) => [styles.monthlyBtn, (pressed || purchasing) && { opacity: 0.85 }]}
           >
+            <Text style={styles.planTitle}>Premium Monthly</Text>
+            <Text style={styles.planLength}>1 month subscription</Text>
             <Text style={styles.monthlyPrice}>{monthlyPrice}</Text>
           </Pressable>
 
@@ -461,6 +465,19 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#000',
     fontFamily: 'DMSans_700Bold',
+  },
+  planTitle: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    fontFamily: 'DMSans_700Bold',
+    marginBottom: 2,
+  },
+  planLength: {
+    fontSize: FontSize.sm,
+    color: Colors.textPrimary + 'B3',
+    fontFamily: 'DMSans_400Regular',
+    marginBottom: Spacing.xs,
   },
   annualPrice: {
     fontSize: FontSize.xl,
