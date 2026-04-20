@@ -28,6 +28,7 @@ import { calculateRecipeCost } from "@/lib/costs";
 import { detectAllergens } from "@/lib/allergens";
 import { DIETARY_FLAGS } from "@/constants/allergens";
 import ScalingControls from "@/components/ScalingControls";
+import { CrossPromoCard } from "@/components/CrossPromoCard";
 import IngredientRow from "@/components/IngredientRow";
 import InstructionStep from "@/components/InstructionStep";
 import CostSummary from "@/components/CostSummary";
@@ -461,6 +462,14 @@ export default function RecipeDetailScreen() {
               yieldUnit={recipe.baseYieldUnit || "servings"}
             />
           </View>
+
+          {/* CROSS-PROMO: CS → MyCookbook after successful scale (ALS-18) */}
+          <CrossPromoCard
+            sourceApp="chefscale"
+            targetApp="mycookbook"
+            placement="post-scale"
+            active={isScaled}
+          />
 
           {/* INGREDIENTS */}
           {recipe.ingredients.length > 0 ? (
