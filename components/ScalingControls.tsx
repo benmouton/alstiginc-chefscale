@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Colors, BorderRadius, Spacing, FontSize, TouchTarget, MONO_FONT } from '@/constants/theme';
 import { useSubscriptionStore } from '@/store/useSubscriptionStore';
+import { trackPositiveCompletionAndPromptReview } from '@/lib/reviewPrompt';
 
 interface ScalingControlsProps {
   originalServings: number;
@@ -54,6 +55,7 @@ export default function ScalingControls({
   const handleQuickScale = (multiplier: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onServingsChange(Math.max(1, Math.round(originalServings * multiplier)));
+    void trackPositiveCompletionAndPromptReview();
   };
 
   const handlePremiumGate = () => {
@@ -70,6 +72,7 @@ export default function ScalingControls({
     if (val > 0) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       onServingsChange(val);
+      void trackPositiveCompletionAndPromptReview();
       setCustomInput('');
     }
   };
@@ -222,6 +225,7 @@ export default function ScalingControls({
                   const multiplier = val / originalServings;
                   onServingsChange(Math.max(1, Math.round(originalServings * multiplier)));
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  void trackPositiveCompletionAndPromptReview();
                 }
               }}
               testID="yield-input"
@@ -236,6 +240,7 @@ export default function ScalingControls({
                   const multiplier = val / originalServings;
                   onServingsChange(Math.max(1, Math.round(originalServings * multiplier)));
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  void trackPositiveCompletionAndPromptReview();
                 }
               }}
               style={({ pressed }) => [
