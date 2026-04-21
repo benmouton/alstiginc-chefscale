@@ -6,8 +6,8 @@ export const DISMISS_PERSISTENCE_MS = 14 * DAY_MS;
 export const FREQUENCY_CAP_MS = 1 * DAY_MS;
 
 const dismissKey = (source: AppKey, target: AppKey) =>
-  `@chefscale_cross_promo_dismissed:${source}:${target}`;
-const lastShownKey = (source: AppKey) => `@chefscale_cross_promo_last_shown:${source}`;
+  `@chefscale_cross_promo_dismissed_v2:${source}:${target}`;
+const lastShownKey = (source: AppKey) => `@chefscale_cross_promo_last_shown_v2:${source}`;
 
 const shownThisSession = new Set<string>();
 const pairKey = (source: AppKey, target: AppKey) => `${source}:${target}`;

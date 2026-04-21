@@ -278,7 +278,7 @@ export default function SettingsScreen() {
 
   const handleConsultantLink = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL("https://restaurantai.consulting");
+    Linking.openURL("https://apps.apple.com/app/the-restaurant-consultant/id6759510319");
   };
 
   const handlePrivacyPolicy = () => {
