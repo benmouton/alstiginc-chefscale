@@ -47,8 +47,8 @@ export const PROMO_REGISTRY: PromoEntry[] = [
       "post-scale": {
         placementKey: "post-scale",
         triggerEvent: "recipe_scaled",
-        headline: "Save this in MyCookbook",
-        body: "Keep scaled recipes organized and ready for your next prep run.",
+        headline: "Organize your recipes",
+        body: "MyCookbook keeps recipes tagged, searchable, and ready for your next prep.",
         ctaLabel: "Get MyCookbook",
         icon: "book-outline",
       },
