@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, StyleSheet, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -36,6 +36,7 @@ export function CrossPromoCard({
   onDismiss,
 }: CrossPromoCardProps) {
   const [visible, setVisible] = useState(false);
+  const committedRef = useRef(false);
 
   const entry = getPromoEntry(sourceApp, targetApp);
   const variant = getPromoVariant(sourceApp, targetApp, placement);
@@ -47,25 +48,31 @@ export function CrossPromoCard({
 
     let cancelled = false;
     (async () => {
-      const [dismissed, freqCapped] = await Promise.all([
-        isDismissed(sourceApp, targetApp),
-        isFrequencyCapped(sourceApp),
-      ]);
-      if (cancelled || dismissed || freqCapped) {
-        unmarkShownThisSession(sourceApp, targetApp);
-        return;
+      try {
+        const [dismissed, freqCapped] = await Promise.all([
+          isDismissed(sourceApp, targetApp),
+          isFrequencyCapped(sourceApp),
+        ]);
+        if (cancelled || dismissed || freqCapped) {
+          unmarkShownThisSession(sourceApp, targetApp);
+          return;
+        }
+        setVisible(true);
+        committedRef.current = true;
+        await markShown(sourceApp);
+        await trackCrossPromoEvent("cross_promo_banner_impression", {
+          source_app: sourceApp,
+          target_app: targetApp,
+          trigger_event: variant.triggerEvent,
+          placement,
+        });
+      } catch {
+        // Never block product flows.
       }
-      await markShown(sourceApp);
-      await trackCrossPromoEvent("cross_promo_banner_impression", {
-        source_app: sourceApp,
-        target_app: targetApp,
-        trigger_event: variant.triggerEvent,
-        placement,
-      });
-      if (!cancelled) setVisible(true);
     })();
     return () => {
       cancelled = true;
+      if (!committedRef.current) unmarkShownThisSession(sourceApp, targetApp);
     };
   }, [active, sourceApp, targetApp, placement, variant]);
 
