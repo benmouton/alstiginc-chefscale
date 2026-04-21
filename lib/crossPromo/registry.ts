@@ -17,6 +17,7 @@ export interface PromoVariant {
   body: string;
   ctaLabel: string;
   icon: IconName;
+  compact?: boolean;
 }
 
 export interface PromoEntry {
@@ -28,12 +29,12 @@ export interface PromoEntry {
 }
 
 export const APP_STORE_URLS: Record<AppKey, string> = {
-  mycookbook: "https://apps.apple.com/us/app/mycookbook/id6743274077",
-  chefscale: "https://apps.apple.com/us/app/chefscale/id6759728525",
-  menucraft: "https://apps.apple.com/us/app/menucraft/id6761072521",
-  "restaurant-consultant": "https://apps.apple.com/us/app/the-restaurant-consultant/id6759510319",
-  "review-responder": "https://apps.apple.com/us/app/review-responder/id6759874324",
-  vendorwatch: "https://apps.apple.com/us/app/vendorwatch/id6760472888",
+  mycookbook: "https://apps.apple.com/app/mycookbook/id6743274077",
+  chefscale: "https://apps.apple.com/app/chefscale/id6759728525",
+  menucraft: "https://apps.apple.com/app/menucraft/id6761072521",
+  "restaurant-consultant": "https://apps.apple.com/app/the-restaurant-consultant/id6759510319",
+  "review-responder": "https://apps.apple.com/app/review-responder/id6759874324",
+  vendorwatch: "https://apps.apple.com/app/vendorwatch/id6760472888",
 };
 
 export const PROMO_REGISTRY: PromoEntry[] = [
@@ -50,6 +51,31 @@ export const PROMO_REGISTRY: PromoEntry[] = [
         body: "Keep scaled recipes organized and ready for your next prep run.",
         ctaLabel: "Get MyCookbook",
         icon: "book-outline",
+      },
+      "settings-discovery": {
+        placementKey: "settings-discovery",
+        triggerEvent: "settings_view_landed",
+        headline: "Also by ALSTIG",
+        body: "MyCookbook — your personal digital cookbook. Organize, collect, and cook from your recipe collection.",
+        ctaLabel: "Get MyCookbook",
+        icon: "book-outline",
+      },
+      "home-organize": {
+        placementKey: "home-organize",
+        triggerEvent: "home_recipe_list_viewed",
+        headline: "Organize Your Collection",
+        body: "MyCookbook lets you build a personal digital cookbook — organize by station or category, with a beautiful card-based layout.",
+        ctaLabel: "Get MyCookbook",
+        icon: "book-outline",
+      },
+      "cooking-mode": {
+        placementKey: "cooking-mode",
+        triggerEvent: "recipe_detail_opened",
+        headline: "Hands-Free Cooking Mode",
+        body: "MyCookbook has a dedicated cooking mode with step-by-step navigation, keep-awake, and ingredient check-off.",
+        ctaLabel: "Get MyCookbook",
+        icon: "flame-outline",
+        compact: true,
       },
     },
   },

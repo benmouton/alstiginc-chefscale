@@ -20,7 +20,7 @@ import { Colors, Spacing, FontSize, BorderRadius } from "@/constants/theme";
 import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
-import MyCookbookPromo from "@/components/MyCookbookPromo";
+import { CrossPromoCard } from "@/components/CrossPromoCard";
 import { buildRecipeCSV, buildPriceCSV, shareCSV } from "@/lib/csvExport";
 import { getAllPrices, getIngredientsByRecipeId } from "@/lib/database";
 import type { IngredientRow } from "@/lib/database";
@@ -477,7 +477,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Our Other Apps</Text>
-          <MyCookbookPromo trigger="settings" />
+          <CrossPromoCard sourceApp="chefscale" targetApp="mycookbook" placement="settings-discovery" />
         </View>
 
         <Pressable

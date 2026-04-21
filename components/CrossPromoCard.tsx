@@ -104,6 +104,18 @@ export function CrossPromoCard({
 
   const appLabel = entry ? `By ALSTIG · ${entry.targetAppLabel}` : `By ALSTIG · ${targetApp}`;
 
+  if (variant.compact) {
+    return (
+      <Pressable onPress={handlePress} style={styles.compactContainer}>
+        <Ionicons name={variant.icon} size={16} color={Colors.primary} />
+        <Text style={styles.compactText} numberOfLines={1}>
+          {variant.headline}
+        </Text>
+        <Ionicons name="open-outline" size={14} color={Colors.primary} />
+      </Pressable>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -187,5 +199,24 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: "600",
     color: "#fff",
+  },
+  compactContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary + "33",
+    backgroundColor: Colors.primary + "10",
+    marginHorizontal: Spacing.lg,
+    marginVertical: 6,
+  },
+  compactText: {
+    flex: 1,
+    fontSize: FontSize.sm,
+    color: Colors.primary,
+    fontWeight: "500",
   },
 });

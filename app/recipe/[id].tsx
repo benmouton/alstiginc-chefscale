@@ -36,7 +36,7 @@ import { AllergenList } from "@/components/AllergenBadge";
 import TimerOverlay from "@/components/TimerOverlay";
 import PremiumGate from "@/components/PremiumGate";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
-import MyCookbookPromo from "@/components/MyCookbookPromo";
+// CrossPromoCard is already imported above for the post-scale placement
 
 function CookModeButton({ recipeId, currentServings }: { recipeId: string; currentServings: number }) {
   const checkAccess = useSubscriptionStore((s) => s.checkAccess);
@@ -680,7 +680,7 @@ export default function RecipeDetailScreen() {
 
           {/* MYCOOKBOOK PROMO */}
           <View style={styles.section}>
-            <MyCookbookPromo trigger="cooking" compact />
+            <CrossPromoCard sourceApp="chefscale" targetApp="mycookbook" placement="cooking-mode" />
           </View>
 
           {/* BOTTOM ACTIONS */}
