@@ -24,6 +24,7 @@
     "ios",
     ".expo",
     "server/replit_integrations",
-    ".replit_integration_files"
+    ".replit_integration_files",
+    "worker"
   ]
 }
