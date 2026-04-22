@@ -36,19 +36,46 @@ import { DIETARY_FLAGS } from "@/constants/allergens";
 
 const CATEGORIES = ["Entrée", "Appetizer", "Sauce", "Dessert", "Prep", "Side", "Beverage", "Other"];
 
+// ALS-24 Phase 2 — primary on CF Workers. Replit fallback on 5xx / network error.
+// Dev override via EXPO_PUBLIC_DOMAIN wins on both (no fallback when overridden).
+const PRIMARY_HOST = "api.chefscale.alstiginc.com";
+const FALLBACK_HOST = "chef-scale.replit.app";
+
 const API_BASE = (() => {
-  const domain = process.env.EXPO_PUBLIC_DOMAIN || "chef-scale.replit.app";
+  const domain = process.env.EXPO_PUBLIC_DOMAIN || PRIMARY_HOST;
   if (Platform.OS === "web") return "";
   const url = new URL(`https://${domain}`);
   url.port = "";
   return url.origin;
 })();
 
+const API_BASE_FALLBACK = (() => {
+  if (Platform.OS === "web") return "";
+  const url = new URL(`https://${FALLBACK_HOST}`);
+  url.port = "";
+  return url.origin;
+})();
+
 // Price parse endpoint lives on the TRC server, not the ChefScale Replit.
+// Moves in Phase 5 (TRC migration), not Phase 2 — keep untouched.
 const PRICE_API_BASE = (() => {
   if (Platform.OS === "web") return "";
   return "https://restaurantai.consulting";
 })();
+
+async function apiFetch(path: string, init?: Parameters<typeof fetch>[1]): Promise<Response> {
+  // Dev override (EXPO_PUBLIC_DOMAIN) or web (relative URL) — single-host, no fallback.
+  if (process.env.EXPO_PUBLIC_DOMAIN || !API_BASE_FALLBACK) {
+    return fetch(`${API_BASE}${path}`, init);
+  }
+  try {
+    const res = await fetch(`${API_BASE}${path}`, init);
+    if (res.status < 500) return res;
+  } catch {
+    // fall through to fallback on network error
+  }
+  return fetch(`${API_BASE_FALLBACK}${path}`, init);
+}
 
 interface EditableIngredient {
   id: string;
@@ -366,7 +393,7 @@ export default function EditRecipeScreen() {
       ? { imageBase64: imagesBase64[0] }
       : { imagesBase64 };
 
-    const ocrResponse = await fetch(`${API_BASE}/api/ocr-recipe`, {
+    const ocrResponse = await apiFetch(`/api/ocr-recipe`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -397,7 +424,7 @@ export default function EditRecipeScreen() {
       : textParts[0];
 
     console.log("[OCR] On-device extracted text:", combinedText.substring(0, 200));
-    const parseResponse = await fetch(`${API_BASE}/api/parse-recipe-text`, {
+    const parseResponse = await apiFetch(`/api/parse-recipe-text`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ extractedText: combinedText }),
@@ -793,7 +820,7 @@ export default function EditRecipeScreen() {
     let aiError = false;
 
     try {
-      const res = await fetch(`${API_BASE}/api/validate-recipe`, {
+      const res = await apiFetch(`/api/validate-recipe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
