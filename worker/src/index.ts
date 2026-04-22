@@ -64,8 +64,8 @@ app.post("/api/ocr-recipe", async (c) => {
     return c.json({ error: "AI service is not configured." }, 503);
   }
 
-  const body = await c.req.json<{ imageBase64?: string; imagesBase64?: unknown[] }>();
-  const { imageBase64, imagesBase64 } = body;
+  const body = await c.req.json<{ imageBase64?: string; imagesBase64?: unknown[]; isHandwritten?: boolean }>();
+  const { imageBase64, imagesBase64, isHandwritten } = body;
 
   const images: string[] = Array.isArray(imagesBase64) && imagesBase64.length > 0
     ? imagesBase64.filter((x): x is string => typeof x === "string")
@@ -88,7 +88,7 @@ app.post("/api/ocr-recipe", async (c) => {
 
   imageContent.push({
     type: "text",
-    text: ocrRecipeUserText(images.length),
+    text: ocrRecipeUserText(images.length, !!isHandwritten),
   });
 
   try {
@@ -96,7 +96,7 @@ app.post("/api/ocr-recipe", async (c) => {
     const response = await openai.chat.completions.create({
       model: env.OPENAI_MODEL_HEAVY,
       messages: [
-        { role: "system", content: ocrRecipeSystemPrompt(images.length) },
+        { role: "system", content: ocrRecipeSystemPrompt(images.length, !!isHandwritten) },
         { role: "user", content: imageContent as OpenAI.Chat.Completions.ChatCompletionContentPart[] },
       ],
       max_completion_tokens: 4096,
@@ -120,8 +120,8 @@ app.post("/api/parse-recipe-text", async (c) => {
     return c.json({ error: "AI service is not configured." }, 503);
   }
 
-  const body = await c.req.json<{ extractedText?: string }>();
-  const extractedText = body.extractedText;
+  const body = await c.req.json<{ extractedText?: string; isHandwritten?: boolean }>();
+  const { extractedText, isHandwritten } = body;
 
   if (!extractedText || typeof extractedText !== "string" || extractedText.trim().length < 10) {
     return c.json({ error: "extractedText is required and must contain meaningful content" }, 400);
@@ -132,7 +132,7 @@ app.post("/api/parse-recipe-text", async (c) => {
     const response = await openai.chat.completions.create({
       model: env.OPENAI_MODEL_HEAVY,
       messages: [
-        { role: "system", content: parseRecipeTextSystemPrompt },
+        { role: "system", content: parseRecipeTextSystemPrompt(!!isHandwritten) },
         { role: "user", content: parseRecipeTextUserPrompt(extractedText) },
       ],
       max_completion_tokens: 4096,

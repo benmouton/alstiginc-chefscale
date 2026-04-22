@@ -385,13 +385,13 @@ export default function EditRecipeScreen() {
     });
   };
 
-  const scanViaServerVision = async (imageUris: string[], abortSignal: AbortSignal): Promise<any> => {
+  const scanViaServerVision = async (imageUris: string[], isHandwritten: boolean, abortSignal: AbortSignal): Promise<any> => {
     const imagesBase64 = await Promise.all(imageUris.map((uri) => imageToBase64(uri)));
-    console.log("[OCR] Using server vision,", imagesBase64.length, "image(s)");
+    console.log("[OCR] Using server vision,", imagesBase64.length, "image(s)", isHandwritten ? "(handwritten)" : "(typed)");
 
     const body = imagesBase64.length === 1
-      ? { imageBase64: imagesBase64[0] }
-      : { imagesBase64 };
+      ? { imageBase64: imagesBase64[0], isHandwritten }
+      : { imagesBase64, isHandwritten };
 
     const ocrResponse = await apiFetch(`/api/ocr-recipe`, {
       method: "POST",
@@ -411,7 +411,7 @@ export default function EditRecipeScreen() {
     return JSON.parse(jsonMatch[0]);
   };
 
-  const scanViaOnDeviceOCR = async (imageUris: string[], abortSignal: AbortSignal): Promise<any | null> => {
+  const scanViaOnDeviceOCR = async (imageUris: string[], isHandwritten: boolean, abortSignal: AbortSignal): Promise<any | null> => {
     const textParts: string[] = [];
     for (const uri of imageUris) {
       const ocrResult = await extractTextOnDevice(uri);
@@ -427,7 +427,7 @@ export default function EditRecipeScreen() {
     const parseResponse = await apiFetch(`/api/parse-recipe-text`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ extractedText: combinedText }),
+      body: JSON.stringify({ extractedText: combinedText, isHandwritten }),
       signal: abortSignal,
     });
 
@@ -526,17 +526,29 @@ export default function EditRecipeScreen() {
     }
     if (!imageUris || imageUris.length === 0) return;
 
+    const isHandwritten = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        "Recipe Type",
+        "Is this a handwritten recipe? Handwritten mode tells the AI to watch for cursive, shorthand measurements (T/t/c/#), and informal ingredient names.",
+        [
+          { text: "Typed", onPress: () => resolve(false) },
+          { text: "Handwritten", onPress: () => resolve(true) },
+        ],
+        { cancelable: false },
+      );
+    });
+
     setScanning(true);
     const abortController = new AbortController();
     scanAbortRef.current = abortController;
 
     try {
-      console.log("[OCR] Processing", imageUris.length, "page(s)...");
+      console.log("[OCR] Processing", imageUris.length, "page(s)...", isHandwritten ? "handwritten" : "typed");
       let data: any = null;
 
       if (Platform.OS !== 'web') {
         console.log("[OCR] Attempting on-device text recognition...");
-        data = await scanViaOnDeviceOCR(imageUris, abortController.signal);
+        data = await scanViaOnDeviceOCR(imageUris, isHandwritten, abortController.signal);
         if (data) {
           console.log("[OCR] On-device OCR succeeded:", data.name || "unnamed");
         }
@@ -544,7 +556,7 @@ export default function EditRecipeScreen() {
 
       if (!data) {
         console.log("[OCR] Using server-side GPT-4o vision...");
-        data = await scanViaServerVision(imageUris, abortController.signal);
+        data = await scanViaServerVision(imageUris, isHandwritten, abortController.signal);
       }
 
       applyScannedData(data);

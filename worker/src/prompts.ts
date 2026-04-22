@@ -1,5 +1,20 @@
-// Prompts ported verbatim from alstiginc-chefscale/server/routes.ts.
+// Prompts ported from alstiginc-chefscale/server/routes.ts + handwritten-recipe
+// addendum ported from My-Cookbook/worker/src/prompts.ts (SCAN_HANDWRITTEN_ADDENDUM).
+// The handwritten addendum is appended when request body has isHandwritten: true.
 // DO NOT edit without a parity test run against the Replit baseline.
+
+export const HANDWRITTEN_ADDENDUM = `
+This image may contain a handwritten recipe. Pay special attention to:
+- Cursive or print handwriting
+- Abbreviated measurements (T = tablespoon, t = teaspoon, c = cup, # = pound, oz = ounce, pt = pint, qt = quart)
+- Informal ingredient names
+- Missing quantities (infer "to taste" or "as needed" where appropriate)
+- Crossed out or corrected text (use the correction)
+If any text is unclear, include your best guess with [?] marker so the user knows to double-check.`;
+
+export const HANDWRITTEN_TEXT_ADDENDUM = `
+
+This text was extracted from a handwritten recipe. Pay special attention to informal ingredient names, missing quantities (use "to taste" or "as needed"), abbreviated measurements (T = tablespoon, t = teaspoon, c = cup, # = pound), and shorthand.`;
 
 const OCR_JSON_SHAPE = `{
   "name": "recipe name",
@@ -19,25 +34,30 @@ const OCR_JSON_SHAPE = `{
 }
 Valid units: tsp, tbsp, cup, fl_oz, oz, lb, g, kg, ml, l, each, pinch, bunch, can, bottle, clove, sprig, head, stalk, piece.`;
 
-export const ocrRecipeSystemPrompt = (imageCount: number) => {
+export const ocrRecipeSystemPrompt = (imageCount: number, isHandwritten: boolean = false) => {
   const lead =
     imageCount > 1
       ? `You are a recipe extraction assistant. You are given ${imageCount} images that together form a single recipe (the recipe was too long for one photo). Analyze ALL images in order and combine the information into a single structured JSON recipe. Return ONLY valid JSON with this exact structure:`
       : `You are a recipe extraction assistant. Analyze the image of a recipe (handwritten or typed) and extract all information into structured JSON. Return ONLY valid JSON with this exact structure:`;
   const tail = `\nIf you cannot determine a value, use reasonable defaults. Extract as much as possible from the image${imageCount > 1 ? "s. Combine all pages into one complete recipe" : ""}.`;
-  return `${lead}\n${OCR_JSON_SHAPE}${tail}`;
+  const handwritten = isHandwritten ? HANDWRITTEN_ADDENDUM : "";
+  return `${lead}\n${OCR_JSON_SHAPE}${tail}${handwritten}`;
 };
 
-export const ocrRecipeUserText = (imageCount: number) =>
-  imageCount > 1
-    ? `These ${imageCount} photos show different parts of the same recipe. Extract and combine everything into the JSON format specified.`
+export const ocrRecipeUserText = (imageCount: number, isHandwritten: boolean = false) => {
+  if (imageCount > 1) {
+    return `These ${imageCount} photos show different parts of the same recipe. Extract and combine everything into the JSON format specified.${isHandwritten ? " The content is handwritten." : ""}`;
+  }
+  return isHandwritten
+    ? "Extract the recipe from this handwritten image into the JSON format specified."
     : "Extract the recipe from this image into the JSON format specified.";
+};
 
-export const parseRecipeTextSystemPrompt = `You are a recipe extraction assistant. Parse the following raw text extracted from a recipe image (via OCR) and structure it into JSON. The text may contain OCR artifacts, misspellings, or formatting issues — do your best to interpret them.
+export const parseRecipeTextSystemPrompt = (isHandwritten: boolean = false) => `You are a recipe extraction assistant. Parse the following raw text extracted from a recipe image (via OCR) and structure it into JSON. The text may contain OCR artifacts, misspellings, or formatting issues — do your best to interpret them.
 
 Return ONLY valid JSON with this exact structure:
 ${OCR_JSON_SHAPE}
-If you cannot determine a value, use reasonable defaults. Fix any obvious OCR errors (e.g., "f1our" → "flour", "1/2 tsp sa1t" → "1/2 tsp salt").`;
+If you cannot determine a value, use reasonable defaults. Fix any obvious OCR errors (e.g., "f1our" → "flour", "1/2 tsp sa1t" → "1/2 tsp salt").${isHandwritten ? HANDWRITTEN_TEXT_ADDENDUM : ""}`;
 
 export const parseRecipeTextUserPrompt = (extractedText: string) =>
   `Here is the raw text extracted from a recipe image. Please parse it into the structured JSON format:\n\n${extractedText}`;

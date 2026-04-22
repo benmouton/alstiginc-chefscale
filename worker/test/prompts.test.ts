@@ -35,15 +35,38 @@ describe("ocr-recipe prompts", () => {
     expect(ocrRecipeUserText(1)).toBe("Extract the recipe from this image into the JSON format specified.");
     expect(ocrRecipeUserText(4)).toContain("4 photos");
   });
+
+  it("omits handwritten addendum when isHandwritten=false", () => {
+    expect(ocrRecipeSystemPrompt(1, false)).not.toContain("This image may contain a handwritten recipe");
+    expect(ocrRecipeUserText(1, false)).not.toContain("handwritten");
+  });
+
+  it("appends handwritten addendum when isHandwritten=true", () => {
+    const p = ocrRecipeSystemPrompt(1, true);
+    expect(p).toContain("This image may contain a handwritten recipe");
+    expect(p).toContain("T = tablespoon, t = teaspoon, c = cup, # = pound");
+    expect(p).toContain("Crossed out or corrected text");
+    expect(p).toContain("[?] marker");
+  });
+
+  it("handwritten user text is distinct from default", () => {
+    expect(ocrRecipeUserText(1, true)).toContain("handwritten");
+    expect(ocrRecipeUserText(3, true)).toContain("The content is handwritten");
+  });
 });
 
 describe("parse-recipe-text prompt", () => {
   it("mentions OCR artifact handling", () => {
-    expect(parseRecipeTextSystemPrompt).toContain("OCR artifacts");
+    expect(parseRecipeTextSystemPrompt()).toContain("OCR artifacts");
   });
 
   it("includes f1our→flour example", () => {
-    expect(parseRecipeTextSystemPrompt).toContain(`"f1our" → "flour"`);
+    expect(parseRecipeTextSystemPrompt()).toContain(`"f1our" → "flour"`);
+  });
+
+  it("appends handwritten addendum when isHandwritten=true", () => {
+    expect(parseRecipeTextSystemPrompt(true)).toContain("extracted from a handwritten recipe");
+    expect(parseRecipeTextSystemPrompt(false)).not.toContain("extracted from a handwritten recipe");
   });
 });
 
