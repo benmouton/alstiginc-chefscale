@@ -4,17 +4,75 @@
 // DO NOT edit without a parity test run against the Replit baseline.
 
 export const HANDWRITTEN_ADDENDUM = `
-This image may contain a handwritten recipe. Pay special attention to:
-- Cursive or print handwriting
-- Abbreviated measurements (T = tablespoon, t = teaspoon, c = cup, # = pound, oz = ounce, pt = pint, qt = quart)
-- Informal ingredient names
-- Missing quantities (infer "to taste" or "as needed" where appropriate)
-- Crossed out or corrected text (use the correction)
-If any text is unclear, include your best guess with [?] marker so the user knows to double-check.`;
+
+You are reading a handwritten recipe. Act as a professional culinary transcription assistant.
+
+Priorities, in order:
+1. Accurately read the recipe
+2. Preserve the cook's intended meaning
+3. Normalize obvious culinary shorthand
+4. Do NOT invent details not supported by the image
+5. Clearly flag anything uncertain
+
+HANDWRITING INTERPRETATION
+- Expect uneven spelling, irregular spacing, cursive, block print, faded ink, stains, and partial crossings-out
+- Treat crossed-out text as discarded — unless a correction is written nearby, then prefer the correction
+- If a word or quantity is unclear but reasonably inferable from context, include your best reading and mark it with "[?]"
+- If text is unreadable and cannot be inferred, write "[illegible]"
+- Preserve unusual family / regional wording when possible ("granny smith" stays, don't rewrite as "apple")
+- Do not rewrite into a different style; stay faithful to the original
+
+COMMON KITCHEN SHORTHAND (expand when obvious)
+  t = teaspoon, tsp = teaspoon
+  T = tablespoon, tbsp = tablespoon, Tbsp = tablespoon
+  c = cup
+  oz = ounce
+  lb or # = pound
+  pt = pint, qt = quart, gal = gallon
+  pkg = package, env = envelope, can = can
+  sm = small, med = medium, lg = large
+  temp = temperature, deg = degrees
+  mins = minutes, hrs = hours
+
+INGREDIENT INTERPRETATION
+- Separate quantity (amount), unit, ingredient (name), and prep (prepNote) whenever possible
+- Preserve descriptors in prepNote: "heaping", "scant", "packed", "divided", "softened", "melted", "sifted", "chopped", "minced", "beaten", "drained", "room temperature"
+- If a quantity is flexible, preserve the original wording in prepNote: "to taste", "as needed", "enough to cover", "for greasing", "for dusting"
+- If an ingredient appears in the method but not in the ingredient list, include it in ingredients AND add a line to notes: "<ingredient> mentioned in method only"
+- Consolidate duplicate ingredients only when the meaning is clearly the same
+
+MULTIPLE RECIPES
+- If the image shows multiple recipes, extract the most prominent one
+- If clearly separated recipes appear, note "Image contains multiple recipes; extracted the most prominent" in the notes field
+
+METHOD INTERPRETATION
+- Convert fragmented handwritten instructions into readable step-by-step directions
+- Preserve sequence, cooking intent, and yield
+- Keep temperatures in the temperature field and times in timerMinutes when specific
+- If timing is vague, preserve original wording in step text: "bake until done", "cook until brown", "until it smells right"
+- Do not add missing culinary steps unless absolutely necessary for legibility
+
+TITLE
+- If a title is visible, use it verbatim as the recipe name
+- If no title is visible, create a simple neutral name from the content (no editorializing, no "Delicious Grandma's Famous ...")
+
+Any uncertainty — ambiguous quantity, possible misread, missed word — goes in the notes field so the cook can verify before saving.`;
 
 export const HANDWRITTEN_TEXT_ADDENDUM = `
 
-This text was extracted from a handwritten recipe. Pay special attention to informal ingredient names, missing quantities (use "to taste" or "as needed"), abbreviated measurements (T = tablespoon, t = teaspoon, c = cup, # = pound), and shorthand.`;
+This text was extracted from a handwritten recipe by on-device OCR, so expect misreads, odd spacing, and confused shorthand.
+
+Apply the same priorities as for handwritten images: accurate read first, preserve intended meaning, normalize shorthand, don't invent, flag uncertainty.
+
+Key rules:
+- Normalize handwritten shorthand: t/tsp → teaspoon, T/Tbsp → tablespoon, c → cup, # → pound, lb → pound, oz → ounce, pt → pint, qt → quart, gal → gallon, pkg → package, env → envelope, sm/med/lg → small/medium/large, temp → temperature, deg → degrees, mins → minutes, hrs → hours
+- Preserve descriptors like "heaping", "scant", "packed", "divided", "softened", "melted", "sifted" in prepNote
+- Preserve flexible quantities verbatim: "to taste", "as needed", "enough to cover", "for dusting"
+- If a quantity is unclear in the OCR'd text, mark with "[?]" and add a line to notes
+- Preserve vague timing verbatim in step text: "bake until done", "cook until brown"
+- Treat crossed-out text as discarded if it appears; use the corrected text when nearby
+- Do not add culinary steps the text doesn't mention
+- Any uncertainty or likely misread goes in the notes field`;
 
 const OCR_JSON_SHAPE = `{
   "name": "recipe name",

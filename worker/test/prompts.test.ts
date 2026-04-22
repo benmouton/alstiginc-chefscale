@@ -43,10 +43,16 @@ describe("ocr-recipe prompts", () => {
 
   it("appends handwritten addendum when isHandwritten=true", () => {
     const p = ocrRecipeSystemPrompt(1, true);
-    expect(p).toContain("This image may contain a handwritten recipe");
-    expect(p).toContain("T = tablespoon, t = teaspoon, c = cup, # = pound");
-    expect(p).toContain("Crossed out or corrected text");
-    expect(p).toContain("[?] marker");
+    expect(p).toContain("You are reading a handwritten recipe");
+    expect(p).toContain("professional culinary transcription assistant");
+    expect(p).toContain("T = tablespoon, tbsp = tablespoon, Tbsp = tablespoon");
+    expect(p).toContain("crossed-out text as discarded");
+    expect(p).toContain(`"[?]"`);
+    expect(p).toContain("heaping");
+    expect(p).toContain("chopped");
+    expect(p).toContain("to taste");
+    expect(p).toContain("for greasing");
+    expect(p).toContain("MULTIPLE RECIPES");
   });
 
   it("handwritten user text is distinct from default", () => {
