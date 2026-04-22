@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chefscale-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "routes": [
+    { "pattern": "api.chefscale.alstiginc.com", "custom_domain": true }
+  ],
+
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0
+  },
+
+  "vars": {
+    "OPENAI_MODEL_HEAVY": "gpt-4o",
+    "OPENAI_MODEL_LIGHT": "gpt-4o-mini"
+  }
+
+  // Secrets to set via `wrangler secret put`:
+  // - OPENAI_API_KEY
+  // - AI_GATEWAY_BASE_URL (optional, e.g. https://gateway.ai.cloudflare.com/v1/<account>/<gw>/openai)
+}

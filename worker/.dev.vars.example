@@ -1,0 +1,3 @@
+OPENAI_API_KEY=sk-...
+# Leave blank for direct OpenAI; set to AI Gateway URL in prod.
+AI_GATEWAY_BASE_URL=
