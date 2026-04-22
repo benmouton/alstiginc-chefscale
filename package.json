@@ -16,7 +16,7 @@
     "lint:fix": "npx expo lint --fix",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "test": "jest"
+    "test": "jest --testPathIgnorePatterns=/node_modules/ --testPathIgnorePatterns=/worker/"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
