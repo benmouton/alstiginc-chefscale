@@ -2418,7 +2418,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.backgroundDark,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
-    maxHeight: "85%",
+    height: "85%",
   },
   reviewHeader: {
     alignItems: "center",
