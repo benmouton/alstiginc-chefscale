@@ -1142,7 +1142,7 @@ export default function EditRecipeScreen() {
             testID="scan-recipe-btn"
           >
             <Ionicons name="scan-outline" size={20} color={Colors.accent} />
-            <Text style={styles.scanButtonText}>Scan written recipe</Text>
+            <Text style={styles.scanButtonText}>Scan Recipe</Text>
             <ProBadge feature="ocr_scan" />
           </Pressable>
         )}
