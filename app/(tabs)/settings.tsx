@@ -21,6 +21,7 @@ import { useRecipeStore } from "@/store/useRecipeStore";
 import { useSubscriptionStore } from "@/store/useSubscriptionStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { CrossPromoCard } from "@/components/CrossPromoCard";
+import { redeemBundleCode } from "@/lib/bundleAccess";
 import { buildRecipeCSV, buildPriceCSV, shareCSV } from "@/lib/csvExport";
 import { getAllPrices, getIngredientsByRecipeId } from "@/lib/database";
 import type { IngredientRow } from "@/lib/database";
@@ -75,6 +76,49 @@ export default function SettingsScreen() {
   const { tier, isTrialing, trialEndsAt } = useSubscriptionStore();
   const checkAccess = useSubscriptionStore((s) => s.checkAccess);
   const getPaywallHeadline = useSubscriptionStore((s) => s.getPaywallHeadline);
+  const syncWithRevenueCat = useSubscriptionStore((s) => s.syncWithRevenueCat);
+
+  // "Have a code?" prompt — Apple-3.1.1-safe wording. Recognizes an
+  // external (TRC web) purchase; does NOT promote one. Per-app
+  // RevenueCat IAP remains the only purchase path inside this app.
+  // iOS-only: Alert.prompt is iOS-only RN API; row is gated below.
+  const handleRedeemBundle = () => {
+    Alert.prompt(
+      "Have a code?",
+      "Enter your code to redeem access.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Redeem",
+          onPress: async (code?: string) => {
+            if (!code || !code.trim()) return;
+            const result = await redeemBundleCode(code);
+            if (result.success) {
+              await syncWithRevenueCat();
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              Alert.alert(
+                "Code redeemed",
+                `Premium access unlocked through ${result.expiresAt.toLocaleDateString()}.`,
+              );
+            } else {
+              const reasonMsg: Record<string, string> = {
+                bad_request: "That code doesn't look right. Check the format and try again.",
+                not_found: "We couldn't find that code. Double-check it and try again.",
+                already_redeemed: "This code has already been redeemed.",
+                expired: "This code has expired.",
+                rate_limited: "Too many attempts. Wait a minute and try again.",
+                network_error: "Couldn't reach the server. Check your connection and try again.",
+              };
+              Alert.alert("Couldn't redeem code", reasonMsg[result.reason] ?? "Please try again.");
+            }
+          },
+        },
+      ],
+      "plain-text",
+      "",
+      "default",
+    );
+  };
 
   const { appearance, unitSystem, defaultServings, setAppearance, setUnitSystem, setDefaultServings } = useSettingsStore();
 
@@ -381,6 +425,22 @@ export default function SettingsScreen() {
                     </View>
                   )}
                 </View>
+              </View>
+            </Pressable>
+          )}
+          {Platform.OS === "ios" && (
+            <Pressable
+              onPress={handleRedeemBundle}
+              style={({ pressed }) => [styles.sectionCard, pressed && { opacity: 0.85 }, { marginTop: 8 }]}
+            >
+              <View style={styles.subscriptionStatusRow}>
+                <View style={styles.statusIconCircle}>
+                  <Ionicons name="key-outline" size={22} color={Colors.primary} />
+                </View>
+                <View style={styles.settingsContent}>
+                  <Text style={styles.settingsLabel}>Have a code?</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
               </View>
             </Pressable>
           )}

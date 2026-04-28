@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkPremiumStatus, isRevenueCatReady } from '@/lib/revenueCat';
+import { getBundleExpiry } from '@/lib/bundleAccess';
 
 export type SubscriptionTier = 'free' | 'premium';
 
@@ -151,11 +152,24 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   syncWithRevenueCat: async () => {
     if (!isRevenueCatReady()) return;
     try {
-      const isPremium = await checkPremiumStatus();
+      // Premium access is unlocked by EITHER a per-app RevenueCat IAP
+      // entitlement OR an active ALSTIG Bundle code redeemed in this
+      // app's Settings. RevenueCat takes precedence in expiresAt because
+      // its entitlement is the recurring source of truth; bundle expiry
+      // is a fixed 6-month window from issuance and is the fallback.
+      const [isPremium, bundleExpiry] = await Promise.all([
+        checkPremiumStatus(),
+        getBundleExpiry(),
+      ]);
+      const bundleActive = bundleExpiry !== null && bundleExpiry.getTime() > Date.now();
+
       if (isPremium) {
         const farFuture = new Date();
         farFuture.setFullYear(farFuture.getFullYear() + 1);
         set({ tier: 'premium', expiresAt: farFuture.toISOString(), isTrialing: false });
+        get().persist();
+      } else if (bundleActive) {
+        set({ tier: 'premium', expiresAt: bundleExpiry!.toISOString(), isTrialing: false });
         get().persist();
       } else {
         const state = get();
